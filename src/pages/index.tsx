@@ -1,14 +1,11 @@
 import { type NextPage } from "next";
 import Head from "next/head";
-import Link from "next/link";
 import React from "react";
 import Navbar from "../components/Navbar";
 
-import { api } from "../utils/api";
+import Numpad from "../components/numpad/Numpad";
 
 const Home: NextPage = () => {
-  const hello = api.example.hello.useQuery({ text: "from tRPC" });
-
   return (
     <>
       <Head>
@@ -17,12 +14,14 @@ const Home: NextPage = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <header className="flex">
-        <Navbar/>
-      </header>
-      <main className="bg-base-100 h-screen">
-
-      </main>
+      <div className="flex flex-col h-screen">
+        <header>
+          <Navbar />
+        </header>
+        <main className="flex-grow">
+          <Numpad />
+        </main>
+      </div>
     </>
   );
 };
