@@ -1,9 +1,5 @@
-// react functional component that renders a numpad and a display
-// the numpad is a grid of buttons that are rendered using the Button component
-
 import { useState } from "react";
 
-// the display is a text input that is rendered using the Input
 const Numpad: React.FC = () => {
   const [value, setValue] = useState<string>("");
 
@@ -16,7 +12,7 @@ const Numpad: React.FC = () => {
   const NumpadBtn: React.FC<{ value: string }> = ({ value }) => {
     return (
       <button
-        className="text-center text-3xl h-40 bg-base-300 border-2 border-[hsl(var(--b1))]"
+        className="h-40 border-2 border-[hsl(var(--b1))] bg-base-300 text-center text-3xl"
         value={value}
         onClick={buttonClick}
       >
@@ -26,9 +22,9 @@ const Numpad: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-full font-mono text-lg font-semibold">
-      <h1 className="text-8xl pl-16 pr-16 bg-neutral-content"> {value} </h1>
-      <div className="grid grid-cols-3 mt-auto">
+    <div className="flex h-full flex-col font-mono text-lg font-semibold">
+      <h1 className=" mt-auto mb-auto pl-16 pr-16 text-8xl"> {value} </h1>
+      <div className="mt-auto grid grid-cols-3">
         <NumpadBtn value="1" />
         <NumpadBtn value="2" />
         <NumpadBtn value="3" />
