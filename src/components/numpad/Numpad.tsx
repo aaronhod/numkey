@@ -1,4 +1,8 @@
-import { useState } from "react";
+import React, { ReactElement, useState } from "react";
+import { BackSpaceIcon, SendIcon } from "../Icons";
+import { generateProblems, shuffleProblems } from "./Game";
+
+console.log(shuffleProblems(generateProblems(4, "*")));
 
 const Numpad: React.FC = () => {
   const [value, setValue] = useState<string>("");
@@ -6,17 +10,30 @@ const Numpad: React.FC = () => {
   function buttonClick(e: React.MouseEvent<HTMLButtonElement>) {
     const target = e.target as HTMLButtonElement;
     const value = target.value;
+
+    switch (value) {
+      case "=":
+        console.log("Send");
+        return;
+      case "<":
+        console.log("del");
+        return;
+    }
+
     setValue(value);
   }
 
-  const NumpadBtn: React.FC<{ value: string }> = ({ value }) => {
+  const NumpadBtn: React.FC<{ value: string; icon?: ReactElement }> = ({
+    value,
+    icon,
+  }) => {
     return (
       <button
         className="h-40 border-2 border-[hsl(var(--b1))] bg-base-300 text-center text-3xl"
         value={value}
         onClick={buttonClick}
       >
-        {value}
+        {icon ?? value}
       </button>
     );
   };
@@ -37,9 +54,12 @@ const Numpad: React.FC = () => {
         <NumpadBtn value="8" />
         <NumpadBtn value="9" />
 
-        <NumpadBtn value="<" />
+        <NumpadBtn
+          value="<"
+          icon={<BackSpaceIcon className="ml-auto mr-auto h-10 w-10" />}
+        />
         <NumpadBtn value="0" />
-        <NumpadBtn value=">" />
+        <NumpadBtn value="=" />
       </div>
     </div>
   );
