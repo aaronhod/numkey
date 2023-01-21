@@ -75,5 +75,5 @@ function shuffleProblem(problem: Problem): Problem {
   return problem;
 }
 
-export type { Operator, Problem };
+export type { Operator, Problem, ProblemWithAns };
 export { generateProblems, shuffleProblem, shuffleProblems };

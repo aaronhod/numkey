@@ -1,26 +1,50 @@
 import React, { ReactElement, useState } from "react";
 import { BackSpaceIcon, SendIcon } from "../Icons";
-import { generateProblems, shuffleProblems } from "./Game";
+import { ProblemWithAns, generateProblems, shuffleProblems } from "./Game";
 
-console.log(shuffleProblems(generateProblems(4, "*")));
+type UiOperator = "+" | "-" | "÷" | "x";
+
+const MULTIPLY_CHAR = "x";
+const DIVIDE_CHAR = "÷";
+
+function formatOutput(problem: ProblemWithAns) {
+  let formattedOperator = problem.operator as UiOperator;
+  if (problem.operator === "*") formattedOperator = MULTIPLY_CHAR;
+  if (problem.operator === "/") formattedOperator = DIVIDE_CHAR;
+
+  return `${problem.value1} ${formattedOperator} ${problem.value2} = `;
+}
 
 const Numpad: React.FC = () => {
+  const testProblem: ProblemWithAns = {
+    value1: 5,
+    value2: 4,
+    operator: "*",
+    answer: 20,
+  };
+
   const [value, setValue] = useState<string>("");
 
   function buttonClick(e: React.MouseEvent<HTMLButtonElement>) {
     const target = e.target as HTMLButtonElement;
-    const value = target.value;
+    const newValue = target.value;
 
-    switch (value) {
-      case "=":
-        console.log("Send");
-        return;
-      case "<":
-        console.log("del");
-        return;
+    if (newValue === "<") {
+      if (value.length === 0) return;
+      setValue((value) => value.slice(0, -1));
+      return;
     }
 
-    setValue(value);
+    if (newValue === "C") {
+      setValue("");
+      return;
+    }
+
+    if (value.length >= 3) {
+      return;
+    }
+
+    setValue((value) => value + newValue);
   }
 
   const NumpadBtn: React.FC<{ value: string; icon?: ReactElement }> = ({
@@ -40,7 +64,9 @@ const Numpad: React.FC = () => {
 
   return (
     <div className="flex h-full flex-col font-mono text-lg font-semibold">
-      <h1 className=" mt-auto mb-auto pl-16 pr-16 text-8xl"> {value} </h1>
+      <h1 className=" mt-auto mb-auto pl-16 pr-16 text-8xl">
+        {`${formatOutput(testProblem)} ${value ? value : "?"}`}
+      </h1>
       <div className="mt-auto grid grid-cols-3">
         <NumpadBtn value="1" />
         <NumpadBtn value="2" />
@@ -59,7 +85,7 @@ const Numpad: React.FC = () => {
           icon={<BackSpaceIcon className="ml-auto mr-auto h-10 w-10" />}
         />
         <NumpadBtn value="0" />
-        <NumpadBtn value="=" />
+        <NumpadBtn value="C" />
       </div>
     </div>
   );
