@@ -21,7 +21,7 @@ function formatOutput(problem: Problem) {
 const Display: React.FC<DisplayProps> = ({ problem, value }) => {
   return (
     <h1 className=" my-auto pl-16 pr-16 text-8xl">
-      {`${formatOutput(problem)} ${value ? value : "?"}`}
+      {`${formatOutput(problem)} ${value ?? ""}`}
     </h1>
   );
 };

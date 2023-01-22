@@ -21,11 +21,6 @@ const Numpad: React.FC<NumpadProps> = ({ setValue, value }) => {
       return;
     }
 
-    if (newValue === "C") {
-      setValue("");
-      return;
-    }
-
     if (value.length >= 3) {
       return;
     }
@@ -67,7 +62,7 @@ const Numpad: React.FC<NumpadProps> = ({ setValue, value }) => {
         icon={<BackSpaceIcon className="ml-auto mr-auto h-10 w-10" />}
       />
       <NumpadBtn value="0" />
-      <NumpadBtn value="C" />
+      <NumpadBtn value="." />
     </div>
   );
 };

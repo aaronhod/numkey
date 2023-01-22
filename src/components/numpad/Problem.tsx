@@ -1,3 +1,5 @@
+import { Dayjs } from "dayjs";
+
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 type Operator = "+" | "-" | "*" | "/";
 
@@ -5,15 +7,18 @@ interface Problem {
   value1: number;
   value2: number;
   operator: Operator;
+  answer?: number;
 }
 
-interface ProblemWithAns extends Problem {
-  answer: number;
+interface SolvedProblem extends Problem {
+  solvedAt: Dayjs;
+  solveTime: number;
 }
 
 const MAX_NUM = 12;
+const MIN_NUM = 2;
 
-function solveProblem(problem: Problem): ProblemWithAns {
+function solveProblem(problem: Problem): Problem {
   const { value1, value2, operator } = problem;
   let answer: number;
 
@@ -45,10 +50,10 @@ function solveProblem(problem: Problem): ProblemWithAns {
 function generateProblems(
   number: number,
   operator: Operator
-): ProblemWithAns[] {
-  const problems: ProblemWithAns[] = [];
+): Problem[] {
+  const problems: Problem[] = [];
 
-  for (let i = 1; i < MAX_NUM + 1; i++) {
+  for (let i = MIN_NUM; i < MAX_NUM + 1; i++) {
     problems.push(solveProblem({ value1: i, value2: number, operator }));
   }
 
@@ -75,5 +80,5 @@ function shuffleProblem(problem: Problem): Problem {
   return problem;
 }
 
-export type { Operator, Problem, ProblemWithAns };
+export type { Operator, Problem, SolvedProblem };
 export { generateProblems, shuffleProblem, shuffleProblems };

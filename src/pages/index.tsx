@@ -3,6 +3,7 @@ import Head from "next/head";
 import React from "react";
 import Navbar from "../components/Navbar";
 import Game from "../components/numpad/Game";
+import { generateProblems } from "../components/numpad/Problem";
 
 
 const Home: NextPage = () => {
@@ -19,7 +20,7 @@ const Home: NextPage = () => {
           <Navbar />
         </header>
         <main className="flex-grow">
-          <Game />
+          <Game problems={generateProblems(2, "*")}/>
         </main>
       </div>
     </>
