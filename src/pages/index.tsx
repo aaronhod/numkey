@@ -2,8 +2,8 @@ import { type NextPage } from "next";
 import Head from "next/head";
 import React from "react";
 import Navbar from "../components/Navbar";
+import Game from "../components/numpad/Game";
 
-import Numpad from "../components/numpad/Numpad";
 
 const Home: NextPage = () => {
   return (
@@ -19,7 +19,7 @@ const Home: NextPage = () => {
           <Navbar />
         </header>
         <main className="flex-grow">
-          <Numpad />
+          <Game />
         </main>
       </div>
     </>

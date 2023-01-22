@@ -1,33 +1,19 @@
-import React, { ReactElement, useState } from "react";
-import { BackSpaceIcon, SendIcon } from "../Icons";
-import { ProblemWithAns, generateProblems, shuffleProblems } from "./Game";
+import React, { ReactElement } from "react";
+import { BackSpaceIcon } from "../Icons";
 
-type UiOperator = "+" | "-" | "÷" | "x";
-
-const MULTIPLY_CHAR = "x";
-const DIVIDE_CHAR = "÷";
-
-function formatOutput(problem: ProblemWithAns) {
-  let formattedOperator = problem.operator as UiOperator;
-  if (problem.operator === "*") formattedOperator = MULTIPLY_CHAR;
-  if (problem.operator === "/") formattedOperator = DIVIDE_CHAR;
-
-  return `${problem.value1} ${formattedOperator} ${problem.value2} = `;
+interface NumpadProps {
+  setValue: React.Dispatch<React.SetStateAction<string>>;
+  value: string;
 }
 
-const Numpad: React.FC = () => {
-  const testProblem: ProblemWithAns = {
-    value1: 5,
-    value2: 4,
-    operator: "*",
-    answer: 20,
-  };
-
-  const [value, setValue] = useState<string>("");
-
+const Numpad: React.FC<NumpadProps> = ({ setValue, value }) => {
   function buttonClick(e: React.MouseEvent<HTMLButtonElement>) {
     const target = e.target as HTMLButtonElement;
     const newValue = target.value;
+
+    if (!newValue) {
+      return;
+    }
 
     if (newValue === "<") {
       if (value.length === 0) return;
@@ -63,30 +49,25 @@ const Numpad: React.FC = () => {
   };
 
   return (
-    <div className="flex h-full flex-col font-mono text-lg font-semibold">
-      <h1 className=" mt-auto mb-auto pl-16 pr-16 text-8xl">
-        {`${formatOutput(testProblem)} ${value ? value : "?"}`}
-      </h1>
-      <div className="mt-auto grid grid-cols-3">
-        <NumpadBtn value="1" />
-        <NumpadBtn value="2" />
-        <NumpadBtn value="3" />
+    <div className="mt-auto grid grid-cols-3">
+      <NumpadBtn value="1" />
+      <NumpadBtn value="2" />
+      <NumpadBtn value="3" />
 
-        <NumpadBtn value="4" />
-        <NumpadBtn value="5" />
-        <NumpadBtn value="6" />
+      <NumpadBtn value="4" />
+      <NumpadBtn value="5" />
+      <NumpadBtn value="6" />
 
-        <NumpadBtn value="7" />
-        <NumpadBtn value="8" />
-        <NumpadBtn value="9" />
+      <NumpadBtn value="7" />
+      <NumpadBtn value="8" />
+      <NumpadBtn value="9" />
 
-        <NumpadBtn
-          value="<"
-          icon={<BackSpaceIcon className="ml-auto mr-auto h-10 w-10" />}
-        />
-        <NumpadBtn value="0" />
-        <NumpadBtn value="C" />
-      </div>
+      <NumpadBtn
+        value="<"
+        icon={<BackSpaceIcon className="ml-auto mr-auto h-10 w-10" />}
+      />
+      <NumpadBtn value="0" />
+      <NumpadBtn value="C" />
     </div>
   );
 };
