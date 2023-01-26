@@ -1,13 +1,13 @@
 import type { Problem } from "./Problem";
 
-type UiOperator = "+" | "-" | "÷" | "x";
+type UiOperator = "+" | "-" | "÷" | "×";
 
 interface DisplayProps {
   problem: Problem;
   value: string;
 }
 
-const MULTIPLY_CHAR = "x";
+const MULTIPLY_CHAR = "×";
 const DIVIDE_CHAR = "÷";
 
 function formatOperator(operator: string): UiOperator {

@@ -1,4 +1,4 @@
-import { Dayjs } from "dayjs";
+import type { Dayjs } from "dayjs";
 
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 type Operator = "+" | "-" | "*" | "/";
