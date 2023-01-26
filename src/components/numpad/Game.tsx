@@ -5,13 +5,18 @@ import type { Problem, SolvedProblem } from "./Problem";
 import { Stack } from "immutable";
 import type { Dayjs } from "dayjs";
 import dayjs from "dayjs";
-import { SelectionScreen } from "../SelectionScreen";
+
+interface FinishedGame {
+  solvedProblems: SolvedProblem[];
+  completionTime: number;
+}
 
 interface GameProps {
   problems: Problem[];
+  completeGame: (game: FinishedGame) => void;
 }
 
-const Game: React.FC<GameProps> = ({ problems }) => {
+const Game: React.FC<GameProps> = ({ problems, completeGame }) => {
   const [value, setValue] = useState<string>("");
   const [problemStack, setProblemStack] = useState<Stack<Problem>>(
     Stack(problems).pop()
@@ -27,12 +32,21 @@ const Game: React.FC<GameProps> = ({ problems }) => {
     if (value === "") return;
     if (parseInt(value) === currentProblem.answer) {
       updateHistory();
+      const nextProblem = problemStack.peek();
 
-      const nextProblem = problemStack.peek()!;
+      if (!nextProblem) {
+        completeGame({
+          solvedProblems: history.reverse().toArray(),
+          completionTime: totalTime(),
+        });
+        return;
+      }
+
       setProblemStack(problemStack.pop());
       setCurrentProblem(nextProblem);
       setValue("");
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value, currentProblem, history, problemStack]);
 
   function updateHistory() {
@@ -48,16 +62,17 @@ const Game: React.FC<GameProps> = ({ problems }) => {
     setLastAnsAt(solvedDate);
   }
 
+  function totalTime() {
+    return history.reduce((acc, problem) => acc + problem.solveTime, 0);
+  }
+
   return (
-    // <div className="flex h-full flex-col font-mono text-lg font-semibold">
-    //   <Display value={value} problem={currentProblem} />
-    //   <Numpad value={value} setValue={setValue} />
-    // </div>
-    <SelectionScreen/>
+    <div className="flex h-full flex-col font-mono text-lg font-semibold">
+      <Display value={value} problem={currentProblem} />
+      <Numpad value={value} setValue={setValue} />
+    </div>
   );
 };
 
-
-// TODO Menu, Completion Screen
-
 export { Game as default };
+export type { FinishedGame };
