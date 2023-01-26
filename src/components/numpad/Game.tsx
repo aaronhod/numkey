@@ -5,6 +5,7 @@ import type { Problem, SolvedProblem } from "./Problem";
 import { Stack } from "immutable";
 import type { Dayjs } from "dayjs";
 import dayjs from "dayjs";
+import { SelectionScreen } from "../SelectionScreen";
 
 interface GameProps {
   problems: Problem[];
@@ -32,7 +33,6 @@ const Game: React.FC<GameProps> = ({ problems }) => {
       setCurrentProblem(nextProblem);
       setValue("");
     }
-    console.log(history);
   }, [value, currentProblem, history, problemStack]);
 
   function updateHistory() {
@@ -49,11 +49,15 @@ const Game: React.FC<GameProps> = ({ problems }) => {
   }
 
   return (
-    <div className="flex h-full flex-col font-mono text-lg font-semibold">
-      <Display value={value} problem={currentProblem} />
-      <Numpad value={value} setValue={setValue} />
-    </div>
+    // <div className="flex h-full flex-col font-mono text-lg font-semibold">
+    //   <Display value={value} problem={currentProblem} />
+    //   <Numpad value={value} setValue={setValue} />
+    // </div>
+    <SelectionScreen/>
   );
 };
+
+
+// TODO Menu, Completion Screen
 
 export { Game as default };

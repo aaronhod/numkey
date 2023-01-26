@@ -10,11 +10,14 @@ interface DisplayProps {
 const MULTIPLY_CHAR = "x";
 const DIVIDE_CHAR = "÷";
 
-function formatOutput(problem: Problem) {
-  let formattedOperator = problem.operator as UiOperator;
-  if (problem.operator === "*") formattedOperator = MULTIPLY_CHAR;
-  if (problem.operator === "/") formattedOperator = DIVIDE_CHAR;
+function formatOperator(operator: string): UiOperator {
+  if (operator === "*") return MULTIPLY_CHAR;
+  if (operator === "/") return DIVIDE_CHAR;
+  return operator as UiOperator;
+}
 
+function formatOutput(problem: Problem) {
+  const formattedOperator = formatOperator(problem.operator);
   return `${problem.value1} ${formattedOperator} ${problem.value2} = `;
 }
 
@@ -26,4 +29,4 @@ const Display: React.FC<DisplayProps> = ({ problem, value }) => {
   );
 };
 
-export { Display };
+export { Display, formatOperator };
