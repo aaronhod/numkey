@@ -1,7 +1,7 @@
 import type { Dayjs } from "dayjs";
 
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-type Operator = "+" | "-" | "*" | "/";
+type Operator = "+" | "-" | "×" | "÷";
 
 interface Problem {
   value1: number;
@@ -29,10 +29,10 @@ function solveProblem(problem: Problem): Problem {
     case "-":
       answer = value1 - value2;
       break;
-    case "*":
+    case "×":
       answer = value1 * value2;
       break;
-    case "/":
+    case "÷":
       answer = value1 / value2;
       break;
     default:

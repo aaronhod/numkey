@@ -70,7 +70,6 @@ const DUMMYFINISH: FinishedGame = {
   completionTime: 100000,
 };
 
-
 const Home: NextPage = () => {
   return (
     <>
@@ -80,13 +79,13 @@ const Home: NextPage = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <div className="flex flex-col h-screen">
+      <div className="flex h-screen flex-col">
         <header>
           <Navbar />
         </header>
         <main className="flex-grow">
-          {/* <Layout/> */}
-          <FinishedGameScreen finishedGame={DUMMYFINISH} resetGame={() => {}} />
+          <Layout />
+          {/* <FinishedGameScreen finishedGame={DUMMYFINISH} resetGame={() => {}} /> */}
         </main>
       </div>
     </>

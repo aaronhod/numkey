@@ -7,7 +7,6 @@ interface FinishedGameProps {
 
 const FinishedGameScreen = ({ finishedGame, resetGame }: FinishedGameProps) => {
   const { solvedProblems, completionTime } = finishedGame;
-  console.log(finishedGame);
 
   return (
     <div className="flex h-full flex-col items-center justify-center">

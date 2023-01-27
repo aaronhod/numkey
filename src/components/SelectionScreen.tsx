@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import type { Operator } from "./numpad/Problem";
-import { formatOperator } from "./numpad/Display";
 
 interface SelectionScreenProps {
   startGame: (operator: Operator, number: number) => void;
@@ -54,7 +53,7 @@ const SelectionScreen = ({ startGame }: SelectionScreenProps) => {
         onClick={() => setSelectedOperator(operator)}
         selectClass={selectedClass}
       >
-        {formatOperator(operator)}
+        {operator}
       </SelectButton>
     );
   };
@@ -77,8 +76,8 @@ const SelectionScreen = ({ startGame }: SelectionScreenProps) => {
       <div className="mt-10 flex flex-row gap-4">
         <OperatorSelect key="+" operator="+" />
         <OperatorSelect key="-" operator="-" />
-        <OperatorSelect key="*" operator="*" />
-        <OperatorSelect key="/" operator="/" />
+        <OperatorSelect key="×" operator="×" />
+        <OperatorSelect key="÷" operator="÷" />
       </div>
       <div className="mt-10 mb-72 p-6 text-3xl">
         <button

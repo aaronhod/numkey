@@ -30,7 +30,7 @@ const Game: React.FC<GameProps> = ({ problems, completeGame }) => {
   // check if the answer is correct
   useEffect(() => {
     if (value === "") return;
-    if (parseInt(value) === currentProblem.answer) {
+    if (Number(value) === currentProblem.answer) {
       updateHistory();
       const nextProblem = problemStack.peek();
 
