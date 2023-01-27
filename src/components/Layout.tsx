@@ -5,9 +5,10 @@ import type { FinishedGame } from "./numpad/Game";
 import type { Problem, Operator } from "./numpad/Problem";
 import { generateProblems } from "./numpad/Problem";
 import FinishedGameScreen from "./FinishedGameScreen";
+import { useSessionStorage } from "../hooks/useLocalStorage";
 
 const Layout = () => {
-  const [problems, setProblems] = useState<Problem[]>([]);
+  const [problems, setProblems] = useSessionStorage<Problem[]>("problems",[]);
   const [finishedGame, setFinishedGame] = useState<FinishedGame>();
 
   function startGame(operator: Operator, number: number) {
