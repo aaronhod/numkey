@@ -1,15 +1,17 @@
-// Screen for selecting a number from 2-12 and a math operator to use in the game.
-
+import { useRouter } from "next/router";
 import { useState } from "react";
+import { getGameRouteSimple } from "../constants/routes";
 import type { Operator } from "./numpad/Problem";
 
-interface SelectionScreenProps {
-  startGame: (operator: Operator, number: number) => void;
-}
-
-const SelectionScreen = ({ startGame }: SelectionScreenProps) => {
+const SelectionScreen = () => {
   const [selectedOperator, setSelectedOperator] = useState<Operator>();
   const [selectedNumber, setSelectedNumber] = useState<number>();
+  const router = useRouter();
+
+  function startGame(operator: Operator, number: number): void {
+    const gameRoute = getGameRouteSimple(number, operator);
+    router.push(gameRoute).catch((err) =>  (console.error(err)));
+  }
 
   const SelectButton = ({
     onClick,

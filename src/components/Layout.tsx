@@ -8,17 +8,14 @@ import FinishedGameScreen from "./FinishedGameScreen";
 import { useSessionStorage } from "../hooks/useLocalStorage";
 
 const Layout = () => {
-  const [problems, setProblems] = useSessionStorage<Problem[]>("problems",[]);
   const [finishedGame, setFinishedGame] = useState<FinishedGame>();
 
   function startGame(operator: Operator, number: number) {
     const problems = generateProblems(number, operator);
-    setProblems(problems);
   }
 
   function completeGame(game: FinishedGame) {
     setFinishedGame(game);
-    setProblems([]);
   }
 
   if (finishedGame) {
@@ -30,16 +27,7 @@ const Layout = () => {
     );
   }
 
-  if (problems.length === 0) {
-    return <SelectionScreen startGame={startGame} />;
-  }
-
-  return (
-    <>
-      <Game problems={problems} completeGame={completeGame} />
-    </>
-  );
+  return <SelectionScreen />;
 };
 
 export { Layout as default };
-

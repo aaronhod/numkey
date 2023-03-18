@@ -1,7 +1,7 @@
 import type { Dayjs } from "dayjs";
 
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-type Operator = "+" | "-" | "×" | "÷";
+export type Operator = "+" | "-" | "×" | "÷";
 
 interface Problem {
   value1: number;
