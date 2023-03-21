@@ -13,10 +13,9 @@ interface FinishedGame {
 
 interface GameProps {
   problems: Problem[];
-  completeGame: (game: FinishedGame) => void;
 }
 
-const Game: React.FC<GameProps> = ({ problems, completeGame }) => {
+const Game: React.FC<GameProps> = ({ problems }) => {
   const [value, setValue] = useState<string>("");
   const [problemStack, setProblemStack] = useState<Stack<Problem>>(
     Stack(problems).pop()
@@ -48,6 +47,10 @@ const Game: React.FC<GameProps> = ({ problems, completeGame }) => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value, currentProblem, history, problemStack]);
+
+  function completeGame(game: FinishedGame) {
+    console.log(game);
+  }
 
   function updateHistory() {
     const solvedDate = dayjs();

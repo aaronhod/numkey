@@ -1,6 +1,7 @@
 import { useRouter } from "next/router";
 import { ParsedUrlQuery } from "querystring";
 import { useEffect, useState } from "react";
+import Game from "../../../components/numpad/Game";
 import {
   Problem,
   generateProblems,
@@ -54,14 +55,10 @@ const RunningGame = () => {
     return `${PROBLEM_STORAGE_KEY}-${gameId}`;
   }
 
-  console.log(router);
+  if(!problems) return null;
 
   return (
-    <div>
-      <h1>Running Game: {gameId}</h1>
-      <p>Operator: {operator}</p>
-      <p>Number: {number}</p>
-    </div>
+    <Game problems={problems}/>
   );
 };
 
