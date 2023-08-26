@@ -10,56 +10,56 @@ import dayjs from 'dayjs';
 const DUMMYFINISH: FinishedGame = {
     solvedProblems: [
         {
-            value1: 1,
-            value2: 1,
+            leftValue: 1,
+            rightValue: 1,
             operator: '+',
             answer: 2,
             solveTime: 18000,
             solvedAt: dayjs(),
         },
         {
-            value1: 1,
-            value2: 1,
+            leftValue: 1,
+            rightValue: 1,
             operator: '+',
             answer: 2,
             solveTime: 18000,
             solvedAt: dayjs(),
         },
         {
-            value1: 1,
-            value2: 1,
+            leftValue: 1,
+            rightValue: 1,
             operator: '+',
             answer: 2,
             solveTime: 18000,
             solvedAt: dayjs(),
         },
         {
-            value1: 1,
-            value2: 1,
+            leftValue: 1,
+            rightValue: 1,
             operator: '+',
             answer: 2,
             solveTime: 18000,
             solvedAt: dayjs(),
         },
         {
-            value1: 1,
-            value2: 1,
+            leftValue: 1,
+            rightValue: 1,
             operator: '+',
             answer: 2,
             solveTime: 18000,
             solvedAt: dayjs(),
         },
         {
-            value1: 1,
-            value2: 1,
+            leftValue: 1,
+            rightValue: 1,
             operator: '+',
             answer: 2,
             solveTime: 200000,
             solvedAt: dayjs(),
         },
         {
-            value1: 1,
-            value2: 1,
+            leftValue: 1,
+            rightValue: 1,
             operator: '+',
             answer: 2,
             solveTime: 30000,
@@ -85,8 +85,7 @@ const Home: NextPage = () => {
                 <main className="flex-grow">
                     {/*<Layout />*/}
                     <FinishedGameScreen
-                        finishedGame={DUMMYFINISH} resetGame={() => {
-                    }}
+                        finishedGame={DUMMYFINISH} resetGame={() => {}}
                     />
                 </main>
             </div>

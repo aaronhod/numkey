@@ -3,8 +3,8 @@ import type {Dayjs} from 'dayjs';
 type Operator = '+' | '-' | '×' | '÷';
 
 interface Problem {
-    value1: number;
-    value2: number;
+    leftValue: number;
+    rightValue: number;
     operator: Operator;
     answer?: number;
 }
@@ -18,29 +18,29 @@ const MAX_NUM = 12;
 const MIN_NUM = 2;
 
 function solveProblem(problem: Problem): Problem {
-    const {value1, value2, operator} = problem;
+    const {leftValue, rightValue, operator} = problem;
     let answer: number;
 
     switch (operator) {
         case '+':
-            answer = value1 + value2;
+            answer = leftValue + rightValue;
             break;
         case '-':
-            answer = value1 - value2;
+            answer = leftValue - rightValue;
             break;
         case '×':
-            answer = value1 * value2;
+            answer = leftValue * rightValue;
             break;
         case '÷':
-            answer = value1 / value2;
+            answer = leftValue / rightValue;
             break;
         default:
             throw new Error('Invalid operator');
     }
 
     return {
-        value1: value1,
-        value2: value2,
+        leftValue: leftValue,
+        rightValue: rightValue,
         operator: operator,
         answer: answer,
     };
@@ -53,7 +53,7 @@ function generateProblems(
     const problems: Problem[] = [];
 
     for (let i = MIN_NUM; i < MAX_NUM + 1; i++) {
-        problems.push(solveProblem({value1: i, value2: number, operator}));
+        problems.push(solveProblem({leftValue: i, rightValue: number, operator}));
     }
 
     return problems;
@@ -64,14 +64,14 @@ function shuffleProblems(problems: Problem[]): Problem[] {
 }
 
 function shuffleProblem(problem: Problem): Problem {
-    const {value1, value2} = problem;
+    const {leftValue, rightValue} = problem;
     const rand = Math.random();
 
     if (rand < 0.5) {
         return {
             ...problem,
-            value1: value2,
-            value2: value1,
+            leftValue: rightValue,
+            rightValue: leftValue,
             operator: problem.operator,
         };
     }

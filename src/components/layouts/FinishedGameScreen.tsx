@@ -31,7 +31,7 @@ const FinishedGameScreen = ({finishedGame, resetGame}: FinishedGameProps) => {
                     {solvedProblems.map((problem, index) => (
                         <TableRow key={index}>
                             <TableCell>
-                                {problem.value1} {problem.operator} {problem.value2} ={' '}
+                                {problem.leftValue} {problem.operator} {problem.rightValue} ={' '}
                                 {problem.answer}
                             </TableCell>
                             <TableCell>{problem.solveTime / 1000}s</TableCell>

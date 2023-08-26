@@ -15,3 +15,22 @@ model Example {
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 }
+
+// todo: add user model for clerk
+model FinishedRound {
+    id     Int    @id @default(autoincrement())
+    leftValue Int
+    rightValue Int
+    operator String
+    answer Float
+    solvedAt DateTime
+    solveTime BigInt
+    game FinishedGame @relation(fields: [gameId], references: [id])
+    gameId Int
+}
+
+model FinishedGame {
+    id     Int    @id @default(autoincrement())
+    completionTime BigInt
+    rounds FinishedRound[]
+}

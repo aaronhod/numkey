@@ -9,7 +9,7 @@ interface DisplayProps {
 }
 
 function formatProblem(problem: Problem) {
-    return `${problem.value1} ${problem.operator} ${problem.value2} = `;
+    return `${problem.leftValue} ${problem.operator} ${problem.rightValue} = `;
 }
 
 const Display: React.FC<DisplayProps> = ({className, problem, value}) => {
