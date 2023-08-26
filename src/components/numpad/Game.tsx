@@ -51,6 +51,7 @@ const Game: React.FC<GameProps> = ({problems}) => {
     }, [value, currentProblem, history, problemStack]);
 
     function completeGame(game: FinishedGame) {
+        // submit and then go to ssr summary page
         console.log(game);
     }
 
@@ -73,7 +74,7 @@ const Game: React.FC<GameProps> = ({problems}) => {
 
     return (
         <div className="flex h-full flex-col font-mono text-lg font-semibold">
-            <Display value={value} problem={currentProblem} />
+            <Display className="p-10" value={value} problem={currentProblem} />
             <Numpad value={value} setValue={setValue} />
         </div>
     );

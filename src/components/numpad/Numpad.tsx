@@ -1,6 +1,7 @@
 import type {ReactElement} from 'react';
 import React from 'react';
-import {BackSpaceIcon} from '@/components/ui/Icons';
+import {Button} from '@/components/ui/button';
+import {Delete} from 'lucide-react';
 
 interface NumpadProps {
     setValue: React.Dispatch<React.SetStateAction<string>>;
@@ -36,13 +37,14 @@ const Numpad: React.FC<NumpadProps> = ({setValue, value}) => {
         icon,
     }) => {
         return (
-            <button
-                className="h-40 border-2 border-[hsl(var(--b1))] bg-base-300 text-center text-3xl"
+            <Button
+                variant="outline"
+                className="h-40 border-2 text-center text-3xl hover:bg-primary"
                 value={value}
                 onClick={buttonClick}
             >
                 {icon ?? value}
-            </button>
+            </Button>
         );
     };
 
@@ -62,7 +64,7 @@ const Numpad: React.FC<NumpadProps> = ({setValue, value}) => {
 
             <NumpadBtn
                 value="<"
-                icon={<BackSpaceIcon className="ml-auto mr-auto h-10 w-10" />}
+                icon={<Delete className="ml-auto mr-auto h-10 w-10" />}
             />
             <NumpadBtn value="0" />
             <NumpadBtn value="." />

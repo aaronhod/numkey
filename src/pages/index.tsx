@@ -2,8 +2,72 @@
 import {type NextPage} from 'next';
 import Head from 'next/head';
 import React from 'react';
-import Layout from '@/components/layouts/Layout';
 import Navbar from '@/components/layouts/Navbar';
+import FinishedGameScreen from '@/components/layouts/FinishedGameScreen';
+import {FinishedGame} from '@/components/numpad/Game';
+import dayjs from 'dayjs';
+
+const DUMMYFINISH: FinishedGame = {
+    solvedProblems: [
+        {
+            value1: 1,
+            value2: 1,
+            operator: '+',
+            answer: 2,
+            solveTime: 18000,
+            solvedAt: dayjs(),
+        },
+        {
+            value1: 1,
+            value2: 1,
+            operator: '+',
+            answer: 2,
+            solveTime: 18000,
+            solvedAt: dayjs(),
+        },
+        {
+            value1: 1,
+            value2: 1,
+            operator: '+',
+            answer: 2,
+            solveTime: 18000,
+            solvedAt: dayjs(),
+        },
+        {
+            value1: 1,
+            value2: 1,
+            operator: '+',
+            answer: 2,
+            solveTime: 18000,
+            solvedAt: dayjs(),
+        },
+        {
+            value1: 1,
+            value2: 1,
+            operator: '+',
+            answer: 2,
+            solveTime: 18000,
+            solvedAt: dayjs(),
+        },
+        {
+            value1: 1,
+            value2: 1,
+            operator: '+',
+            answer: 2,
+            solveTime: 200000,
+            solvedAt: dayjs(),
+        },
+        {
+            value1: 1,
+            value2: 1,
+            operator: '+',
+            answer: 2,
+            solveTime: 30000,
+            solvedAt: dayjs(),
+        },
+    ],
+    completionTime: 100000,
+};
 
 const Home: NextPage = () => {
     return (
@@ -19,8 +83,11 @@ const Home: NextPage = () => {
                     <Navbar />
                 </header>
                 <main className="flex-grow">
-                    <Layout />
-                    {/* <FinishedGameScreen finishedGame={DUMMYFINISH} resetGame={() => {}} /> */}
+                    {/*<Layout />*/}
+                    <FinishedGameScreen
+                        finishedGame={DUMMYFINISH} resetGame={() => {
+                    }}
+                    />
                 </main>
             </div>
         </>

@@ -4,7 +4,7 @@ import {Moon, Sun} from 'lucide-react';
 import {useTheme} from 'next-themes';
 import type {UseThemeProps} from 'next-themes/dist/types';
 import Link from 'next/link';
-import {Theme} from '@/pages/_app';
+import type {Theme} from '@/pages/_app';
 
 interface ThemeProps extends UseThemeProps {
     theme: Theme;
@@ -28,7 +28,7 @@ const SwitchThemeButton: React.FC = () => {
 
 const Navbar: React.FC = () => {
     return (
-        <div className="navbar flex flex-row max-h-14 bg-accent">
+        <div className="navbar flex flex-row max-h-20 bg-accent">
             <Button variant="secondary">
                 <Link href="/">Math</Link>
             </Button>
