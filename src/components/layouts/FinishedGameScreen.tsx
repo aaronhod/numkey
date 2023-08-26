@@ -1,4 +1,4 @@
-import type { FinishedGame } from "./numpad/Game";
+import type { FinishedGame } from "@/components/numpad/Game";
 
 interface FinishedGameProps {
   finishedGame: FinishedGame;

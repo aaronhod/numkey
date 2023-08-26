@@ -1,11 +1,11 @@
 import { useState } from "react";
-import { SelectionScreen } from "./SelectionScreen";
-import Game from "./numpad/Game";
-import type { FinishedGame } from "./numpad/Game";
-import type { Problem, Operator } from "./numpad/Problem";
-import { generateProblems } from "./numpad/Problem";
-import FinishedGameScreen from "./FinishedGameScreen";
-import { useSessionStorage } from "../hooks/useLocalStorage";
+import { SelectionScreen } from "@/components/layouts/SelectionScreen";
+import Game from "@/components/numpad/Game";
+import type { FinishedGame } from "@/components/numpad/Game";
+import type { Problem, Operator } from "@/components/numpad/Problem";
+import { generateProblems } from "@/components/numpad/Problem";
+import FinishedGameScreen from "@/components/layouts/FinishedGameScreen";
+import { useSessionStorage } from "@/hooks/useLocalStorage";
 
 const Layout = () => {
   const [finishedGame, setFinishedGame] = useState<FinishedGame>();

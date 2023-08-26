@@ -1,7 +1,7 @@
 import { useRouter } from "next/router";
 import { useState } from "react";
-import { getGameRouteSimple } from "../constants/routes";
-import type { Operator } from "./numpad/Problem";
+import { getGameRouteSimple } from "@/constants/routes";
+import type { Operator } from "@/components/numpad/Problem";
 
 const SelectionScreen = () => {
   const [selectedOperator, setSelectedOperator] = useState<Operator>();

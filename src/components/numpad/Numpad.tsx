@@ -1,6 +1,6 @@
 import type { ReactElement } from "react";
 import React from "react";
-import { BackSpaceIcon } from "../Icons";
+import { BackSpaceIcon } from "@/components/ui/Icons";
 
 interface NumpadProps {
   setValue: React.Dispatch<React.SetStateAction<string>>;

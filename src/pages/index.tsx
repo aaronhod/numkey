@@ -2,8 +2,8 @@
 import { type NextPage } from "next";
 import Head from "next/head";
 import React from "react";
-import Layout from "../components/Layout";
-import FinishedGameScreen from "../components/FinishedGameScreen";
+import Layout from "@/components/layouts/Layout";
+import FinishedGameScreen from "@/components/layouts/FinishedGameScreen";
 import type { FinishedGame } from "../components/numpad/Game";
 import dayjs from "dayjs";
 
