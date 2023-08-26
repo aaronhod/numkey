@@ -1,5 +1,5 @@
-type Theme = "winter" | "night";
+type Theme = 'winter' | 'night';
 
 export type {
     Theme as default,
-}
+};

@@ -1,65 +1,64 @@
-import { useRouter } from "next/router";
-import { ParsedUrlQuery } from "querystring";
-import { useEffect, useState } from "react";
-import Game from "../../../components/numpad/Game";
-import {
-  Problem,
-  generateProblems,
-  Operator,
-} from "../../../components/numpad/Problem";
-import { getStorageValueUnsafe } from "../../../utils/storage";
+import {useRouter} from 'next/router';
+import type {ParsedUrlQuery} from 'querystring';
+import {useEffect, useState} from 'react';
+import Game from '../../../components/numpad/Game';
+import type {Operator, Problem} from '@/components/numpad/Problem';
+import {generateProblems} from '@/components/numpad/Problem';
+import {getStorageValueUnsafe} from '@/utils/storage';
 
-const PROBLEM_STORAGE_KEY = "game-problems";
+const PROBLEM_STORAGE_KEY = 'game-problems';
 
 interface QueryParams {
-  operator: Operator;
-  number: number;
-  gameId: string;
+    operator: Operator;
+    number: number;
+    gameId: string;
 }
 
 function parseQueryParams(query: ParsedUrlQuery): QueryParams {
-  // error handle if any null
+    // error handle if any null
 
-  const { operator, number, gameId } = query;
-  return {
-    operator: operator as Operator,
-    number: parseInt(number as string),
-    gameId: gameId as string,
-  };
+    const {operator, number, gameId} = query;
+    return {
+        operator: operator as Operator,
+        number: parseInt(number as string),
+        gameId: gameId as string,
+    };
 }
 
 const RunningGame = () => {
-  const [problems, setProblems] = useState<Problem[]>();
+    const [problems, setProblems] = useState<Problem[]>();
 
-  const router = useRouter();
+    const router = useRouter();
 
-  const { operator, number, gameId } = parseQueryParams(router.query);
+    const {operator, number, gameId} = parseQueryParams(router.query);
 
-  useEffect(() => {
-    let currentProblems: Problem[] | undefined = getStorageValueUnsafe(
-      getProblemsKey(gameId),
-      "localStorage"
-    );
-    if (!currentProblems) {
-      currentProblems = generateProblems(number, operator);
-      localStorage.setItem(
-        getProblemsKey(gameId),
-        JSON.stringify(currentProblems)
-      );
+    useEffect(() => {
+        let currentProblems: Problem[] | undefined = getStorageValueUnsafe(
+            getProblemsKey(gameId),
+            'localStorage',
+        );
+        if (!currentProblems) {
+            currentProblems = generateProblems(number, operator);
+            localStorage.setItem(
+                getProblemsKey(gameId),
+                JSON.stringify(currentProblems),
+            );
+        }
+
+        setProblems(currentProblems);
+    }, []);
+
+    function getProblemsKey(gameId: string) {
+        return `${PROBLEM_STORAGE_KEY}-${gameId}`;
     }
 
-    setProblems(currentProblems);
-  }, []);
+    if (!problems) {
+        return null;
+    }
 
-  function getProblemsKey(gameId: string) {
-    return `${PROBLEM_STORAGE_KEY}-${gameId}`;
-  }
-
-  if(!problems) return null;
-
-  return (
-    <Game problems={problems}/>
-  );
+    return (
+        <Game problems={problems} />
+    );
 };
 
-export { RunningGame as default };
+export {RunningGame as default};

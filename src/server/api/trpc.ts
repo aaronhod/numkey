@@ -16,9 +16,17 @@
  * processing a request
  *
  */
-import { type CreateNextContextOptions } from "@trpc/server/adapters/next";
+import {type CreateNextContextOptions} from '@trpc/server/adapters/next';
 
-import { prisma } from "../db";
+import {prisma} from '../db';
+/**
+ * 2. INITIALIZATION
+ *
+ * This is where the trpc api is initialized, connecting the context and
+ * transformer
+ */
+import {initTRPC} from '@trpc/server';
+import superjson from 'superjson';
 
 type CreateContextOptions = Record<string, never>;
 
@@ -32,9 +40,9 @@ type CreateContextOptions = Record<string, never>;
  * @see https://create.t3.gg/en/usage/trpc#-servertrpccontextts
  */
 const createInnerTRPCContext = (_opts: CreateContextOptions) => {
-  return {
-    prisma,
-  };
+    return {
+        prisma,
+    };
 };
 
 /**
@@ -43,23 +51,14 @@ const createInnerTRPCContext = (_opts: CreateContextOptions) => {
  * @link https://trpc.io/docs/context
  */
 export const createTRPCContext = (_opts: CreateNextContextOptions) => {
-  return createInnerTRPCContext({});
+    return createInnerTRPCContext({});
 };
 
-/**
- * 2. INITIALIZATION
- *
- * This is where the trpc api is initialized, connecting the context and
- * transformer
- */
-import { initTRPC } from "@trpc/server";
-import superjson from "superjson";
-
 const t = initTRPC.context<typeof createTRPCContext>().create({
-  transformer: superjson,
-  errorFormatter({ shape }) {
-    return shape;
-  },
+    transformer: superjson,
+    errorFormatter({shape}) {
+        return shape;
+    },
 });
 
 /**
