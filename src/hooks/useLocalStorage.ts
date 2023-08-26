@@ -1,5 +1,5 @@
 import {useEffect, useState} from 'react';
-import {getStorageValueSafe} from '../utils/storage';
+import {getStorageValueSafe} from '../lib/storage';
 
 export function useLocalStorage<Type>(key: string, fallbackValue: Type) {
     const [value, setValue] = useState<Type>(

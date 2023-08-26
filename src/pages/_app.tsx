@@ -1,8 +1,8 @@
 import {type AppType} from 'next/app';
 
-import {api} from '@/utils/api';
+import {api} from '@/lib/api';
 
-import '../styles/globals.css';
+import '@/styles/style.css';
 import {ThemeProvider} from '@/components/theme-provider';
 
 const themes = ['dark', 'light', 'system'];
@@ -11,7 +11,7 @@ export type Theme = typeof themes[number];
 const MyApp: AppType = ({Component, pageProps}) => {
 
     return (
-        <ThemeProvider themes={themes} defaultTheme="dark" enableSystem>
+        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
             <Component {...pageProps} />
         </ThemeProvider>
     );

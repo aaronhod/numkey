@@ -26,11 +26,8 @@ const SelectionScreen = () => {
         return (
             <Button
                 disabled={isSelected}
-                variant="outline"
-                //className={`h-20 w-20 cursor-pointer rounded-md font-bold ${
-                //    isSelected ?  : 'bg- hover:bg-neutral-focus'
-                //} `}
-                className={`h-20 w-20 cursor-pointer`}
+                variant="secondary"
+                className={`h-20 w-20 cursor-pointer disabled:bg-primary disabled:opacity-100`}
                 onClick={onClick}
             >
                 {children}
@@ -85,11 +82,11 @@ const SelectionScreen = () => {
             </div>
             <div className="mt-10 mb-72 p-6 text-3xl">
                 <Button
-                    variant="outline"
+                    variant="secondary"
                     size="lg"
                     disabled={!(selectedNumber && selectedOperator)}
                     onClick={() => startGame(selectedOperator!, selectedNumber!)}
-                    className={"w-60"}
+                    className={'w-60 bg-primary disabled:bg-secondary disabled:opacity-40'}
                 >
                     Start
                 </Button>

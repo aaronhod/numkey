@@ -4,7 +4,7 @@ import {useEffect, useState} from 'react';
 import Game from '../../../components/numpad/Game';
 import type {Operator, Problem} from '@/components/numpad/Problem';
 import {generateProblems} from '@/components/numpad/Problem';
-import {getStorageValueUnsafe} from '@/utils/storage';
+import {getStorageValueUnsafe} from '@/lib/storage';
 
 const PROBLEM_STORAGE_KEY = 'game-problems';
 
