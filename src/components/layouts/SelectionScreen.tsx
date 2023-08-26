@@ -2,10 +2,11 @@ import {useRouter} from 'next/router';
 import React, {useState} from 'react';
 import {getGameRouteSimple} from '@/constants/routes';
 import type {Operator} from '@/components/numpad/Problem';
+import {Button} from '@/components/ui/button';
 
 const SelectionScreen = () => {
-    const [selectedOperator, setSelectedOperator] = useState<Operator>();
-    const [selectedNumber, setSelectedNumber] = useState<number>();
+    const [selectedOperator, setSelectedOperator] = useState<Operator | null>(null);
+    const [selectedNumber, setSelectedNumber] = useState<number | null>(null);
     const router = useRouter();
 
     function startGame(operator: Operator, number: number): void {
@@ -15,32 +16,34 @@ const SelectionScreen = () => {
 
     const SelectButton = ({
         onClick,
+        isSelected,
         children,
-        selectClass,
     }: {
         onClick: () => void;
+        isSelected: boolean;
         children?: React.ReactNode;
-        selectClass?: string;
     }): JSX.Element => {
         return (
-            <button
-                className={`h-20 w-20 cursor-pointer rounded-md font-bold  ${
-                    selectClass ? selectClass : 'bg-neutral hover:bg-neutral-focus'
-                } `}
+            <Button
+                disabled={isSelected}
+                variant="outline"
+                //className={`h-20 w-20 cursor-pointer rounded-md font-bold ${
+                //    isSelected ?  : 'bg- hover:bg-neutral-focus'
+                //} `}
+                className={`h-20 w-20 cursor-pointer`}
                 onClick={onClick}
             >
                 {children}
-            </button>
+            </Button>
         );
     };
 
     const NumberSelect: React.FC<{number: number}> = ({number}) => {
         const isSelected = selectedNumber === number;
-        const selectedClass = isSelected ? 'bg-secondary-focus' : undefined;
         return (
             <SelectButton
                 onClick={() => setSelectedNumber(number)}
-                selectClass={selectedClass}
+                isSelected={isSelected}
             >
                 {number}
             </SelectButton>
@@ -49,11 +52,10 @@ const SelectionScreen = () => {
 
     const OperatorSelect: React.FC<{operator: Operator}> = ({operator}) => {
         const isSelected = selectedOperator === operator;
-        const selectedClass = isSelected ? 'bg-secondary-focus' : undefined;
         return (
             <SelectButton
                 onClick={() => setSelectedOperator(operator)}
-                selectClass={selectedClass}
+                isSelected={isSelected}
             >
                 {operator}
             </SelectButton>
@@ -82,14 +84,15 @@ const SelectionScreen = () => {
                 <OperatorSelect key="÷" operator="÷" />
             </div>
             <div className="mt-10 mb-72 p-6 text-3xl">
-                <button
-                    className={`btn-secondary btn-wide btn ${
-                        !(selectedNumber && selectedOperator) ? 'btn-disabled' : ''
-                    }`}
+                <Button
+                    variant="outline"
+                    size="lg"
+                    disabled={!(selectedNumber && selectedOperator)}
                     onClick={() => startGame(selectedOperator!, selectedNumber!)}
+                    className={"w-60"}
                 >
                     Start
-                </button>
+                </Button>
             </div>
         </div>
     );

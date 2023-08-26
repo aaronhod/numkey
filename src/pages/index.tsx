@@ -3,70 +3,7 @@ import {type NextPage} from 'next';
 import Head from 'next/head';
 import React from 'react';
 import Layout from '@/components/layouts/Layout';
-import type {FinishedGame} from '../components/numpad/Game';
-import dayjs from 'dayjs';
-
-const DUMMYFINISH: FinishedGame = {
-    solvedProblems: [
-        {
-            value1: 1,
-            value2: 1,
-            operator: '+',
-            answer: 2,
-            solveTime: 18000,
-            solvedAt: dayjs(),
-        },
-        {
-            value1: 1,
-            value2: 1,
-            operator: '+',
-            answer: 2,
-            solveTime: 18000,
-            solvedAt: dayjs(),
-        },
-        {
-            value1: 1,
-            value2: 1,
-            operator: '+',
-            answer: 2,
-            solveTime: 18000,
-            solvedAt: dayjs(),
-        },
-        {
-            value1: 1,
-            value2: 1,
-            operator: '+',
-            answer: 2,
-            solveTime: 18000,
-            solvedAt: dayjs(),
-        },
-        {
-            value1: 1,
-            value2: 1,
-            operator: '+',
-            answer: 2,
-            solveTime: 18000,
-            solvedAt: dayjs(),
-        },
-        {
-            value1: 1,
-            value2: 1,
-            operator: '+',
-            answer: 2,
-            solveTime: 200000,
-            solvedAt: dayjs(),
-        },
-        {
-            value1: 1,
-            value2: 1,
-            operator: '+',
-            answer: 2,
-            solveTime: 30000,
-            solvedAt: dayjs(),
-        },
-    ],
-    completionTime: 100000,
-};
+import Navbar from '@/components/layouts/Navbar';
 
 const Home: NextPage = () => {
     return (
@@ -79,7 +16,7 @@ const Home: NextPage = () => {
 
             <div className="flex h-screen flex-col">
                 <header>
-                    {/*<Navbar />*/}
+                    <Navbar />
                 </header>
                 <main className="flex-grow">
                     <Layout />
@@ -87,7 +24,8 @@ const Home: NextPage = () => {
                 </main>
             </div>
         </>
-    );
+    )
+        ;
 };
 
 export default Home;
