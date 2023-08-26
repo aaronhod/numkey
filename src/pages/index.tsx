@@ -2,7 +2,6 @@
 import { type NextPage } from "next";
 import Head from "next/head";
 import React from "react";
-import Navbar from "../components/Navbar";
 import Layout from "../components/Layout";
 import FinishedGameScreen from "../components/FinishedGameScreen";
 import type { FinishedGame } from "../components/numpad/Game";
@@ -81,7 +80,7 @@ const Home: NextPage = () => {
 
       <div className="flex h-screen flex-col">
         <header>
-          <Navbar />
+          {/*<Navbar />*/}
         </header>
         <main className="flex-grow">
           <Layout />
