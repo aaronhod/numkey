@@ -2,35 +2,36 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-    provider = "prisma-client-js"
+  provider = "prisma-client-js"
 }
 
 datasource db {
-    provider = "sqlite"
-    url      = env("DATABASE_URL")
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
 }
 
 model Example {
-    id        String   @id @default(cuid())
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 // todo: add user model for clerk
+// switch git user to my personal account
 model FinishedRound {
-    id     Int    @id @default(autoincrement())
-    leftValue Int
-    rightValue Int
-    operator String
-    answer Float
-    solvedAt DateTime
-    solveTime BigInt
-    game FinishedGame @relation(fields: [gameId], references: [id])
-    gameId Int
+  id         Int          @id @default(autoincrement())
+  leftValue  Int
+  rightValue Int
+  operator   String
+  answer     Float
+  solvedAt   DateTime
+  duration   BigInt
+  game       FinishedGame @relation(fields: [gameId], references: [id])
+  gameId     Int
 }
 
 model FinishedGame {
-    id     Int    @id @default(autoincrement())
-    completionTime BigInt
-    rounds FinishedRound[]
+  id             Int             @id @default(autoincrement())
+  completionTime BigInt
+  rounds         FinishedRound[]
 }

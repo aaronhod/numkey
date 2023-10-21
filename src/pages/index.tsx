@@ -2,7 +2,7 @@
 import {type NextPage} from 'next';
 import Head from 'next/head';
 import React from 'react';
-import Navbar from '@/components/layouts/Navbar';
+import Header from '@/components/layouts/Header';
 import FinishedGameScreen from '@/components/layouts/FinishedGameScreen';
 import {FinishedGame} from '@/components/numpad/Game';
 import dayjs from 'dayjs';
@@ -78,10 +78,8 @@ const Home: NextPage = () => {
                 <link rel="icon" href="/favicon.ico" />
             </Head>
 
-            <div className="flex h-screen flex-col">
-                <header>
-                    <Navbar />
-                </header>
+            <div className="relative flex min-h-screen flex-col">
+                <Header />
                 <main className="flex-grow">
                     {/*<Layout />*/}
                     <FinishedGameScreen

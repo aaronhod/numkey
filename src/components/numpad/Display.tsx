@@ -1,5 +1,5 @@
 import type {Problem} from './Problem';
-import {cn} from '@/lib/utils';
+import {cn} from '@/utils/shad';
 import React from 'react';
 
 interface DisplayProps {
