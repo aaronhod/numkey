@@ -6,32 +6,43 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider     = "mysql"
+  url          = env("DATABASE_URL")
+  relationMode = "prisma"
 }
 
-model Example {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+model RoundAttempt {
+  id       Int @id @default(autoincrement())
+  ordering Int
+  value    Int
+
+  round   FinishedRound @relation(fields: [roundId], references: [id])
+  roundId Int
+
+  @@index([roundId])
 }
 
-// todo: add user model for clerk
-// switch git user to my personal account
 model FinishedRound {
-  id         Int          @id @default(autoincrement())
+  id         Int    @id @default(autoincrement())
   leftValue  Int
   rightValue Int
   operator   String
-  answer     Float
-  solvedAt   DateTime
-  duration   BigInt
-  game       FinishedGame @relation(fields: [gameId], references: [id])
-  gameId     Int
+  answer     Int
+
+  attempts    RoundAttempt[]
+  isCompleted Boolean
+  duration    Int
+
+  game   FinishedGame @relation(fields: [gameId], references: [id])
+  gameId Int
+
+  @@index([gameId])
 }
 
 model FinishedGame {
-  id             Int             @id @default(autoincrement())
-  completionTime BigInt
-  rounds         FinishedRound[]
+  id         Int             @id @default(autoincrement())
+  userId     String
+  startedAt  DateTime
+  finishedAt DateTime        @default(now())
+  rounds     FinishedRound[]
 }

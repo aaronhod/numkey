@@ -46,7 +46,7 @@ const RunningGame = () => {
         }
 
         setProblems(currentProblems);
-    }, []);
+    }, [gameId, number, operator]);
 
     function getProblemsKey(gameId: string) {
         return `${PROBLEM_STORAGE_KEY}-${gameId}`;

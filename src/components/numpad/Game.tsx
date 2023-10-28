@@ -5,14 +5,19 @@ import type {Problem, SolvedProblem} from './Problem';
 import {Stack} from 'immutable';
 import type {Dayjs} from 'dayjs';
 import dayjs from 'dayjs';
-
-interface FinishedGame {
-    solvedProblems: SolvedProblem[];
-    completionTime: number;
-}
+import {api} from '@/utils/api';
+import {FinishedGame} from "@/server/api/routers/games";
+import {useRouter} from "next/router";
+import {useAuth} from "@clerk/nextjs";
 
 interface GameProps {
     problems: Problem[];
+}
+
+interface Attempt {
+    order: number;
+    value: number;
+    time: Dayjs;
 }
 
 const Game: React.FC<GameProps> = ({problems}) => {
@@ -25,21 +30,25 @@ const Game: React.FC<GameProps> = ({problems}) => {
         Stack<SolvedProblem>(),
     );
     const [lastAnsAt, setLastAnsAt] = useState<Dayjs>(dayjs());
+    const {userId} = useAuth();
+    const submitGame = api.game.addFinishedGame.useMutation();
+    const router = useRouter();
+
 
     // check if the answer is correct
     useEffect(() => {
         if (value === '') {
             return;
         }
+
+
+
         if (Number(value) === currentProblem.answer) {
             updateHistory();
             const nextProblem = problemStack.peek();
 
             if (!nextProblem) {
-                completeGame({
-                    solvedProblems: history.reverse().toArray(),
-                    completionTime: totalTime(),
-                });
+                void endGame();
                 return;
             }
 
@@ -50,9 +59,23 @@ const Game: React.FC<GameProps> = ({problems}) => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [value, currentProblem, history, problemStack]);
 
-    function completeGame(game: FinishedGame) {
-        // submit and then go to ssr summary page
-        console.log(game);
+    const endGame = async () => {
+        const orderedHistory = history.reverse().toArray();
+
+        await completeGame({
+            userId: userId!,
+            startedAt: dayjs().subtract(history.size, 'second').toDate(),
+            solvedProblems: orderedHistory,
+            completionTime: totalTime(),
+        });
+    }
+
+    async function completeGame(game: FinishedGame) {
+        await submitGame.mutateAsync(game);
+
+        if(submitGame.isSuccess) {
+            await router.push(`/game/${submitGame.data.id}/complete`);
+        }
     }
 
     function updateHistory() {
@@ -81,4 +104,3 @@ const Game: React.FC<GameProps> = ({problems}) => {
 };
 
 export {Game as default};
-export type {FinishedGame};

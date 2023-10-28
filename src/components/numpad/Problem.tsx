@@ -1,48 +1,36 @@
-import type {Dayjs} from 'dayjs';
-
 type Operator = '+' | '-' | '×' | '÷';
 
 interface Problem {
     leftValue: number;
     rightValue: number;
     operator: Operator;
-    answer?: number;
-}
-
-interface SolvedProblem extends Problem {
-    solvedAt: Dayjs;
-    solveTime: number;
+    answer: number;
 }
 
 const MAX_NUM = 12;
 const MIN_NUM = 2;
 
-function solveProblem(problem: Problem): Problem {
-    const {leftValue, rightValue, operator} = problem;
-    let answer: number;
-
-    switch (operator) {
-        case '+':
-            answer = leftValue + rightValue;
-            break;
-        case '-':
-            answer = leftValue - rightValue;
-            break;
-        case '×':
-            answer = leftValue * rightValue;
-            break;
-        case '÷':
-            answer = leftValue / rightValue;
-            break;
-        default:
-            throw new Error('Invalid operator');
-    }
+function createProblem({leftValue, rightValue, operator}: Omit<Problem, "answer">): Problem {
+    const calculateAnswer = (() => {
+        switch (operator) {
+            case '+':
+                return leftValue + rightValue;
+            case '-':
+                return leftValue - rightValue;
+            case '×':
+                return leftValue * rightValue;
+            case '÷':
+                return leftValue / rightValue;
+            default:
+                throw new Error('Invalid operator');
+        }
+    });
 
     return {
         leftValue: leftValue,
         rightValue: rightValue,
         operator: operator,
-        answer: answer,
+        answer: calculateAnswer(),
     };
 }
 
@@ -53,7 +41,7 @@ function generateProblems(
     const problems: Problem[] = [];
 
     for (let i = MIN_NUM; i < MAX_NUM + 1; i++) {
-        problems.push(solveProblem({leftValue: i, rightValue: number, operator}));
+        problems.push(createProblem({leftValue: i, rightValue: number, operator}));
     }
 
     return problems;
@@ -79,5 +67,5 @@ function shuffleProblem(problem: Problem): Problem {
     return problem;
 }
 
-export type {Operator, Problem, SolvedProblem};
+export type {Operator, Problem};
 export {generateProblems, shuffleProblem, shuffleProblems};

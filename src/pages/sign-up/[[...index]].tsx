@@ -1,5 +1,15 @@
-import { SignUp } from "@clerk/nextjs";
+import {SignUp} from '@clerk/nextjs';
 
 export default function Page() {
-    return <SignUp />;
+    return (
+        <div className="container flex justify-center items-center h-screen">
+            <SignUp
+                appearance={{
+                    elements: {
+                        rootBox: 'mb-64',
+                    },
+                }}
+            />
+        </div>
+    );
 }
