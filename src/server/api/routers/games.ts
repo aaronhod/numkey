@@ -42,6 +42,7 @@ export const gameRouter = createTRPCRouter({
               leftValue: round.leftValue,
               rightValue: round.rightValue,
               operator: round.operator,
+              answer: round.answer,
               isCompleted: round.isCompleted,
               duration: round.duration,
               attempts: {

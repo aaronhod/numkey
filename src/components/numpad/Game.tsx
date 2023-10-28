@@ -1,106 +1,155 @@
-import React, {useEffect, useState} from 'react';
-import Numpad from './Numpad';
-import {Display} from './Display';
-import type {Problem, SolvedProblem} from './Problem';
-import {Stack} from 'immutable';
-import type {Dayjs} from 'dayjs';
-import dayjs from 'dayjs';
-import {api} from '@/utils/api';
-import {FinishedGame} from "@/server/api/routers/games";
-import {useRouter} from "next/router";
-import {useAuth} from "@clerk/nextjs";
+import React, { useCallback, useEffect, useState } from "react";
+import Numpad from "./Numpad";
+import { Display } from "./Display";
+import type { Problem } from "./Problem";
+import type { Dayjs } from "dayjs";
+import dayjs from "dayjs";
+import { api } from "@/utils/api";
+import { useRouter } from "next/router";
+import { useAuth } from "@clerk/nextjs";
+import type { FinishedGame, FinishedRound } from "@/server/api/routers/games";
 
 interface GameProps {
-    problems: Problem[];
+  initialProblems: Problem[];
 }
 
-interface Attempt {
-    order: number;
-    value: number;
-    time: Dayjs;
+interface GameRoundAttempt {
+  value: number;
+  time: number;
 }
 
-const Game: React.FC<GameProps> = ({problems}) => {
-    const [value, setValue] = useState<string>('');
-    const [problemStack, setProblemStack] = useState<Stack<Problem>>(
-        Stack(problems).pop(),
-    );
-    const [currentProblem, setCurrentProblem] = useState<Problem>(problems[0]!);
-    const [history, setHistory] = useState<Stack<SolvedProblem>>(
-        Stack<SolvedProblem>(),
-    );
-    const [lastAnsAt, setLastAnsAt] = useState<Dayjs>(dayjs());
-    const {userId} = useAuth();
-    const submitGame = api.game.addFinishedGame.useMutation();
-    const router = useRouter();
+type ProblemAttempts = Map<number, GameRoundAttempt>;
 
+const Game: React.FC<GameProps> = ({ initialProblems }) => {
+  const [inputValue, setInputValue] = useState<string>("");
+  const [problemQueue, setProblemQueue] = useState<Problem[]>(initialProblems);
+  const [currentProblem, setCurrentProblem] = useState<Problem>(
+    initialProblems.shift()!,
+  );
+  const [currentProblemAttempt, setCurrentProblemAttempt] =
+    useState<ProblemAttempts>(new Map());
+  const [solutions, setSolutions] = useState<FinishedRound[]>([]);
+  const [lastSubmitAt, setLastSubmitAt] = useState<Dayjs>(dayjs());
 
-    // check if the answer is correct
-    useEffect(() => {
-        if (value === '') {
-            return;
-        }
+  const { userId } = useAuth();
+  const submitGame = api.game.addFinishedGame.useMutation();
+  const router = useRouter();
+  const startedAt = dayjs();
 
+  const addAttempt = useCallback(() => {
+    const finishedAt = dayjs();
+    const timeDiff = finishedAt.diff(lastSubmitAt, "millisecond");
+    const isSolved = Number(inputValue) === currentProblem?.answer;
 
+    setCurrentProblemAttempt((prev) => {
+      prev.set(prev.size, {
+        value: Number(inputValue),
+        time: timeDiff,
+      });
+      return prev;
+    });
 
-        if (Number(value) === currentProblem.answer) {
-            updateHistory();
-            const nextProblem = problemStack.peek();
+    setLastSubmitAt(finishedAt);
 
-            if (!nextProblem) {
-                void endGame();
-                return;
-            }
+    if (isSolved) {
+      const totalDuration = solutions.reduce(
+        (acc, problem) => acc + problem.duration,
+        0,
+      );
 
-            setProblemStack(problemStack.pop());
-            setCurrentProblem(nextProblem);
-            setValue('');
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [value, currentProblem, history, problemStack]);
+      setSolutions((prev) => {
+        return [
+          ...prev,
+          {
+            ...currentProblem,
+            isCompleted: true,
+            duration: totalDuration,
+            attempts: Array.from(
+              currentProblemAttempt,
+              ([ordering, { value }]) => ({
+                ordering,
+                value,
+              }),
+            ),
+          },
+        ];
+      });
+    }
+  }, [
+    inputValue,
+    currentProblem,
+    currentProblemAttempt,
+    lastSubmitAt,
+    solutions,
+  ]);
 
-    const endGame = async () => {
-        const orderedHistory = history.reverse().toArray();
+  const constructFinishedGame = useCallback(
+    (): FinishedGame => ({
+      userId: userId!,
+      startedAt: startedAt.toDate(),
+      finishedAt: lastSubmitAt.toDate(),
+      rounds: solutions,
+    }),
+    [userId, startedAt, lastSubmitAt, solutions],
+  );
 
-        await completeGame({
-            userId: userId!,
-            startedAt: dayjs().subtract(history.size, 'second').toDate(),
-            solvedProblems: orderedHistory,
-            completionTime: totalTime(),
-        });
+  const completeGame = useCallback(
+    async (game: FinishedGame) => {
+      await submitGame.mutateAsync(game);
+
+      if (submitGame.isSuccess) {
+        await router.push(`/game/${submitGame.data.id}/complete`);
+      }
+    },
+    [submitGame, router],
+  );
+
+  const endGame = useCallback(async () => {
+    const finishedGame = constructFinishedGame();
+    await completeGame(finishedGame);
+  }, [constructFinishedGame, completeGame]);
+
+  const problemQueuePeek = useCallback((): Problem | null => {
+    const nextProblem = problemQueue.shift();
+    if (!nextProblem) {
+      return null;
+    }
+    setProblemQueue((prev) => prev.slice(1));
+    setCurrentProblem(nextProblem);
+    return nextProblem;
+  }, [problemQueue]);
+
+  function clearInput() {
+    setInputValue("");
+  }
+
+  // check if the answer is correct
+  useEffect(() => {
+    if (inputValue === "") {
+      return;
     }
 
-    async function completeGame(game: FinishedGame) {
-        await submitGame.mutateAsync(game);
+    return;
 
-        if(submitGame.isSuccess) {
-            await router.push(`/game/${submitGame.data.id}/complete`);
-        }
+    if (Number(inputValue) === currentProblem?.answer) {
+      addAttempt();
+      const nextProblem = problemQueuePeek();
+
+      if (!nextProblem) {
+        void endGame();
+        return;
+      }
+
+      clearInput();
     }
+  }, [inputValue, currentProblem, addAttempt, problemQueuePeek, endGame]);
 
-    function updateHistory() {
-        const solvedDate = dayjs();
-        const timeDiff = solvedDate.diff(lastAnsAt); // diff in ms
-        setHistory(
-            history.push({
-                ...currentProblem,
-                solvedAt: solvedDate,
-                solveTime: timeDiff,
-            }),
-        );
-        setLastAnsAt(solvedDate);
-    }
-
-    function totalTime() {
-        return history.reduce((acc, problem) => acc + problem.solveTime, 0);
-    }
-
-    return (
-        <div className="flex h-full flex-col font-mono text-lg font-semibold">
-            <Display className="p-10" value={value} problem={currentProblem} />
-            <Numpad value={value} setValue={setValue} />
-        </div>
-    );
+  return (
+    <div className="flex h-full flex-col font-mono text-lg font-semibold">
+      <Display className="p-10" value={inputValue} problem={currentProblem} />
+      <Numpad value={inputValue} setValue={setInputValue} />
+    </div>
+  );
 };
 
-export {Game as default};
+export { Game as default };

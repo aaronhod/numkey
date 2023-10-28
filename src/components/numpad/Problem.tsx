@@ -22,7 +22,7 @@ function createProblem({leftValue, rightValue, operator}: Omit<Problem, "answer"
             case '÷':
                 return leftValue / rightValue;
             default:
-                throw new Error('Invalid operator');
+                throw new Error(`Unknown operator ${operator as string}`);
         }
     });
 

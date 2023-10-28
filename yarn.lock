@@ -2182,11 +2182,6 @@ ignore@^5.2.0, ignore@^5.2.4:
   resolved "https://maven.nqry.com.au/repository/npm-all/ignore/-/ignore-5.2.4.tgz#a291c0c6178ff1b960befe47fcdec301674a6324"
   integrity sha512-MAb38BcSbH0eHNBxn7ql2NH/kX33OkB3lZ1BNdh7ENeRChHTYsTvWrMubiIAMNS2llXEEgZ1MUOBtXChP3kaFQ==
 
-immutable@^5.0.0-beta.4:
-  version "5.0.0-beta.4"
-  resolved "https://maven.nqry.com.au/repository/npm-all/immutable/-/immutable-5.0.0-beta.4.tgz#6c12ac4ad8b16aeec4d064c9d2f4024bb270b7ca"
-  integrity sha512-sl9RE3lqd2LoQSESc8VV0k8qE9y57iT7dinq3Q+8mR2dqReHDZlgUrudzmFfZhDXBLXlNJMVWv3SG1YpQIokig==
-
 import-fresh@^3.2.1:
   version "3.3.0"
   resolved "https://maven.nqry.com.au/repository/npm-all/import-fresh/-/import-fresh-3.3.0.tgz#37162c25fcb9ebaa2e6e53d5b4d88ce17d9e0c2b"

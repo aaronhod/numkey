@@ -6,6 +6,7 @@ import Header from "@/components/layouts/Header";
 import FinishedGameScreen from "@/components/layouts/FinishedGameScreen";
 import dayjs from "dayjs";
 import type { FinishedGame } from "@/server/api/routers/games";
+import Layout from "@/components/layouts/Layout";
 
 const DUMMYFINISH: FinishedGame = {
   userId: "user_2X41pIhLHsnqDqP6DHy2tHDHlM0",
@@ -52,8 +53,8 @@ const Home: NextPage = () => {
       <div className="relative flex min-h-screen flex-col">
         <Header />
         <main className="flex h-full flex-grow flex-col">
-          {/*<Layout />*/}
-          <FinishedGameScreen finishedGame={DUMMYFINISH} />
+          <Layout />
+          {/*<FinishedGameScreen finishedGame={DUMMYFINISH} />*/}
         </main>
       </div>
     </>

@@ -4,16 +4,16 @@ import type {FinishedGame} from '@/components/numpad/Game';
 import FinishedGameScreen from '@/components/layouts/FinishedGameScreen';
 
 const Layout = () => {
-    const [finishedGame, setFinishedGame] = useState<FinishedGame>();
-
-    if (finishedGame) {
-        return (
-            <FinishedGameScreen
-                finishedGame={finishedGame}
-                resetGame={() => setFinishedGame(undefined)}
-            />
-        );
-    }
+    // const [finishedGame, setFinishedGame] = useState<FinishedGame>();
+    //
+    // if (finishedGame) {
+    //     return (
+    //         <FinishedGameScreen
+    //             finishedGame={finishedGame}
+    //             resetGame={() => setFinishedGame(undefined)}
+    //         />
+    //     );
+    // }
 
     return <SelectionScreen />;
 };
