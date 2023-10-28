@@ -48,17 +48,34 @@ const Game: React.FC<GameProps> = ({ initialProblems }) => {
       return;
     }
 
-    const isSolution =
-      currentProblemAttempt.get(currentProblemAttempt.size - 1)?.value ===
-      currentProblem.answer;
+
+  }, [currentProblem, currentProblem?.answer, currentProblemAttempt, setCurrentProblemAttempt, setSolutions, solutions]);
+
+  const addAttempt = useCallback(() => {
+    const finishedAt = dayjs();
+    const timeDiff = finishedAt.diff(lastSubmitAt, "millisecond");
+    const updatedAttempts = new Map(currentProblemAttempt).set(
+        currentProblemAttempt.size,
+        {
+            value: Number(inputValue),
+            time: timeDiff,
+        }
+    )
+
+    setCurrentProblemAttempt(() => {
+        return updatedAttempts;
+    });
+    setLastSubmitAt(finishedAt);
+
+    const isSolution = Number(inputValue) === currentProblem?.answer;
 
     if (!isSolution) {
       return;
     }
 
     const totalDuration = solutions.reduce(
-      (acc, problem) => acc + problem.duration,
-      0,
+        (acc, problem) => acc + problem.duration,
+        0,
     );
     setSolutions((prev) => {
       return [
@@ -68,30 +85,17 @@ const Game: React.FC<GameProps> = ({ initialProblems }) => {
           isCompleted: true,
           duration: totalDuration,
           attempts: Array.from(
-            currentProblemAttempt,
-            ([ordering, { value }]) => ({
-              ordering,
-              value,
-            }),
+              updatedAttempts.entries(),
+              ([ordering, { value }]) => ({
+                ordering,
+                value,
+              }),
           ),
         },
       ];
     });
     setCurrentProblemAttempt(new Map());
-  }, [currentProblem, currentProblem?.answer, currentProblemAttempt, setCurrentProblemAttempt, setSolutions, solutions]);
 
-  const addAttempt = useCallback(() => {
-    const finishedAt = dayjs();
-    const timeDiff = finishedAt.diff(lastSubmitAt, "millisecond");
-
-    setCurrentProblemAttempt((prev) => {
-      prev.set(prev.size, {
-        value: Number(inputValue),
-        time: timeDiff,
-      });
-      return prev;
-    });
-    setLastSubmitAt(finishedAt);
   }, [lastSubmitAt, inputValue, setCurrentProblemAttempt]);
 
   const constructFinishedGame = useCallback(
