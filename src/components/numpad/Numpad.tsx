@@ -2,12 +2,11 @@ import type { ReactElement } from "react";
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Delete } from "lucide-react";
-import { clsx } from "clsx";
 import { cn } from "@/utils/shad";
 
 interface NumpadProps {
-  setValue: React.Dispatch<React.SetStateAction<string>>;
-  value: string;
+  setValue: React.Dispatch<React.SetStateAction<string | null>>;
+  value: string | null;
   className?: string;
 }
 
@@ -21,14 +20,20 @@ const Numpad: React.FC<NumpadProps> = ({ setValue, value, className }) => {
     }
 
     if (newValue === "<") {
-      if (value.length === 0) {
+      if (value === null || value.length === 0) {
         return;
       }
-      setValue((value) => value.slice(0, -1));
+      setValue((value) => value!.slice(0, -1));
       return;
     }
 
-    if (value.length >= 3) {
+
+    if (value !== null && value.length >= 5) {
+      return;
+    }
+
+    if (value === null) {
+      setValue(newValue);
       return;
     }
 
@@ -42,7 +47,7 @@ const Numpad: React.FC<NumpadProps> = ({ setValue, value, className }) => {
     return (
       <Button
         variant="outline"
-        className="h-full border-2 text-center text-2xl sm:text-4  font-bold hover:bg-primary"
+        className="sm:text-4 h-full border-2 text-center text-2xl  font-bold hover:bg-primary"
         value={value}
         onClick={buttonClick}
       >

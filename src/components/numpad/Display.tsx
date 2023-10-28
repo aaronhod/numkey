@@ -5,7 +5,7 @@ import React from "react";
 interface DisplayProps {
   className?: string;
   problem: Problem | null;
-  value: string;
+  value: string | null;
   handleKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void;
 }
 

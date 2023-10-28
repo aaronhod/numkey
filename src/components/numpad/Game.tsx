@@ -25,7 +25,8 @@ interface GameRoundAttempt {
 type ProblemAttempts = Map<number, GameRoundAttempt>;
 
 const Game: React.FC<GameProps> = ({ initialProblems }) => {
-  const [inputValue, setInputValue] = useState<string>("");
+  const [inputValue, setInputValue] = useState<string | null>(null);
+  const [prevInputValue, setPrevInputValue] = useState<string>("");
   const [problemQueue, setProblemQueue] = useImmer<Problem[]>(
     initialProblems.slice(1),
   );
@@ -42,10 +43,46 @@ const Game: React.FC<GameProps> = ({ initialProblems }) => {
   const router = useRouter();
   const startedAt = dayjs();
 
+  useEffect(() => {
+    if (!currentProblem || !currentProblemAttempt) {
+      return;
+    }
+
+    const isSolution =
+      currentProblemAttempt.get(currentProblemAttempt.size - 1)?.value ===
+      currentProblem.answer;
+
+    if (!isSolution) {
+      return;
+    }
+
+    const totalDuration = solutions.reduce(
+      (acc, problem) => acc + problem.duration,
+      0,
+    );
+    setSolutions((prev) => {
+      return [
+        ...prev,
+        {
+          ...currentProblem,
+          isCompleted: true,
+          duration: totalDuration,
+          attempts: Array.from(
+            currentProblemAttempt,
+            ([ordering, { value }]) => ({
+              ordering,
+              value,
+            }),
+          ),
+        },
+      ];
+    });
+    setCurrentProblemAttempt(new Map());
+  }, [currentProblem, currentProblem?.answer, currentProblemAttempt, setCurrentProblemAttempt, setSolutions, solutions]);
+
   const addAttempt = useCallback(() => {
     const finishedAt = dayjs();
     const timeDiff = finishedAt.diff(lastSubmitAt, "millisecond");
-    const isSolved = Number(inputValue) === currentProblem?.answer;
 
     setCurrentProblemAttempt((prev) => {
       prev.set(prev.size, {
@@ -54,42 +91,8 @@ const Game: React.FC<GameProps> = ({ initialProblems }) => {
       });
       return prev;
     });
-
     setLastSubmitAt(finishedAt);
-
-    if (isSolved) {
-      const totalDuration = solutions.reduce(
-        (acc, problem) => acc + problem.duration,
-        0,
-      );
-
-      setSolutions((prev) => {
-        return [
-          ...prev,
-          {
-            ...currentProblem,
-            isCompleted: true,
-            duration: totalDuration,
-            attempts: Array.from(
-              currentProblemAttempt,
-              ([ordering, { value }]) => ({
-                ordering,
-                value,
-              }),
-            ),
-          },
-        ];
-      });
-    }
-  }, [
-    lastSubmitAt,
-    inputValue,
-    currentProblem,
-    setCurrentProblemAttempt,
-    solutions,
-    setSolutions,
-    currentProblemAttempt,
-  ]);
+  }, [lastSubmitAt, inputValue, setCurrentProblemAttempt]);
 
   const constructFinishedGame = useCallback(
     (): FinishedGame => ({
@@ -103,7 +106,8 @@ const Game: React.FC<GameProps> = ({ initialProblems }) => {
 
   const completeGame = useCallback(
     async (game: FinishedGame) => {
-      //await submitGame.mutateAsync(game);
+      // await submitGame.mutateAsync(game);
+      console.log(game);
 
       if (submitGame.isSuccess) {
         await router.push(`/game/${submitGame.data.id}/complete`);
@@ -130,15 +134,30 @@ const Game: React.FC<GameProps> = ({ initialProblems }) => {
   }, [problemQueue, setProblemQueue]);
 
   function clearInput() {
-    setInputValue("");
+    setInputValue(null);
   }
+
+  // capture attempts, if a number is fully cleared, then it is an attempt
+  useEffect(() => {
+    if (!inputValue) {
+      return;
+    }
+
+    setPrevInputValue((prev) => prev + inputValue);
+  }, [inputValue]);
+
+  useEffect(() => {
+    if (!prevInputValue) {
+      return;
+    }
+
+    if (inputValue === "") {
+      addAttempt();
+    }
+  }, [inputValue, prevInputValue, addAttempt]);
 
   // check if the answer is correct
   useEffect(() => {
-    console.log({ initialProblems });
-    console.log({ problemQueue });
-    console.log({ currentProblem });
-
     if (inputValue === "") {
       return;
     }
@@ -157,11 +176,11 @@ const Game: React.FC<GameProps> = ({ initialProblems }) => {
   }, [
     inputValue,
     currentProblem,
-    addAttempt,
     problemQueuePeek,
     endGame,
     initialProblems,
     problemQueue,
+    addAttempt,
   ]);
 
   function handleKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
@@ -172,11 +191,23 @@ const Game: React.FC<GameProps> = ({ initialProblems }) => {
       (!isNaN(asNumber) && asNumber >= 0 && asNumber <= 9) ||
       event.key === "."
     ) {
-      setInputValue((prev) => prev + event.key);
+      setInputValue((prev) => {
+        if (prev === null) {
+          return event.key;
+        }
+
+        return prev + event.key;
+      });
     }
 
     if (event.key === "Backspace") {
-      setInputValue((prev) => prev.slice(0, -1));
+      setInputValue((prev) => {
+        if (prev === null) {
+          return null;
+        }
+
+        return prev.slice(0, -1);
+      });
     }
   }
 
