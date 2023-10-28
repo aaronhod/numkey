@@ -47,35 +47,40 @@ const Game: React.FC<GameProps> = ({ initialProblems }) => {
     if (!currentProblem || !currentProblemAttempt) {
       return;
     }
+  }, [
+    currentProblem,
+    currentProblem?.answer,
+    currentProblemAttempt,
+    setCurrentProblemAttempt,
+    setSolutions,
+    solutions,
+  ]);
 
-
-  }, [currentProblem, currentProblem?.answer, currentProblemAttempt, setCurrentProblemAttempt, setSolutions, solutions]);
-
-  const addAttempt = useCallback(() => {
+  const addAttempt = useCallback((answer: number) => {
     const finishedAt = dayjs();
     const timeDiff = finishedAt.diff(lastSubmitAt, "millisecond");
     const updatedAttempts = new Map(currentProblemAttempt).set(
-        currentProblemAttempt.size,
-        {
-            value: Number(inputValue),
-            time: timeDiff,
-        }
-    )
+      currentProblemAttempt.size,
+      {
+        value: answer,
+        time: timeDiff,
+      },
+    );
 
     setCurrentProblemAttempt(() => {
-        return updatedAttempts;
+      return updatedAttempts;
     });
     setLastSubmitAt(finishedAt);
 
-    const isSolution = Number(inputValue) === currentProblem?.answer;
+    const isSolution = answer === currentProblem?.answer;
 
     if (!isSolution) {
       return;
     }
 
     const totalDuration = solutions.reduce(
-        (acc, problem) => acc + problem.duration,
-        0,
+      (acc, problem) => acc + problem.duration,
+      0,
     );
     setSolutions((prev) => {
       return [
@@ -85,18 +90,17 @@ const Game: React.FC<GameProps> = ({ initialProblems }) => {
           isCompleted: true,
           duration: totalDuration,
           attempts: Array.from(
-              updatedAttempts.entries(),
-              ([ordering, { value }]) => ({
-                ordering,
-                value,
-              }),
+            updatedAttempts.entries(),
+            ([ordering, { value }]) => ({
+              ordering,
+              value,
+            }),
           ),
         },
       ];
     });
     setCurrentProblemAttempt(new Map());
-
-  }, [lastSubmitAt, inputValue, setCurrentProblemAttempt]);
+  }, [lastSubmitAt, currentProblemAttempt, inputValue, setCurrentProblemAttempt, currentProblem, solutions, setSolutions]);
 
   const constructFinishedGame = useCallback(
     (): FinishedGame => ({
@@ -138,6 +142,7 @@ const Game: React.FC<GameProps> = ({ initialProblems }) => {
   }, [problemQueue, setProblemQueue]);
 
   function clearInput() {
+    setPrevInputValue('');
     setInputValue(null);
   }
 
@@ -147,6 +152,10 @@ const Game: React.FC<GameProps> = ({ initialProblems }) => {
       return;
     }
 
+    console.info("ue1", {
+        inputValue,
+        prevInputValue,
+    })
     setPrevInputValue((prev) => prev + inputValue);
   }, [inputValue]);
 
@@ -156,7 +165,13 @@ const Game: React.FC<GameProps> = ({ initialProblems }) => {
     }
 
     if (inputValue === "") {
-      addAttempt();
+      console.info("ue2", {
+        inputValue,
+        prevInputValue,
+      })
+
+      addAttempt(Number(prevInputValue));
+      clearInput();
     }
   }, [inputValue, prevInputValue, addAttempt]);
 
@@ -166,8 +181,9 @@ const Game: React.FC<GameProps> = ({ initialProblems }) => {
       return;
     }
 
-    if (Number(inputValue) === currentProblem?.answer) {
-      addAttempt();
+    const inputNumber = Number(inputValue);
+    if (inputNumber === currentProblem?.answer) {
+      addAttempt(inputNumber);
       const nextProblem = problemQueuePeek();
 
       if (!nextProblem) {
