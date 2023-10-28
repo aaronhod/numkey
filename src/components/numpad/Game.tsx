@@ -8,6 +8,10 @@ import { api } from "@/utils/api";
 import { useRouter } from "next/router";
 import { useAuth } from "@clerk/nextjs";
 import type { FinishedGame, FinishedRound } from "@/server/api/routers/games";
+import { useImmer } from "use-immer";
+import { enableMapSet } from "immer";
+
+enableMapSet();
 
 interface GameProps {
   initialProblems: Problem[];
@@ -22,13 +26,15 @@ type ProblemAttempts = Map<number, GameRoundAttempt>;
 
 const Game: React.FC<GameProps> = ({ initialProblems }) => {
   const [inputValue, setInputValue] = useState<string>("");
-  const [problemQueue, setProblemQueue] = useState<Problem[]>(initialProblems);
-  const [currentProblem, setCurrentProblem] = useState<Problem>(
-    initialProblems.shift()!,
+  const [problemQueue, setProblemQueue] = useImmer<Problem[]>(
+    initialProblems.slice(1),
+  );
+  const [currentProblem, setCurrentProblem] = useState<Problem | null>(
+    initialProblems[0] ?? null,
   );
   const [currentProblemAttempt, setCurrentProblemAttempt] =
-    useState<ProblemAttempts>(new Map());
-  const [solutions, setSolutions] = useState<FinishedRound[]>([]);
+    useImmer<ProblemAttempts>(new Map());
+  const [solutions, setSolutions] = useImmer<FinishedRound[]>([]);
   const [lastSubmitAt, setLastSubmitAt] = useState<Dayjs>(dayjs());
 
   const { userId } = useAuth();
@@ -76,11 +82,13 @@ const Game: React.FC<GameProps> = ({ initialProblems }) => {
       });
     }
   }, [
+    lastSubmitAt,
     inputValue,
     currentProblem,
-    currentProblemAttempt,
-    lastSubmitAt,
+    setCurrentProblemAttempt,
     solutions,
+    setSolutions,
+    currentProblemAttempt,
   ]);
 
   const constructFinishedGame = useCallback(
@@ -95,7 +103,7 @@ const Game: React.FC<GameProps> = ({ initialProblems }) => {
 
   const completeGame = useCallback(
     async (game: FinishedGame) => {
-      await submitGame.mutateAsync(game);
+      //await submitGame.mutateAsync(game);
 
       if (submitGame.isSuccess) {
         await router.push(`/game/${submitGame.data.id}/complete`);
@@ -110,14 +118,16 @@ const Game: React.FC<GameProps> = ({ initialProblems }) => {
   }, [constructFinishedGame, completeGame]);
 
   const problemQueuePeek = useCallback((): Problem | null => {
-    const nextProblem = problemQueue.shift();
+    const nextProblem = problemQueue[0];
+    setCurrentProblem(nextProblem ?? null);
+
     if (!nextProblem) {
       return null;
     }
+
     setProblemQueue((prev) => prev.slice(1));
-    setCurrentProblem(nextProblem);
     return nextProblem;
-  }, [problemQueue]);
+  }, [problemQueue, setProblemQueue]);
 
   function clearInput() {
     setInputValue("");
@@ -125,11 +135,13 @@ const Game: React.FC<GameProps> = ({ initialProblems }) => {
 
   // check if the answer is correct
   useEffect(() => {
+    console.log({ initialProblems });
+    console.log({ problemQueue });
+    console.log({ currentProblem });
+
     if (inputValue === "") {
       return;
     }
-
-    return;
 
     if (Number(inputValue) === currentProblem?.answer) {
       addAttempt();
@@ -142,12 +154,41 @@ const Game: React.FC<GameProps> = ({ initialProblems }) => {
 
       clearInput();
     }
-  }, [inputValue, currentProblem, addAttempt, problemQueuePeek, endGame]);
+  }, [
+    inputValue,
+    currentProblem,
+    addAttempt,
+    problemQueuePeek,
+    endGame,
+    initialProblems,
+    problemQueue,
+  ]);
+
+  function handleKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
+    event.preventDefault();
+
+    const asNumber = Number(event.key);
+    if (
+      (!isNaN(asNumber) && asNumber >= 0 && asNumber <= 9) ||
+      event.key === "."
+    ) {
+      setInputValue((prev) => prev + event.key);
+    }
+
+    if (event.key === "Backspace") {
+      setInputValue((prev) => prev.slice(0, -1));
+    }
+  }
 
   return (
     <div className="flex h-full flex-col font-mono text-lg font-semibold">
-      <Display className="p-10" value={inputValue} problem={currentProblem} />
-      <Numpad value={inputValue} setValue={setInputValue} />
+      <Display
+        className="h-1/6"
+        value={inputValue}
+        problem={currentProblem}
+        handleKeyDown={handleKeyDown}
+      />
+      <Numpad className="h-5/6" value={inputValue} setValue={setInputValue} />
     </div>
   );
 };

@@ -50,7 +50,7 @@ const Home: NextPage = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <div className="relative flex min-h-screen flex-col">
+      <div className="relative flex h-full flex-col">
         <Header />
         <main className="flex h-full flex-grow flex-col">
           <Layout />

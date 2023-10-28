@@ -1,23 +1,35 @@
-import type {Problem} from './Problem';
-import {cn} from '@/utils/shad';
-import React from 'react';
+import type { Problem } from "./Problem";
+import { cn } from "@/utils/shad";
+import React from "react";
 
 interface DisplayProps {
-    className?: string;
-    problem: Problem;
-    value: string;
+  className?: string;
+  problem: Problem | null;
+  value: string;
+  handleKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void;
 }
 
-function formatProblem(problem: Problem) {
-    return `${problem.leftValue} ${problem.operator} ${problem.rightValue} = `;
-}
-
-const Display: React.FC<DisplayProps> = ({className, problem, value}) => {
-    return (
-        <h1 className={cn("my-auto pl-16 pr-16 text-8xl", className) }>
-            {`${formatProblem(problem)} ${value ?? ''}`}
-        </h1>
-    );
+const Display: React.FC<DisplayProps> = ({
+  className,
+  problem,
+  value,
+  handleKeyDown,
+}) => {
+  return (
+    <h1 className={cn("my-auto flex p-5 text-3xl sm:text-5xl", className)}>
+      <p className="self-center align-text-bottom text-white/75">
+        {problem &&
+          `${problem.leftValue} ${problem.operator} ${problem.rightValue}`}
+      </p>
+      <input
+        autoFocus
+        type="text"
+        value={value ?? ""}
+        className="grow cursor-default self-center bg-background text-right caret-transparent focus:cursor-default focus:outline-none focus:ring-0"
+        onKeyDown={handleKeyDown}
+      />
+    </h1>
+  );
 };
 
-export {Display};
+export { Display };

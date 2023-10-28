@@ -38,10 +38,12 @@ const RunningGame = () => {
 
     const { gameId, number, operator } = queryParams;
 
-    let currentProblems: Problem[] | undefined = getStorageValueUnsafe(
-      getProblemsKey(gameId),
-      "localStorage",
-    );
+    // let currentProblems: Problem[] | undefined = getStorageValueUnsafe(
+    //   getProblemsKey(gameId),
+    //   "localStorage",
+    // );
+
+    let currentProblems = undefined;
 
     if (!currentProblems) {
       currentProblems = generateProblems(number, operator);
