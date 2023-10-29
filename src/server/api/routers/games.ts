@@ -75,6 +75,13 @@ export const gameRouter = createTRPCRouter({
         where: {
           id: input,
         },
+        include: {
+          rounds: {
+            include: {
+              attempts: true,
+            },
+          },
+        },
       });
     }),
 });
