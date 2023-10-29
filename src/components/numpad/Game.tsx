@@ -43,64 +43,54 @@ const Game: React.FC<GameProps> = ({ initialProblems }) => {
   const router = useRouter();
   const startedAt = dayjs();
 
-  useEffect(() => {
-    if (!currentProblem || !currentProblemAttempt) {
-      return;
-    }
-  }, [
-    currentProblem,
-    currentProblem?.answer,
-    currentProblemAttempt,
-    setCurrentProblemAttempt,
-    setSolutions,
-    solutions,
-  ]);
-
-  const addAttempt = useCallback((answer: number) => {
-    const finishedAt = dayjs();
-    const timeDiff = finishedAt.diff(lastSubmitAt, "millisecond");
-    const updatedAttempts = new Map(currentProblemAttempt).set(
-      currentProblemAttempt.size,
-      {
-        value: answer,
-        time: timeDiff,
-      },
-    );
-
-    setCurrentProblemAttempt(() => {
-      return updatedAttempts;
-    });
-    setLastSubmitAt(finishedAt);
-
-    const isSolution = answer === currentProblem?.answer;
-
-    if (!isSolution) {
-      return;
-    }
-
-    const totalDuration = solutions.reduce(
-      (acc, problem) => acc + problem.duration,
-      0,
-    );
-    setSolutions((prev) => {
-      return [
-        ...prev,
+  const addAttempt = useCallback(
+    (answer: number) => {
+      const finishedAt = dayjs();
+      const timeDiff = finishedAt.diff(lastSubmitAt, "millisecond");
+      const updatedAttempts = new Map(currentProblemAttempt).set(
+        currentProblemAttempt.size,
         {
-          ...currentProblem,
-          isCompleted: true,
-          duration: totalDuration,
-          attempts: Array.from(
-            updatedAttempts.entries(),
-            ([ordering, { value }]) => ({
-              ordering,
-              value,
-            }),
-          ),
+          value: answer,
+          time: timeDiff,
         },
-      ];
-    });
-    setCurrentProblemAttempt(new Map());
-  }, [lastSubmitAt, currentProblemAttempt, inputValue, setCurrentProblemAttempt, currentProblem, solutions, setSolutions]);
+      );
+
+      setCurrentProblemAttempt(() => {
+        return updatedAttempts;
+      });
+      setLastSubmitAt(finishedAt);
+
+      const isSolution = answer === currentProblem?.answer;
+
+      if (!isSolution) {
+        return;
+      }
+
+      const totalDuration = solutions.reduce(
+        (acc, problem) => acc + problem.duration,
+        0,
+      );
+      setSolutions((prev) => {
+        return [
+          ...prev,
+          {
+            ...currentProblem,
+            isCompleted: true,
+            duration: totalDuration,
+            attempts: Array.from(
+              updatedAttempts.entries(),
+              ([ordering, { value }]) => ({
+                ordering,
+                value,
+              }),
+            ),
+          },
+        ];
+      });
+      setCurrentProblemAttempt(new Map());
+    },
+    [lastSubmitAt, currentProblemAttempt, setCurrentProblemAttempt, currentProblem, solutions, setSolutions],
+  );
 
   const constructFinishedGame = useCallback(
     (): FinishedGame => ({
@@ -142,21 +132,22 @@ const Game: React.FC<GameProps> = ({ initialProblems }) => {
   }, [problemQueue, setProblemQueue]);
 
   function clearInput() {
-    setPrevInputValue('');
+    setPrevInputValue("");
     setInputValue(null);
   }
 
   // capture attempts, if a number is fully cleared, then it is an attempt
   useEffect(() => {
-    if (!inputValue) {
+    if (inputValue === "" || inputValue === null) {
       return;
     }
 
-    console.info("ue1", {
-        inputValue,
-        prevInputValue,
-    })
-    setPrevInputValue((prev) => prev + inputValue);
+    if (inputValue.length < prevInputValue.length) {
+      return;
+    }
+
+    setPrevInputValue((prev) => prev + inputValue.slice(-1));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [inputValue]);
 
   useEffect(() => {
@@ -165,11 +156,6 @@ const Game: React.FC<GameProps> = ({ initialProblems }) => {
     }
 
     if (inputValue === "") {
-      console.info("ue2", {
-        inputValue,
-        prevInputValue,
-      })
-
       addAttempt(Number(prevInputValue));
       clearInput();
     }
