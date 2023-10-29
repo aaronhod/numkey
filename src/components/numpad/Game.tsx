@@ -19,7 +19,7 @@ interface GameProps {
 
 interface GameRoundAttempt {
   value: number;
-  time: number;
+  secondsElapsed: number;
 }
 
 type ProblemAttempts = Map<number, GameRoundAttempt>;
@@ -43,31 +43,10 @@ const Game: React.FC<GameProps> = ({ initialProblems }) => {
   const router = useRouter();
   const startedAt = dayjs();
 
-  const addAttempt = useCallback(
-    (answer: number) => {
-      const finishedAt = dayjs();
-      const timeDiff = finishedAt.diff(lastSubmitAt, "millisecond");
-      const updatedAttempts = new Map(currentProblemAttempt).set(
-        currentProblemAttempt.size,
-        {
-          value: answer,
-          time: timeDiff,
-        },
-      );
-
-      setCurrentProblemAttempt(() => {
-        return updatedAttempts;
-      });
-      setLastSubmitAt(finishedAt);
-
-      const isSolution = answer === currentProblem?.answer;
-
-      if (!isSolution) {
-        return;
-      }
-
-      const totalDuration = solutions.reduce(
-        (acc, problem) => acc + problem.duration,
+  const addSolution = useCallback(
+    (updatedAttempts: Map<number, GameRoundAttempt>) => {
+      const totalDuration = Array.from(updatedAttempts.values()).reduce(
+        (acc, problem) => acc + problem.secondsElapsed,
         0,
       );
       setSolutions((prev) => {
@@ -89,7 +68,35 @@ const Game: React.FC<GameProps> = ({ initialProblems }) => {
       });
       setCurrentProblemAttempt(new Map());
     },
-    [lastSubmitAt, currentProblemAttempt, setCurrentProblemAttempt, currentProblem, solutions, setSolutions],
+    [currentProblem, setCurrentProblemAttempt, setSolutions],
+  );
+
+  const addAttempt = useCallback(
+    (answer: number) => {
+      const finishedAt = dayjs();
+      const timeDiff = finishedAt.diff(lastSubmitAt, "millisecond");
+      const updatedAttempts = new Map(currentProblemAttempt).set(
+        currentProblemAttempt.size,
+        {
+          value: answer,
+          secondsElapsed: timeDiff,
+        },
+      );
+
+      setCurrentProblemAttempt(updatedAttempts);
+      setLastSubmitAt(finishedAt);
+
+      if (answer === currentProblem?.answer) {
+        addSolution(updatedAttempts);
+      }
+    },
+    [
+      lastSubmitAt,
+      currentProblemAttempt,
+      setCurrentProblemAttempt,
+      currentProblem?.answer,
+      addSolution,
+    ],
   );
 
   const constructFinishedGame = useCallback(
