@@ -4,7 +4,7 @@
  *
  * We also create a few inference helpers for input and output types.
  */
-import {httpBatchLink, loggerLink} from '@trpc/client';
+import {httpBatchLink, loggerLink, TRPCClientErrorLike} from '@trpc/client';
 import {createTRPCNext} from '@trpc/next';
 import {type inferRouterInputs, type inferRouterOutputs} from '@trpc/server';
 import superjson from 'superjson';
@@ -70,3 +70,8 @@ export type RouterInputs = inferRouterInputs<AppRouter>;
  * @example type HelloOutput = RouterOutputs['example']['hello']
  */
 export type RouterOutputs = inferRouterOutputs<AppRouter>;
+
+/**
+ * Inference helper for errors.
+ */
+export type RouterError = TRPCClientErrorLike<AppRouter>;

@@ -4,13 +4,25 @@ import { Display } from "./Display";
 import type { Problem } from "./Problem";
 import type { Dayjs } from "dayjs";
 import dayjs from "dayjs";
+import type { RouterError } from "@/utils/api";
 import { api } from "@/utils/api";
 import { useRouter } from "next/router";
 import { useAuth } from "@clerk/nextjs";
 import type { FinishedGame, FinishedRound } from "@/server/api/routers/games";
 import { useImmer } from "use-immer";
 import { enableMapSet } from "immer";
+import { AlertDialogTitle } from "@radix-ui/react-alert-dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+} from "@/components/ui/alert-dialog";
+import { Loader2 } from "lucide-react";
 
+// Enable Map/Set as part of the global immer state
 enableMapSet();
 
 interface GameProps {
@@ -23,6 +35,58 @@ interface GameRoundAttempt {
 }
 
 type ProblemAttempts = Map<number, GameRoundAttempt>;
+
+const ErrorDialog = ({
+  error,
+  refetch,
+  isLoading,
+}: {
+  error: RouterError | null;
+  isLoading: boolean;
+  refetch: () => void;
+}) => {
+  const router = useRouter();
+
+  return (
+    <AlertDialog open={Boolean(error)}>
+      <AlertDialogContent className="max-w-2xl translate-y-[-100%]">
+        <AlertDialogHeader>
+          <AlertDialogTitle className="text-3xl ">
+            Error saving your game
+          </AlertDialogTitle>
+          <AlertDialogDescription>
+            <p className="text-base">
+              There was an error when trying to saving your game. Please wait a
+              few minutes and try to resubmit.
+            </p>
+            <p className="mt-1 text-base font-light italic">
+              Otherwise, go back to the menu to start a new game.
+            </p>
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter className="mt-1">
+          <AlertDialogAction
+            variant="outline"
+            className="mr-auto"
+            onClick={() => void router.push("/")}
+          >
+            Back to Menu
+          </AlertDialogAction>
+          {isLoading ? (
+            <AlertDialogAction disabled>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Resubmitting
+            </AlertDialogAction>
+          ) : (
+            <AlertDialogAction onClick={() => refetch()}>
+              Resubmit
+            </AlertDialogAction>
+          )}
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+};
 
 const Game: React.FC<GameProps> = ({ initialProblems }) => {
   const [inputValue, setInputValue] = useState<string | null>(null);
@@ -40,6 +104,7 @@ const Game: React.FC<GameProps> = ({ initialProblems }) => {
 
   const { userId } = useAuth();
   const submitGame = api.game.addFinishedGame.useMutation();
+
   const router = useRouter();
   const startedAt = dayjs();
 
@@ -108,22 +173,17 @@ const Game: React.FC<GameProps> = ({ initialProblems }) => {
     }),
     [userId, startedAt, lastSubmitAt, solutions],
   );
-
+  
   const completeGame = useCallback(
-    async (game: FinishedGame) => {
-      // await submitGame.mutateAsync(game);
-      console.log(game);
-
-      if (submitGame.isSuccess) {
-        await router.push(`/game/${submitGame.data.id}/complete`);
-      }
+    (game: FinishedGame) => {
+      submitGame.mutate(game);
     },
-    [submitGame, router],
+    [submitGame],
   );
 
-  const endGame = useCallback(async () => {
+  const endGame = useCallback(() => {
     const finishedGame = constructFinishedGame();
-    await completeGame(finishedGame);
+    completeGame(finishedGame);
   }, [constructFinishedGame, completeGame]);
 
   const problemQueuePeek = useCallback((): Problem | null => {
@@ -224,16 +284,27 @@ const Game: React.FC<GameProps> = ({ initialProblems }) => {
     }
   }
 
+  if (submitGame.isSuccess) {
+    void router.push(`/game/${submitGame.data.id}/complete`);
+  }
+
   return (
-    <div className="flex h-full flex-col font-mono text-lg font-semibold">
-      <Display
-        className="h-1/6"
-        value={inputValue}
-        problem={currentProblem}
-        handleKeyDown={handleKeyDown}
+    <>
+      <ErrorDialog
+        error={submitGame.error}
+        refetch={endGame}
+        isLoading={submitGame.isLoading}
       />
-      <Numpad className="h-5/6" value={inputValue} setValue={setInputValue} />
-    </div>
+      <div className="flex h-full flex-col font-mono text-lg font-semibold">
+        <Display
+          className="h-1/6"
+          value={inputValue}
+          problem={currentProblem}
+          handleKeyDown={handleKeyDown}
+        />
+        <Numpad className="h-5/6" value={inputValue} setValue={setInputValue} />
+      </div>
+    </>
   );
 };
 
