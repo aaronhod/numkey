@@ -47,7 +47,7 @@ const FinishedGamePage = () => {
 
       if (seconds > 0) {
         return {
-          value: `${seconds}:${remainingMilliseconds}`,
+          value: `${seconds}.${remainingMilliseconds}`,
           unit: "s",
         };
       }

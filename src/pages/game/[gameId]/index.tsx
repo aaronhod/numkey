@@ -1,9 +1,9 @@
 import { useRouter } from "next/router";
 import type { ParsedUrlQuery } from "querystring";
 import { useEffect, useState } from "react";
-import Game from "../../../components/numpad/Game";
-import type { Operator, Problem } from "@/components/numpad/Problem";
-import { generateProblems } from "@/components/numpad/Problem";
+import Game from "../../../components/game/Game";
+import type { Operator, Problem } from "@/components/game/Problem";
+import { generateProblems } from "@/components/game/Problem";
 import { getStorageValueUnsafe } from "@/utils/storage";
 
 const PROBLEM_STORAGE_KEY = "game-problems";

@@ -5,12 +5,16 @@ import { Delete } from "lucide-react";
 import { cn } from "@/utils/shad";
 
 interface NumpadProps {
-  setValue: React.Dispatch<React.SetStateAction<string | null>>;
-  value: string | null;
+  addValue: (value: string) => void;
+  removeValue: () => void;
   className?: string;
 }
 
-const Numpad: React.FC<NumpadProps> = ({ setValue, value, className }) => {
+const Numpad: React.FC<NumpadProps> = ({
+  addValue,
+  removeValue,
+  className,
+}) => {
   function buttonClick(e: React.MouseEvent<HTMLButtonElement>) {
     const target = e.target as HTMLButtonElement;
     const newValue = target.value;
@@ -20,34 +24,25 @@ const Numpad: React.FC<NumpadProps> = ({ setValue, value, className }) => {
     }
 
     if (newValue === "<") {
-      if (value === null || value.length === 0) {
-        return;
-      }
-      setValue((value) => value!.slice(0, -1));
+      removeValue();
       return;
     }
 
-
-    if (value !== null && value.length >= 5) {
-      return;
-    }
-
-    if (value === null) {
-      setValue(newValue);
-      return;
-    }
-
-    setValue((value) => value + newValue);
+    addValue(newValue);
   }
 
-  const NumpadBtn: React.FC<{ value: string; icon?: ReactElement }> = ({
-    value,
-    icon,
-  }) => {
+  const NumpadBtn: React.FC<{
+    value: string;
+    icon?: ReactElement;
+    className?: string;
+  }> = ({ value, icon, className }) => {
     return (
       <Button
         variant="outline"
-        className="sm:text-4 h-full border-2 text-center text-2xl  font-bold hover:bg-primary"
+        className={cn(
+          "sm:text-4 h-full rounded-none border-2 text-center text-2xl font-bold hover:bg-primary",
+          className,
+        )}
         value={value}
         onClick={buttonClick}
       >
@@ -58,24 +53,28 @@ const Numpad: React.FC<NumpadProps> = ({ setValue, value, className }) => {
 
   return (
     <div className={cn("grid h-full grid-cols-3", className)}>
-      <NumpadBtn value="1" />
-      <NumpadBtn value="2" />
-      <NumpadBtn value="3" />
+      <NumpadBtn value="7" />
+      <NumpadBtn value="8" />
+      <NumpadBtn value="9" />
 
       <NumpadBtn value="4" />
       <NumpadBtn value="5" />
       <NumpadBtn value="6" />
 
-      <NumpadBtn value="7" />
-      <NumpadBtn value="8" />
-      <NumpadBtn value="9" />
+      <NumpadBtn value="1" />
+      <NumpadBtn value="2" />
+      <NumpadBtn value="3" />
 
       <NumpadBtn
         value="<"
         icon={<Delete className="ml-auto mr-auto h-10 w-10" />}
       />
       <NumpadBtn value="0" />
-      <NumpadBtn value="." />
+
+      <div className="flex border-2 border-accent">
+        <NumpadBtn value="-" className="w-full bg-secondary/50 " />
+        <NumpadBtn value="." className="w-full bg-secondary/50" />
+      </div>
     </div>
   );
 };

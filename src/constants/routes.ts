@@ -1,4 +1,4 @@
-import type {Operator} from './../components/numpad/Problem';
+import type {Operator} from '../components/game/Problem';
 
 export const RUNNING_GAME_ROUTE = '/game';
 
