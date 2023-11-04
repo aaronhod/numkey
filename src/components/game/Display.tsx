@@ -1,6 +1,6 @@
 import type { Problem } from "./Problem";
 import { cn } from "@/utils/shad";
-import React from "react";
+import React, { useEffect } from "react";
 
 interface DisplayProps {
   className?: string;
@@ -10,6 +10,18 @@ interface DisplayProps {
   handleKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void;
 }
 
+function getDisplayValue(value: string | null, negativeMode: boolean) {
+  if (value === null) {
+    return "";
+  }
+
+  if (negativeMode) {
+    return `- ${value}`;
+  }
+
+  return value;
+}
+
 const Display: React.FC<DisplayProps> = ({
   className,
   problem,
@@ -17,6 +29,14 @@ const Display: React.FC<DisplayProps> = ({
   negativeMode,
   handleKeyDown,
 }) => {
+  const inputRef = React.useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [value, negativeMode, problem]);
+
   return (
     <h1
       className={cn(
@@ -34,9 +54,12 @@ const Display: React.FC<DisplayProps> = ({
       <input
         autoFocus
         type="text"
-        value={value ?? ""}
-        className="grow cursor-default bg-inherit self-center text-right caret-transparent focus:cursor-default focus:outline-none focus:ring-0"
+        value={getDisplayValue(value, negativeMode)}
+        className="grow cursor-default self-center bg-inherit text-right caret-transparent focus:cursor-default focus:outline-none focus:ring-0"
         onKeyDown={handleKeyDown}
+        // always set the focus back to the input after focusing on another component
+        onBlur={(e) => e.target.focus()}
+        ref={inputRef}
       />
     </h1>
   );

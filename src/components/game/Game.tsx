@@ -184,7 +184,7 @@ const Game: React.FC<GameProps> = ({ initialProblems }) => {
           negativeMode={negativeMode}
           handleKeyDown={handleKeyDown}
         />
-        <Numpad dispatch={dispatch} />
+        <Numpad dispatch={dispatch} negativeMode={negativeMode} />
       </div>
     </>
   );
