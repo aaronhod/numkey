@@ -3,10 +3,12 @@ import type { ProblemAttempts } from "@/components/game/Game";
 import type { FinishedRound } from "@/server/api/routers/games";
 import type { Dayjs } from "dayjs";
 import dayjs from "dayjs";
+import { isCorrectAnswer } from "@/components/game/Game";
 
-interface State {
+export interface State {
   inputValue: string | null;
   prevInputValue: string;
+  negativeMode: boolean;
   problemQueue: Problem[];
   currentProblem: Problem | null;
   currentProblemAttempts: ProblemAttempts;
@@ -15,13 +17,18 @@ interface State {
   allCompleted: boolean;
 }
 
-type Action =
+export type Action =
   | { type: "input-insert"; value: string }
   | { type: "input-remove" }
+  | { type: "input-toggle-negative"; value: ToggleChar }
   | { type: "add-attempt"; value: number };
+
+type ToggleChar = "+" | "-";
+
 export const initialGameState = (problemSet: Problem[]): State => ({
   inputValue: null,
   prevInputValue: "",
+  negativeMode: false,
   problemQueue: problemSet.slice(1),
   currentProblem: problemSet[0] ?? null,
   currentProblemAttempts: new Map(),
@@ -36,6 +43,8 @@ export const gameReducer = (state: State, action: Action): State => {
       return insertCharacter(action.value, state);
     case "input-remove":
       return removeCharacter(state);
+    case "input-toggle-negative":
+      return toggleNegativeInput(action.value, state);
     case "add-attempt":
       return addRoundAttempt(action.value, state);
     default:
@@ -68,6 +77,22 @@ function removeCharacter(state: State): State {
   };
 }
 
+// - is a toggle, + is a reset
+function toggleNegativeInput(toggleChar: ToggleChar, state: State): State {
+  if (toggleChar === "-") {
+    return {
+      ...state,
+      negativeMode: !state.negativeMode,
+    };
+  }
+
+  // toggleChar === '+'
+  return {
+    ...state,
+    negativeMode: false,
+  };
+}
+
 function addRoundAttempt(answer: number, state: State): State {
   const finishedAt = dayjs();
   const timeDiff = finishedAt.diff(state.lastSubmittedAt, "millisecond");
@@ -79,7 +104,10 @@ function addRoundAttempt(answer: number, state: State): State {
     },
   );
 
-  if (answer !== state.currentProblem?.answer) {
+  if (
+    !state.currentProblem ||
+    !isCorrectAnswer(state.currentProblem.answer, answer, state.negativeMode)
+  ) {
     return {
       ...state,
       currentProblemAttempts: updatedAttempts,

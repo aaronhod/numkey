@@ -7,8 +7,6 @@ import type { RouterError } from "@/utils/api";
 import { api } from "@/utils/api";
 import { useRouter } from "next/router";
 import { useAuth } from "@clerk/nextjs";
-import type { FinishedGame } from "@/server/api/routers/games";
-import { enableMapSet } from "immer";
 import { AlertDialogTitle } from "@radix-ui/react-alert-dialog";
 import {
   AlertDialog,
@@ -22,11 +20,6 @@ import { Loader2 } from "lucide-react";
 import { gameReducer, initialGameState } from "@/components/game/gameReducer";
 import { LoaderOverlay } from "@/components/LoaderOverlay";
 
-// Enable Map/Set as part of the global immer state
-enableMapSet();
-
-//TODO: refactor to use reducer pattern
-
 interface GameProps {
   initialProblems: Problem[];
 }
@@ -37,6 +30,17 @@ interface GameRoundAttempt {
 }
 
 export type ProblemAttempts = Map<number, GameRoundAttempt>;
+
+export function isCorrectAnswer(
+  answer: number,
+  attempt: string | number,
+  negativeMode: boolean,
+) {
+  if (negativeMode) {
+    return Number(attempt) === -answer;
+  }
+  return Number(attempt) === answer;
+}
 
 const ErrorDialog = ({
   error,
@@ -99,6 +103,7 @@ const Game: React.FC<GameProps> = ({ initialProblems }) => {
       finishedProblems,
       lastSubmittedAt,
       allCompleted,
+      negativeMode,
     },
     dispatch,
   ] = useReducer(gameReducer, initialGameState(initialProblems));
@@ -121,21 +126,19 @@ const Game: React.FC<GameProps> = ({ initialProblems }) => {
   const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
     event.preventDefault();
 
-    if (event.key === "Backspace") {
-      dispatch({ type: "input-remove" });
-      return;
+    switch (event.key.toLowerCase()) {
+      case "backspace":
+        return dispatch({ type: "input-remove" });
+      case "-":
+        return dispatch({ type: "input-toggle-negative", value: "-" });
+      // on small keyboards, + and = are the same key. = isn't used so we do this for now.
+      case "+":
+      case "=":
+        return dispatch({ type: "input-toggle-negative", value: "+" });
+      default:
+        dispatch({ type: "input-insert", value: event.key });
     }
-
-    dispatch({ type: "input-insert", value: event.key });
   };
-
-  const numPadAddValue = useCallback((value: string) => {
-    dispatch({ type: "input-insert", value: value });
-  }, []);
-
-  const numPadRemoveValue = useCallback(() => {
-    dispatch({ type: "input-remove" });
-  }, []);
 
   useEffect(() => {
     if (addGameMutation.isLoading) return;
@@ -146,17 +149,18 @@ const Game: React.FC<GameProps> = ({ initialProblems }) => {
 
   useEffect(() => {
     if (!currentProblem) return;
+    const inputNumber = Number(inputValue);
 
     // add attempt for correct answer
-    if (Number(inputValue) === currentProblem.answer) {
-      dispatch({ type: "add-attempt", value: Number(inputValue) });
+    if (isCorrectAnswer(currentProblem.answer, inputNumber, negativeMode)) {
+      dispatch({ type: "add-attempt", value: inputNumber });
     }
 
     // add attempt when a user has entered a value and then cleared their input
     if (inputValue === "" && prevInputValue) {
-      dispatch({ type: "add-attempt", value: Number(inputValue) });
+      dispatch({ type: "add-attempt", value: inputNumber });
     }
-  }, [inputValue, currentProblem, prevInputValue]);
+  }, [inputValue, currentProblem, prevInputValue, negativeMode]);
 
   useEffect(() => {
     if (addGameMutation.isSuccess) {
@@ -177,9 +181,10 @@ const Game: React.FC<GameProps> = ({ initialProblems }) => {
           className="h-1/4"
           value={inputValue}
           problem={currentProblem}
+          negativeMode={negativeMode}
           handleKeyDown={handleKeyDown}
         />
-        <Numpad addValue={numPadAddValue} removeValue={numPadRemoveValue} />
+        <Numpad dispatch={dispatch} />
       </div>
     </>
   );
