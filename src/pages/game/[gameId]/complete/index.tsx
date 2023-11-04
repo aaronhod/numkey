@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, CircleSlash } from "lucide-react";
+import { LoaderOverlay } from "@/components/LoaderOverlay";
 
 const FinishedGamePage = () => {
   const router = useRouter();
@@ -66,12 +67,7 @@ const FinishedGamePage = () => {
     );
   };
 
-  if (!game)
-    return (
-      <div className="mb-72 flex flex-grow flex-col items-center justify-center">
-        <SpinningLoader className="duration-[100000ms] h-32 w-32" />
-      </div>
-    );
+  if (!game) return <LoaderOverlay isLoading={true} />;
 
   return (
     <div className="container flex h-full flex-col items-center justify-center p-5">

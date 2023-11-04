@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Loader2 } from "lucide-react";
 import { gameReducer, initialGameState } from "@/components/game/gameReducer";
+import { LoaderOverlay } from "@/components/LoaderOverlay";
 
 // Enable Map/Set as part of the global immer state
 enableMapSet();
@@ -117,6 +118,25 @@ const Game: React.FC<GameProps> = ({ initialProblems }) => {
     addGameMutation.mutate(finishedGame);
   }, [addGameMutation, finishedProblems, lastSubmittedAt, startedAt, userId]);
 
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    event.preventDefault();
+
+    if (event.key === "Backspace") {
+      dispatch({ type: "input-remove" });
+      return;
+    }
+
+    dispatch({ type: "input-insert", value: event.key });
+  };
+
+  const numPadAddValue = useCallback((value: string) => {
+    dispatch({ type: "input-insert", value: value });
+  }, []);
+
+  const numPadRemoveValue = useCallback(() => {
+    dispatch({ type: "input-remove" });
+  }, []);
+
   useEffect(() => {
     if (addGameMutation.isLoading) return;
     if (!allCompleted) return;
@@ -127,25 +147,16 @@ const Game: React.FC<GameProps> = ({ initialProblems }) => {
   useEffect(() => {
     if (!currentProblem) return;
 
+    // add attempt for correct answer
     if (Number(inputValue) === currentProblem.answer) {
       dispatch({ type: "add-attempt", value: Number(inputValue) });
     }
 
+    // add attempt when a user has entered a value and then cleared their input
     if (inputValue === "" && prevInputValue) {
       dispatch({ type: "add-attempt", value: Number(inputValue) });
     }
   }, [inputValue, currentProblem, prevInputValue]);
-
-  function handleKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
-    event.preventDefault();
-
-    if (event.key === "Backspace") {
-      dispatch({ type: "input-remove" });
-      return;
-    }
-
-    dispatch({ type: "input-insert", value: event.key });
-  }
 
   useEffect(() => {
     if (addGameMutation.isSuccess) {
@@ -160,6 +171,7 @@ const Game: React.FC<GameProps> = ({ initialProblems }) => {
         refetch={submitGame}
         isLoading={addGameMutation.isLoading}
       />
+      <LoaderOverlay isLoading={addGameMutation.isLoading} />
       <div className="flex h-full flex-col font-mono text-lg font-semibold">
         <Display
           className="h-1/4"
@@ -167,12 +179,7 @@ const Game: React.FC<GameProps> = ({ initialProblems }) => {
           problem={currentProblem}
           handleKeyDown={handleKeyDown}
         />
-        <Numpad
-          addValue={(value: string) =>
-            dispatch({ type: "input-insert", value: value })
-          }
-          removeValue={() => dispatch({ type: "input-remove" })}
-        />
+        <Numpad addValue={numPadAddValue} removeValue={numPadRemoveValue} />
       </div>
     </>
   );
