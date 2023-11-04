@@ -3,43 +3,7 @@ import { type NextPage } from "next";
 import Head from "next/head";
 import React from "react";
 import Header from "@/components/layouts/Header";
-import FinishedGameScreen from "@/components/layouts/FinishedGameScreen";
-import dayjs from "dayjs";
-import type { FinishedGame } from "@/server/api/routers/games";
-import Layout from "@/components/layouts/Layout";
-
-const DUMMYFINISH: FinishedGame = {
-  userId: "user_2X41pIhLHsnqDqP6DHy2tHDHlM0",
-  startedAt: dayjs().subtract(10, "minute").toDate(),
-  finishedAt: dayjs().toDate(),
-  rounds: [
-    {
-      leftValue: 1,
-      rightValue: 2,
-      operator: "+",
-      answer: 3,
-      isCompleted: true,
-      duration: 1000,
-      attempts: [
-        { ordering: 1, value: 2 },
-        { ordering: 2, value: 1 },
-        { ordering: 3, value: 3 },
-      ],
-    },
-    {
-      leftValue: 1,
-      rightValue: 3,
-      operator: "+",
-      answer: 4,
-      isCompleted: false,
-      duration: 1000,
-      attempts: [
-        { ordering: 1, value: 2 },
-        { ordering: 2, value: 1 },
-      ],
-    },
-  ],
-};
+import {SelectionScreen} from "@/components/layouts/SelectionScreen";
 
 const Home: NextPage = () => {
   return (
@@ -53,8 +17,7 @@ const Home: NextPage = () => {
       <div className="relative flex h-full flex-col">
         <Header />
         <main className="flex h-full flex-grow flex-col">
-          <Layout />
-          {/*<FinishedGameScreen finishedGame={DUMMYFINISH} />*/}
+          <SelectionScreen />
         </main>
       </div>
     </>

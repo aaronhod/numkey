@@ -47,7 +47,7 @@ const Display: React.FC<DisplayProps> = ({
         className,
       )}
     >
-      <p className="self-center align-text-bottom text-white/75">
+      <p className="text-inherit/75 self-center align-text-bottom">
         {problem &&
           `${problem.leftValue} ${problem.operator} ${problem.rightValue}`}
       </p>

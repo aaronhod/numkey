@@ -11,6 +11,8 @@ interface NumpadProps {
   className?: string;
 }
 
+// TODO: on negative mode toggle, buttons are re-rendering
+
 const Numpad: React.FC<NumpadProps> = memo(
   ({ dispatch, negativeMode, className }) => {
     const buttonClick = useCallback(
