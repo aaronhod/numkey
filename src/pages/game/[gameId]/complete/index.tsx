@@ -1,7 +1,6 @@
 import { api } from "@/utils/api";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import { SpinningLoader } from "@/components/ui/loader";
 import {
   Table,
   TableBody,

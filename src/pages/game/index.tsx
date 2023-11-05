@@ -58,10 +58,7 @@ const RunningGame = () => {
   }
 
   return (
-    <Game
-      initialProblems={problems}
-      settings={{ gameMode, gameModifiers }}
-    />
+    <Game initialProblems={problems} settings={{ gameMode, gameModifiers }} />
   );
 };
 

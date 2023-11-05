@@ -1,7 +1,7 @@
 import type { Problem } from "./Problem";
+import { getOperatorChar } from "./Problem";
 import { cn } from "@/utils/shad";
 import React, { useEffect } from "react";
-import {getOperatorChar} from "./Problem";
 
 interface DisplayProps {
   className?: string;

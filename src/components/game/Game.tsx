@@ -17,12 +17,12 @@ import {
   AlertDialogHeader,
 } from "@/components/ui/alert-dialog";
 import { Loader2 } from "lucide-react";
-import {
-  gameReducer,
-  initialGameState,
-} from "@/components/game/gameReducer";
+import { gameReducer, initialGameState } from "@/components/game/gameReducer";
 import { LoaderOverlay } from "@/components/LoaderOverlay";
-import type { GameMode, GameModifier } from "@/components/layouts/SelectionScreen";
+import type {
+  GameMode,
+  GameModifier,
+} from "@/components/layouts/SelectionScreen";
 
 interface GameProps {
   initialProblems: Problem[];
@@ -104,10 +104,7 @@ const ErrorDialog = ({
   );
 };
 
-const Game: React.FC<GameProps> = ({
-  initialProblems,
-  settings
-}) => {
+const Game: React.FC<GameProps> = ({ initialProblems, settings }) => {
   const [
     {
       inputValue,
@@ -166,12 +163,20 @@ const Game: React.FC<GameProps> = ({
 
     // add attempt for correct answer
     if (isCorrectAnswer(currentProblem.answer, inputNumber, negativeMode)) {
-      dispatch({ type: "add-attempt", value: inputNumber, gameSettings: settings });
+      dispatch({
+        type: "add-attempt",
+        value: inputNumber,
+        gameSettings: settings,
+      });
     }
 
     // add attempt when a user has entered a value and then cleared their input
     if (inputValue === "" && prevInputValue) {
-      dispatch({ type: "add-attempt", value: inputNumber, gameSettings: settings });
+      dispatch({
+        type: "add-attempt",
+        value: inputNumber,
+        gameSettings: settings,
+      });
     }
   }, [inputValue, currentProblem, prevInputValue, negativeMode]);
 

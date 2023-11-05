@@ -1,5 +1,5 @@
 import React from "react";
-import {Loader2, LucideLoader} from "lucide-react";
+import { LucideLoader } from "lucide-react";
 import { cn } from "@/utils/shad";
 
 interface Props {

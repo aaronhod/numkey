@@ -1,9 +1,9 @@
 import type { Problem } from "@/components/game/Problem";
 import type { GameSettings, ProblemAttempts } from "@/components/game/Game";
+import { isCorrectAnswer } from "@/components/game/Game";
 import type { FinishedRound } from "@/server/api/routers/games";
 import type { Dayjs } from "dayjs";
 import dayjs from "dayjs";
-import { isCorrectAnswer } from "@/components/game/Game";
 
 export interface State {
   inputValue: string | null;
