@@ -1,5 +1,5 @@
 import type { Problem } from "@/components/game/Problem";
-import type { ProblemAttempts } from "@/components/game/Game";
+import type { GameSettings, ProblemAttempts } from "@/components/game/Game";
 import type { FinishedRound } from "@/server/api/routers/games";
 import type { Dayjs } from "dayjs";
 import dayjs from "dayjs";
@@ -21,7 +21,7 @@ export type Action =
   | { type: "input-insert"; value: string }
   | { type: "input-remove" }
   | { type: "input-toggle-negative"; value: ToggleChar }
-  | { type: "add-attempt"; value: number };
+  | { type: "add-attempt"; value: number; gameSettings: GameSettings };
 
 type ToggleChar = "+" | "-";
 
@@ -46,7 +46,7 @@ export const gameReducer = (state: State, action: Action): State => {
     case "input-toggle-negative":
       return toggleNegativeInput(action.value, state);
     case "add-attempt":
-      return addRoundAttempt(action.value, state);
+      return addRoundAttempt(action.value, action.gameSettings, state);
     default:
       return state;
   }
@@ -97,7 +97,11 @@ function toggleNegativeInput(toggleChar: ToggleChar, state: State): State {
   };
 }
 
-function addRoundAttempt(answer: number, state: State): State {
+function addRoundAttempt(
+  answer: number,
+  { gameMode, gameModifiers }: GameSettings,
+  state: State,
+): State {
   const finishedAt = dayjs();
   const timeDiff = finishedAt.diff(state.lastSubmittedAt, "millisecond");
   const updatedAttempts = new Map(state.currentProblemAttempts).set(

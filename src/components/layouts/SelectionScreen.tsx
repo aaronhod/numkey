@@ -1,7 +1,7 @@
 import { useRouter } from "next/router";
 import type { ReactNode } from "react";
 import React, { useState } from "react";
-import { getGameRouteSimple } from "@/constants/routes";
+import { getGameRouteCustom } from "@/constants/routes";
 import type { Operator } from "@/components/game/Problem";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/utils/shad";
@@ -25,8 +25,8 @@ import {
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
 
-type Modifier = "random" | "timed" | "sorted";
-type Mode = "normal" | "endless" | "lives" | "stack";
+export type GameModifier = "random" | "timed" | "sorted";
+export type GameMode = "normal" | "endless" | "lives" | "stack";
 
 function SelectionHeader({ children }: { children?: ReactNode }) {
   return (
@@ -41,12 +41,31 @@ const SelectionScreen = () => {
     null,
   );
   const [selectedNumber, setSelectedNumber] = useState<number | null>(null);
-  const [selectedMode, setSelectedMode] = useState<Mode | null>("normal");
-  const [selectedModifiers, setSelectedModifiers] = useState<Modifier[]>([]);
+  const [selectedMode, setSelectedMode] = useState<GameMode | null>(null);
+  const [selectedModifiers, setSelectedModifiers] = useState<GameModifier[]>(
+    [],
+  );
   const router = useRouter();
 
-  function startGame(operator: Operator, number: number): void {
-    const gameRoute = getGameRouteSimple(number, operator);
+  function startGame(): void {
+    if (!selectedNumber || !selectedOperator || !selectedMode) {
+      console.error(
+        "Invalid game selection called. User shouldn't have been able to start",
+        {
+          selectedNumber,
+          selectedOperator,
+          selectedMode,
+        },
+      );
+      return;
+    }
+
+    const gameRoute = getGameRouteCustom(
+      selectedNumber,
+      selectedOperator,
+      selectedMode,
+      selectedModifiers,
+    );
     router.push(gameRoute).catch((err) => console.error(err));
   }
 
@@ -122,7 +141,7 @@ const SelectionScreen = () => {
 
   const ModeSelect = React.forwardRef<
     HTMLButtonElement,
-    { mode: Mode; children: ReactNode }
+    { mode: GameMode; children: ReactNode }
   >(({ mode, children, ...props }, ref) => {
     const isSelected = selectedMode === mode;
 
@@ -141,7 +160,7 @@ const SelectionScreen = () => {
 
   const ModifierSelect = React.forwardRef<
     HTMLButtonElement,
-    { modifier: Modifier; children: ReactNode }
+    { modifier: GameModifier; children: ReactNode }
   >(({ modifier, children, ...props }, ref) => {
     const isSelected = selectedModifiers.includes(modifier);
     return (
@@ -254,7 +273,7 @@ const SelectionScreen = () => {
           variant="secondary"
           size="lg"
           disabled={!(selectedNumber && selectedOperator)}
-          onClick={() => startGame(selectedOperator!, selectedNumber!)}
+          onClick={() => startGame()}
           className={
             "w-60 bg-primary text-lg disabled:bg-secondary disabled:opacity-40"
           }

@@ -17,16 +17,26 @@ import {
   AlertDialogHeader,
 } from "@/components/ui/alert-dialog";
 import { Loader2 } from "lucide-react";
-import { gameReducer, initialGameState } from "@/components/game/gameReducer";
+import {
+  gameReducer,
+  initialGameState,
+} from "@/components/game/gameReducer";
 import { LoaderOverlay } from "@/components/LoaderOverlay";
+import type { GameMode, GameModifier } from "@/components/layouts/SelectionScreen";
 
 interface GameProps {
   initialProblems: Problem[];
+  settings: GameSettings;
 }
 
 interface GameRoundAttempt {
   value: number;
   secondsElapsed: number;
+}
+
+export interface GameSettings {
+  gameMode: GameMode;
+  gameModifiers: GameModifier[];
 }
 
 export type ProblemAttempts = Map<number, GameRoundAttempt>;
@@ -94,7 +104,10 @@ const ErrorDialog = ({
   );
 };
 
-const Game: React.FC<GameProps> = ({ initialProblems }) => {
+const Game: React.FC<GameProps> = ({
+  initialProblems,
+  settings
+}) => {
   const [
     {
       inputValue,
@@ -138,7 +151,7 @@ const Game: React.FC<GameProps> = ({ initialProblems }) => {
       default:
         dispatch({ type: "input-insert", value: event.key });
     }
-  },[]);
+  }, []);
 
   useEffect(() => {
     if (addGameMutation.isLoading) return;
@@ -153,12 +166,12 @@ const Game: React.FC<GameProps> = ({ initialProblems }) => {
 
     // add attempt for correct answer
     if (isCorrectAnswer(currentProblem.answer, inputNumber, negativeMode)) {
-      dispatch({ type: "add-attempt", value: inputNumber });
+      dispatch({ type: "add-attempt", value: inputNumber, gameSettings: settings });
     }
 
     // add attempt when a user has entered a value and then cleared their input
     if (inputValue === "" && prevInputValue) {
-      dispatch({ type: "add-attempt", value: inputNumber });
+      dispatch({ type: "add-attempt", value: inputNumber, gameSettings: settings });
     }
   }, [inputValue, currentProblem, prevInputValue, negativeMode]);
 

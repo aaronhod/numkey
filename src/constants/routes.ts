@@ -1,22 +1,22 @@
-import type {Operator} from '../components/game/Problem';
+import type { Operator } from "@/components/game/Problem";
+import type {
+  GameMode,
+  GameModifier,
+} from "@/components/layouts/SelectionScreen";
 
-export const RUNNING_GAME_ROUTE = '/game';
+export const RUNNING_GAME_ROUTE = "/game";
 
-export function getGameRouteSimple(number: number, operator: Operator) {
-    const searchParams = new URLSearchParams();
-    searchParams.append('number', number.toString());
-    searchParams.append('operator', operator);
-    const gameId = crypto.randomUUID();
+export function getGameRouteCustom(
+  number: number,
+  operator: Operator,
+  gameMode: GameMode,
+  modifiers: GameModifier[],
+) {
+  const searchParams = new URLSearchParams();
+  searchParams.append("number", number.toString());
+  searchParams.append("operator", operator);
+  searchParams.append("mode", gameMode);
+  modifiers.forEach((modifier) => searchParams.append("modifiers", modifier));
 
-    return `${RUNNING_GAME_ROUTE}/${gameId}?${searchParams.toString()}`;
+  return `${RUNNING_GAME_ROUTE}?${searchParams.toString()}`;
 }
-
-// export function getGameRoute(numbers: number[], operators: Operator[]): URL {
-//   const route = new URL(RUNNING_GAME_ROUTE);
-//   numbers.map((number) =>
-//     route.searchParams.append("numbers", number.toString())
-//   );
-//   operators.map((operator) => route.searchParams.append("operators", operator));
-
-//   return route;
-// }
