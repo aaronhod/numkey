@@ -7,19 +7,7 @@ interface DisplayProps {
   problem: Problem | null;
   value: string | null;
   negativeMode: boolean;
-  handleKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void;
-}
-
-function getDisplayValue(value: string | null, negativeMode: boolean) {
-  if (value === null) {
-    return "";
-  }
-
-  if (negativeMode) {
-    return `- ${value}`;
-  }
-
-  return value;
+  handleKeyDown: (e: KeyboardEvent) => void;
 }
 
 const Display: React.FC<DisplayProps> = ({
@@ -29,38 +17,34 @@ const Display: React.FC<DisplayProps> = ({
   negativeMode,
   handleKeyDown,
 }) => {
-  const inputRef = React.useRef<HTMLInputElement>(null);
-
   useEffect(() => {
-    if (inputRef.current) {
-      inputRef.current.focus();
-    }
-  }, [value, negativeMode, problem]);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [handleKeyDown]);
 
   return (
     <h1
       className={cn(
-        "my-auto flex p-5 text-3xl sm:text-5xl",
+        "my-auto flex w-full p-5 text-3xl sm:text-5xl",
         {
           "bg-accent": negativeMode,
         },
         className,
       )}
     >
-      <p className="text-inherit/75 self-center align-text-bottom">
-        {problem &&
-          `${problem.leftValue} ${problem.operator} ${problem.rightValue}`}
-      </p>
-      <input
-        autoFocus
-        type="text"
-        value={getDisplayValue(value, negativeMode)}
-        className="grow cursor-default self-center bg-inherit text-right caret-transparent focus:cursor-default focus:outline-none focus:ring-0"
-        onKeyDown={handleKeyDown}
-        // always set the focus back to the input after focusing on another component
-        onBlur={(e) => e.target.focus()}
-        ref={inputRef}
-      />
+      {problem && (
+        <div className="text-inherit/75 flex w-full min-w-fit gap-0.5 self-center align-text-bottom sm:gap-4">
+          <p>{problem.leftValue}</p>
+          <p>{problem.operator}</p>
+          <p>{problem.rightValue}</p>
+        </div>
+      )}
+      <div className="flex max-w-[80%] cursor-default gap-1 self-center bg-inherit text-right caret-transparent focus:cursor-default focus:outline-none focus:ring-0 sm:gap-4">
+        <p>{negativeMode && "- "}</p>
+        <p>{value}</p>
+      </div>
     </h1>
   );
 };

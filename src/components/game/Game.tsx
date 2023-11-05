@@ -123,7 +123,7 @@ const Game: React.FC<GameProps> = ({ initialProblems }) => {
     addGameMutation.mutate(finishedGame);
   }, [addGameMutation, finishedProblems, lastSubmittedAt, startedAt, userId]);
 
-  const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+  const handleKeyDown = useCallback((event: KeyboardEvent) => {
     event.preventDefault();
 
     switch (event.key.toLowerCase()) {
@@ -138,7 +138,7 @@ const Game: React.FC<GameProps> = ({ initialProblems }) => {
       default:
         dispatch({ type: "input-insert", value: event.key });
     }
-  };
+  },[]);
 
   useEffect(() => {
     if (addGameMutation.isLoading) return;

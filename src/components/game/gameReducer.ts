@@ -58,6 +58,10 @@ function insertCharacter(newValue: string, state: State): State {
     (Number.isFinite(asNumber) && asNumber >= 0 && asNumber <= 9) ||
     newValue === ".";
 
+  if ((state.inputValue?.length ?? 0) + 1 > 10) {
+    return state;
+  }
+
   if (validValue) {
     return {
       ...state,
@@ -139,7 +143,7 @@ function addRoundAttempt(answer: number, state: State): State {
     problemQueue: state.problemQueue.slice(1),
     currentProblemAttempts: new Map(),
     lastSubmittedAt: finishedAt,
-    inputValue: null,
+    inputValue: allCompleted ? "Done!" : null,
     prevInputValue: "",
     allCompleted: allCompleted,
     finishedProblems: [
