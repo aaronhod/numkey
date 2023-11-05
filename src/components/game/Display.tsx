@@ -1,6 +1,7 @@
 import type { Problem } from "./Problem";
 import { cn } from "@/utils/shad";
 import React, { useEffect } from "react";
+import {getOperatorChar} from "./Problem";
 
 interface DisplayProps {
   className?: string;
@@ -37,7 +38,7 @@ const Display: React.FC<DisplayProps> = ({
       {problem && (
         <div className="text-inherit/75 flex w-full min-w-fit gap-0.5 self-center align-text-bottom sm:gap-4">
           <p>{problem.leftValue}</p>
-          <p>{problem.operator}</p>
+          <p>{getOperatorChar(problem.operator)}</p>
           <p>{problem.rightValue}</p>
         </div>
       )}

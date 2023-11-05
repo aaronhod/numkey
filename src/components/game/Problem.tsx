@@ -1,4 +1,4 @@
-type Operator = "+" | "-" | "×" | "÷";
+type Operator = "ADD" | "SUBTRACT" | "MULTIPLY" | "DIVIDE";
 
 interface Problem {
   leftValue: number;
@@ -10,6 +10,21 @@ interface Problem {
 const MAX_NUM = 12;
 const MIN_NUM = 2;
 
+export function getOperatorChar(operator: Operator) {
+  switch (operator) {
+    case "ADD":
+      return "+";
+    case "SUBTRACT":
+      return "-";
+    case "MULTIPLY":
+      return "×";
+    case "DIVIDE":
+      return "÷";
+    default:
+      throw new Error(`Unknown operator ${operator as string}`);
+  }
+}
+
 function createProblem({
   leftValue,
   rightValue,
@@ -17,13 +32,13 @@ function createProblem({
 }: Omit<Problem, "answer">): Problem {
   const calculateAnswer = () => {
     switch (operator) {
-      case "+":
+      case "ADD":
         return leftValue + rightValue;
-      case "-":
+      case "SUBTRACT":
         return leftValue - rightValue;
-      case "×":
+      case "MULTIPLY":
         return leftValue * rightValue;
-      case "÷":
+      case "DIVIDE":
         return leftValue / rightValue;
       default:
         throw new Error(`Unknown operator ${operator as string}`);

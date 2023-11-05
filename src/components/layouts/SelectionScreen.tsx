@@ -203,23 +203,23 @@ const SelectionScreen = () => {
       <div className="flex flex-col items-center gap-1.5">
         <SelectionHeader>Operator</SelectionHeader>
         <div className="flex flex-row flex-wrap justify-center gap-2 sm:gap-4">
-          <OperatorSelect key="+" operator="+">
+          <OperatorSelect key="add" operator="ADD">
             <Plus />
           </OperatorSelect>
-          <OperatorSelect key="-" operator="-">
+          <OperatorSelect key="subtract" operator="SUBTRACT">
             <Minus />
           </OperatorSelect>
-          <OperatorSelect key="×" operator="×">
+          <OperatorSelect key="multiply" operator="MULTIPLY">
             <X />
           </OperatorSelect>
-          <OperatorSelect key="÷" operator="÷">
+          <OperatorSelect key="divide" operator="DIVIDE">
             <Divide />
           </OperatorSelect>
         </div>
       </div>
-      <div className="flex flex-grow flex-col items-center gap-1.5">
+      <div className="flex flex-col items-center gap-1.5 px-10">
         <SelectionHeader>Numbers</SelectionHeader>
-        <div className="flex grow flex-wrap content-start justify-center gap-1 sm:w-3/6 sm:gap-2">
+        <div className="flex  flex-wrap content-start justify-center gap-1 sm:w-3/6 sm:gap-2">
           <NumberSelect key={2} number={2} />
           <NumberSelect key={3} number={3} />
           <NumberSelect key={4} number={4} />

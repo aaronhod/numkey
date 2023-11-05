@@ -13,6 +13,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, CircleSlash } from "lucide-react";
 import { LoaderOverlay } from "@/components/LoaderOverlay";
+import type { Operator } from "@/components/game/Problem";
+import { getOperatorChar } from "@/components/game/Problem";
 
 const FinishedGamePage = () => {
   const router = useRouter();
@@ -90,7 +92,9 @@ const FinishedGamePage = () => {
             {game.rounds.map((problem, index) => (
               <TableRow key={index}>
                 <TableCell>
-                  {problem.leftValue} {problem.operator} {problem.rightValue}
+                  {problem.leftValue}{" "}
+                  {getOperatorChar(problem.operator as Operator)}{" "}
+                  {problem.rightValue}
                 </TableCell>
                 <TableCell>{problem.answer}</TableCell>
                 <TableCell>
