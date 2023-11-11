@@ -116,7 +116,7 @@ const Game: React.FC<GameProps> = ({ initialProblems, settings }) => {
       negativeMode,
     },
     dispatch,
-  ] = useReducer(gameReducer, initialGameState(initialProblems));
+  ] = useReducer(gameReducer(settings), initialGameState(initialProblems));
 
   const { userId } = useAuth();
   const addGameMutation = api.game.addFinishedGame.useMutation();
@@ -178,7 +178,7 @@ const Game: React.FC<GameProps> = ({ initialProblems, settings }) => {
         gameSettings: settings,
       });
     }
-  }, [inputValue, currentProblem, prevInputValue, negativeMode]);
+  }, [inputValue, currentProblem, prevInputValue, negativeMode, settings]);
 
   useEffect(() => {
     if (addGameMutation.isSuccess) {

@@ -37,7 +37,7 @@ export const initialGameState = (problemSet: Problem[]): State => ({
   allCompleted: false,
 });
 
-export const gameReducer = (state: State, action: Action): State => {
+export const gameReducer = (settings: GameSettings) => (state: State, action: Action): State => {
   switch (action.type) {
     case "input-insert":
       return insertCharacter(action.value, state);

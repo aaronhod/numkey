@@ -11,81 +11,94 @@ interface NumpadProps {
   className?: string;
 }
 
-// TODO: on negative mode toggle, buttons are re-rendering
+const NumpadBtn: React.FC<{
+  value: string;
+  dispatch: React.Dispatch<Action>;
+  icon?: ReactElement;
+  className?: string;
+}> = ({ value, icon, dispatch, className }) => {
+  const buttonClick = useCallback(
+    (e: React.MouseEvent<HTMLButtonElement>) => {
+      const target = e.target as HTMLButtonElement;
+      const newValue = target.value;
 
+      if (!newValue) {
+        return;
+      }
+
+      if (newValue === "<") {
+        return dispatch({ type: "input-remove" });
+      }
+
+      if (newValue === "-") {
+        return dispatch({ type: "input-toggle-negative", value: "-" });
+      }
+
+      dispatch({ type: "input-insert", value: newValue });
+    },
+    [dispatch],
+  );
+
+  return (
+    <Button
+      variant="outline"
+      className={cn(
+        "sm:text-4 h-full rounded-none border-2 text-center text-2xl font-bold hover:bg-primary",
+        className,
+      )}
+      value={value}
+      onClick={buttonClick}
+    >
+      {icon ?? value}
+    </Button>
+  );
+};
+NumpadBtn.displayName = "Numpad Button";
+
+// TODO: on negative mode toggle, buttons are re-rendering
 const Numpad: React.FC<NumpadProps> = memo(
   ({ dispatch, negativeMode, className }) => {
-    const buttonClick = useCallback(
-      (e: React.MouseEvent<HTMLButtonElement>) => {
-        const target = e.target as HTMLButtonElement;
-        const newValue = target.value;
-
-        if (!newValue) {
-          return;
-        }
-
-        if (newValue === "<") {
-          return dispatch({ type: "input-remove" });
-        }
-
-        if (newValue === "-") {
-          return dispatch({ type: "input-toggle-negative", value: "-" });
-        }
-
-        dispatch({ type: "input-insert", value: newValue });
-      },
+    const MemoBtn = useCallback(
+      (props: { value: string; icon?: ReactElement; className?: string }) => (
+        <NumpadBtn
+          dispatch={dispatch}
+          value={props.value}
+          icon={props.icon}
+          className={props.className}
+        />
+      ),
       [dispatch],
     );
 
-    const NumpadBtn: React.FC<{
-      value: string;
-      icon?: ReactElement;
-      className?: string;
-    }> = memo(({ value, icon, className }) => {
-      return (
-        <Button
-          variant="outline"
-          className={cn(
-            "sm:text-4 h-full rounded-none border-2 text-center text-2xl font-bold hover:bg-primary",
-            className,
-          )}
-          value={value}
-          onClick={buttonClick}
-        >
-          {icon ?? value}
-        </Button>
-      );
-    });
-    NumpadBtn.displayName = "Numpad Button";
-
     return (
       <div className={cn("grid h-full grid-cols-3", className)}>
-        <NumpadBtn value="7" />
-        <NumpadBtn value="8" />
-        <NumpadBtn value="9" />
+        <MemoBtn value="7" />
+        <MemoBtn value="8" />
+        <MemoBtn value="9" />
 
-        <NumpadBtn value="4" />
-        <NumpadBtn value="5" />
-        <NumpadBtn value="6" />
+        <MemoBtn value="4" />
+        <MemoBtn value="5" />
+        <MemoBtn value="6" />
 
-        <NumpadBtn value="1" />
-        <NumpadBtn value="2" />
-        <NumpadBtn value="3" />
+        <MemoBtn value="1" />
+        <MemoBtn value="2" />
+        <MemoBtn value="3" />
 
-        <NumpadBtn
+        <MemoBtn
           value="<"
           icon={<Delete className="ml-auto mr-auto h-10 w-10" />}
         />
-        <NumpadBtn value="0" />
+        <MemoBtn value="0" />
 
         <div className="flex border-2 border-accent">
           <NumpadBtn
+            dispatch={dispatch}
             value="-"
             className={cn("w-full bg-secondary/50", {
               "bg-primary/30": negativeMode,
             })}
           />
-          <NumpadBtn value="." className="w-full bg-secondary/50" />
+          <MemoBtn value="." className="w-full bg-secondary/50" />
         </div>
       </div>
     );
