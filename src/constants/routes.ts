@@ -7,15 +7,15 @@ import type {
 export const RUNNING_GAME_ROUTE = "/game";
 
 export function getGameRouteCustom(
-  number: number,
-  operator: Operator,
+  numbers: number[],
+  operators: Operator[],
   gameMode: GameMode,
   modifiers: GameModifier[],
 ) {
   const searchParams = new URLSearchParams();
-  searchParams.append("number", number.toString());
-  searchParams.append("operator", operator);
-  searchParams.append("mode", gameMode);
+  searchParams.append("gameMode", gameMode);
+  numbers.forEach((number) => searchParams.append("numbers", String(number)));
+  operators.forEach((operator) => searchParams.append("operators", operator));
   modifiers.forEach((modifier) => searchParams.append("modifiers", modifier));
 
   return `${RUNNING_GAME_ROUTE}?${searchParams.toString()}`;

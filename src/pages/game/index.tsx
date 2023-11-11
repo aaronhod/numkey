@@ -9,25 +9,20 @@ import type {
   GameModifier,
 } from "@/components/layouts/SelectionScreen";
 
-interface QueryParams {
-  operator: Operator;
-  number: number;
+interface Query {
   gameId: string;
   mode: GameMode;
   modifiers: GameModifier[];
 }
 
-function parseQueryParams(query: ParsedUrlQuery): QueryParams {
-  const { operator, number, gameId, mode, modifiers } = query;
-  console.log(query);
+interface ParsedQueryParams extends ParsedUrlQuery, Query {
+  numbers: string[] | string;
+  operators: string[] | string;
+}
 
-  return {
-    operator: operator as Operator,
-    number: parseInt(number as string),
-    gameId: gameId as string,
-    mode: mode as GameMode,
-    modifiers: modifiers as GameModifier[],
-  };
+interface QueryParams extends Query {
+  numbers: number[];
+  operators: Operator[];
 }
 
 const RunningGame = () => {
@@ -39,14 +34,26 @@ const RunningGame = () => {
 
   useEffect(() => {
     if (!router.isReady) return;
-    setQueryParams(parseQueryParams(router.query));
+    const parsedQuery = router.query as ParsedQueryParams;
+    const numbers = Array.isArray(parsedQuery.numbers)
+      ? parsedQuery.numbers.map((num) => Number(num))
+      : [Number(parsedQuery.numbers)];
+    const operators = Array.isArray(parsedQuery.operators)
+      ? (parsedQuery.operators as Operator[])
+      : [parsedQuery.operators as Operator];
+
+    setQueryParams({
+      ...parsedQuery,
+      operators,
+      numbers,
+    });
   }, [router.isReady, router.query]);
 
   useEffect(() => {
     if (!queryParams) return;
 
-    const { number, operator, mode, modifiers } = queryParams;
-    const currentProblems = generateProblems(number, operator);
+    const { numbers, operators, mode, modifiers } = queryParams;
+    const currentProblems = generateProblems(numbers, operators);
 
     setProblems(currentProblems);
     setGameMode(mode ?? "normal");

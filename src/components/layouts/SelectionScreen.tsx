@@ -37,10 +37,8 @@ function SelectionHeader({ children }: { children?: ReactNode }) {
 }
 
 const SelectionScreen = () => {
-  const [selectedOperator, setSelectedOperator] = useState<Operator | null>(
-    null,
-  );
-  const [selectedNumber, setSelectedNumber] = useState<number | null>(null);
+  const [selectedOperators, setSelectedOperators] = useState<Operator[]>([]);
+  const [selectedNumbers, setSelectedNumbers] = useState<number[]>([]);
   const [selectedMode, setSelectedMode] = useState<GameMode | null>(null);
   const [selectedModifiers, setSelectedModifiers] = useState<GameModifier[]>(
     [],
@@ -48,12 +46,16 @@ const SelectionScreen = () => {
   const router = useRouter();
 
   function startGame(): void {
-    if (!selectedNumber || !selectedOperator || !selectedMode) {
+    if (
+      selectedNumbers.length < 1 ||
+      selectedOperators.length < 1 ||
+      !selectedMode
+    ) {
       console.error(
         "Invalid game selection called. User shouldn't have been able to start",
         {
-          selectedNumber,
-          selectedOperator,
+          selectedNumbers,
+          selectedOperators,
           selectedMode,
         },
       );
@@ -61,8 +63,8 @@ const SelectionScreen = () => {
     }
 
     const gameRoute = getGameRouteCustom(
-      selectedNumber,
-      selectedOperator,
+      selectedNumbers,
+      selectedOperators,
       selectedMode,
       selectedModifiers,
     );
@@ -109,11 +111,13 @@ const SelectionScreen = () => {
   SelectButton.displayName = "SelectButton";
 
   const NumberSelect: React.FC<{ number: number }> = ({ number }) => {
-    const isSelected = selectedNumber === number;
+    const isSelected = selectedNumbers.includes(number);
     return (
       <SelectButton
         onClick={() =>
-          setSelectedNumber((prev) => (number === prev ? null : number))
+          setSelectedNumbers((prev) =>
+            isSelected ? prev.filter((m) => m !== number) : [...prev, number],
+          )
         }
         isSelected={isSelected}
       >
@@ -126,11 +130,15 @@ const SelectionScreen = () => {
     operator: Operator;
     children: ReactNode;
   }> = ({ operator, children }) => {
-    const isSelected = selectedOperator === operator;
+    const isSelected = selectedOperators.includes(operator);
     return (
       <SelectButton
         onClick={() =>
-          setSelectedOperator((prev) => (operator === prev ? null : operator))
+          setSelectedOperators((prev) =>
+            isSelected
+              ? prev.filter((m) => m !== operator)
+              : [...prev, operator],
+          )
         }
         isSelected={isSelected}
       >
@@ -272,7 +280,7 @@ const SelectionScreen = () => {
         <Button
           variant="secondary"
           size="lg"
-          disabled={!(selectedNumber && selectedOperator)}
+          disabled={selectedNumbers.length < 1 && selectedOperators.length < 1}
           onClick={() => startGame()}
           className={
             "w-60 bg-primary text-lg disabled:bg-secondary disabled:opacity-40"

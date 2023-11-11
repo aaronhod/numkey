@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useReducer } from "react";
+import React, { useCallback, useEffect, useReducer, useState } from "react";
 import Numpad from "./Numpad";
 import { Display } from "./Display";
 import type { Problem } from "./Problem";
@@ -23,13 +23,22 @@ import type {
   GameMode,
   GameModifier,
 } from "@/components/layouts/SelectionScreen";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface GameProps {
   initialProblems: Problem[];
   settings: GameSettings;
 }
 
-interface GameRoundAttempt {
+export interface GameRoundAttempt {
   value: number;
   secondsElapsed: number;
 }
@@ -104,6 +113,46 @@ const ErrorDialog = ({
   );
 };
 
+const PauseMenu = ({
+  isOpen,
+  setIsOpen,
+}: {
+  isOpen: boolean;
+  setIsOpen: (open: boolean) => void;
+}) => {
+  const router = useRouter();
+
+  return (
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogContent
+        className="sm:max-w-[425px]"
+        onEscapeKeyDown={(e) => {
+          e.preventDefault();
+        }}
+      >
+        <DialogHeader>
+          <DialogTitle>Game Paused</DialogTitle>
+          <DialogDescription>
+            Exit to the main menu or resume.
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <Button
+            variant="destructive"
+            className="mr-auto"
+            onClick={() => void router.push("/")}
+          >
+            Exit Game
+          </Button>
+          <Button variant="secondary" onClick={() => setIsOpen(false)}>
+            Resume
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
 const Game: React.FC<GameProps> = ({ initialProblems, settings }) => {
   const [
     {
@@ -117,6 +166,7 @@ const Game: React.FC<GameProps> = ({ initialProblems, settings }) => {
     },
     dispatch,
   ] = useReducer(gameReducer(settings), initialGameState(initialProblems));
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const { userId } = useAuth();
   const addGameMutation = api.game.addFinishedGame.useMutation();
@@ -137,6 +187,10 @@ const Game: React.FC<GameProps> = ({ initialProblems, settings }) => {
     event.preventDefault();
 
     switch (event.key.toLowerCase()) {
+      // Menu Input
+      case "escape":
+        return setIsMenuOpen((prev) => !prev);
+      // Main Game Input
       case "backspace":
         return dispatch({ type: "input-remove" });
       case "-":
@@ -188,6 +242,7 @@ const Game: React.FC<GameProps> = ({ initialProblems, settings }) => {
 
   return (
     <>
+      <PauseMenu isOpen={isMenuOpen} setIsOpen={setIsMenuOpen} />
       <ErrorDialog
         error={addGameMutation.error}
         refetch={submitGame}

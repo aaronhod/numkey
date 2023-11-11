@@ -53,13 +53,17 @@ function createProblem({
   };
 }
 
-function generateProblems(number: number, operator: Operator): Problem[] {
+function generateProblems(numbers: number[], operators: Operator[]): Problem[] {
   const problems: Problem[] = [];
 
-  for (let i = MIN_NUM; i < MAX_NUM + 1; i++) {
-    problems.push(
-      createProblem({ leftValue: i, rightValue: number, operator }),
-    );
+  for (const operator of operators) {
+    for (const number of numbers) {
+      for (let i = MIN_NUM; i < MAX_NUM + 1; i++) {
+        problems.push(
+          createProblem({ leftValue: i, rightValue: number, operator }),
+        );
+      }
+    }
   }
 
   return problems;
