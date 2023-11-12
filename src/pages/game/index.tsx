@@ -1,6 +1,7 @@
 import { useRouter } from "next/router";
 import type { ParsedUrlQuery } from "querystring";
 import { useEffect, useState } from "react";
+import type { GameSettings } from "@/components/game/Game";
 import Game from "../../components/game/Game";
 import type { Operator, Problem } from "@/components/game/Problem";
 import { generateProblems } from "@/components/game/Problem";
@@ -26,10 +27,9 @@ interface QueryParams extends Query {
 }
 
 const RunningGame = () => {
-  const [problems, setProblems] = useState<Problem[]>();
-  const [gameMode, setGameMode] = useState<GameMode>("normal");
-  const [gameModifiers, setGameModifiers] = useState<GameModifier[]>([]);
-  const [queryParams, setQueryParams] = useState<QueryParams>();
+  const [problems, setProblems] = useState<Problem[] | null>(null);
+  const [queryParams, setQueryParams] = useState<QueryParams | null>(null);
+  const [gameSettings, setGameSettings] = useState<GameSettings | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -56,17 +56,17 @@ const RunningGame = () => {
     const currentProblems = generateProblems(numbers, operators);
 
     setProblems(currentProblems);
-    setGameMode(mode ?? "normal");
-    setGameModifiers(modifiers);
+    setGameSettings({
+      gameMode: mode,
+      gameModifiers: modifiers,
+    });
   }, [queryParams]);
 
-  if (!problems) {
+  if (!problems || !gameSettings) {
     return null;
   }
 
-  return (
-    <Game initialProblems={problems} settings={{ gameMode, gameModifiers }} />
-  );
+  return <Game initialProblems={problems} settings={gameSettings} />;
 };
 
 export { RunningGame as default };

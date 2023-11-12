@@ -1,5 +1,9 @@
 import type { Problem } from "@/components/game/Problem";
-import type {GameRoundAttempt, GameSettings, ProblemAttempts} from "@/components/game/Game";
+import type {
+  GameRoundAttempt,
+  GameSettings,
+  ProblemAttempts,
+} from "@/components/game/Game";
 import { isCorrectAnswer } from "@/components/game/Game";
 import type { FinishedRound } from "@/server/api/routers/games";
 import type { Dayjs } from "dayjs";
@@ -13,6 +17,7 @@ export interface State {
   currentProblem: Problem | null;
   currentProblemAttempts: ProblemAttempts;
   finishedProblems: FinishedRound[];
+  pausedAt: Dayjs | null;
   lastSubmittedAt: Dayjs;
   allCompleted: boolean;
 }
@@ -21,7 +26,9 @@ export type Action =
   | { type: "input-insert"; value: string }
   | { type: "input-remove" }
   | { type: "input-toggle-negative"; value: ToggleChar }
-  | { type: "add-attempt"; value: number; gameSettings: GameSettings };
+  | { type: "add-attempt"; value?: number }
+  | { type: "pause" }
+  | { type: "resume" };
 
 type ToggleChar = "+" | "-";
 
@@ -34,23 +41,30 @@ export const initialGameState = (problemSet: Problem[]): State => ({
   currentProblemAttempts: new Map(),
   finishedProblems: [],
   lastSubmittedAt: dayjs(),
+  pausedAt: null,
   allCompleted: false,
 });
 
-export const gameReducer = (settings: GameSettings) => (state: State, action: Action): State => {
-  switch (action.type) {
-    case "input-insert":
-      return insertCharacter(action.value, state);
-    case "input-remove":
-      return removeCharacter(state);
-    case "input-toggle-negative":
-      return toggleNegativeInput(action.value, state);
-    case "add-attempt":
-      return addRoundAttempt(action.value, state, settings);
-    default:
-      return state;
-  }
-};
+export const gameReducer =
+  (settings: GameSettings) =>
+  (state: State, action: Action): State => {
+    switch (action.type) {
+      case "input-insert":
+        return insertCharacter(action.value, state);
+      case "input-remove":
+        return removeCharacter(state);
+      case "input-toggle-negative":
+        return toggleNegativeInput(action.value, state);
+      case "add-attempt":
+        return addRoundAttempt(action.value, state, settings);
+      case "pause":
+        return pauseGame(state);
+      case "resume":
+        return resumeGame(state);
+      default:
+        return state;
+    }
+  };
 
 function insertCharacter(newValue: string, state: State): State {
   const asNumber = Number(newValue);
@@ -97,8 +111,9 @@ function toggleNegativeInput(toggleChar: ToggleChar, state: State): State {
   };
 }
 
+// handle implicit and explicit attempts
 function addRoundAttempt(
-  answer: number,
+  answer: number | undefined,
   state: State,
   { gameMode, gameModifiers }: GameSettings,
 ): State {
@@ -107,12 +122,13 @@ function addRoundAttempt(
   const updatedAttempts = new Map(state.currentProblemAttempts).set(
     state.currentProblemAttempts.size,
     {
-      value: answer,
+      value: answer ?? Number(state.inputValue),
       secondsElapsed: timeDiff,
     },
   );
 
   if (
+    !answer ||
     !state.currentProblem ||
     !isCorrectAnswer(state.currentProblem.answer, answer, state.negativeMode)
   ) {
@@ -159,5 +175,23 @@ function addRoundAttempt(
         attempts: mappedAttempts,
       },
     ],
+  };
+}
+
+function pauseGame(state: State): State {
+  return {
+    ...state,
+    pausedAt: dayjs(),
+  };
+}
+
+function resumeGame(state: State): State {
+  const pausedAt = state.pausedAt ?? dayjs();
+  const pausedDuration = dayjs().diff(pausedAt, "millisecond");
+
+  return {
+    ...state,
+    pausedAt: null,
+    lastSubmittedAt: state.lastSubmittedAt.add(pausedDuration, "millisecond"),
   };
 }

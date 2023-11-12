@@ -1,7 +1,7 @@
 import type { ReactElement } from "react";
 import React, { memo, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { Delete } from "lucide-react";
+import { CornerDownRight, Delete, Dot, Minus } from "lucide-react";
 import { cn } from "@/utils/shad";
 import type { Action } from "@/components/game/gameReducer";
 
@@ -34,6 +34,10 @@ const NumpadBtn: React.FC<{
         return dispatch({ type: "input-toggle-negative", value: "-" });
       }
 
+      if (newValue == "submit") {
+        return dispatch({ type: "add-attempt" });
+      }
+
       dispatch({ type: "input-insert", value: newValue });
     },
     [dispatch],
@@ -55,7 +59,6 @@ const NumpadBtn: React.FC<{
 };
 NumpadBtn.displayName = "Numpad Button";
 
-// TODO: on negative mode toggle, buttons are re-rendering
 const Numpad: React.FC<NumpadProps> = memo(
   ({ dispatch, negativeMode, className }) => {
     const MemoBtn = useCallback(
@@ -84,21 +87,35 @@ const Numpad: React.FC<NumpadProps> = memo(
         <MemoBtn value="2" />
         <MemoBtn value="3" />
 
-        <MemoBtn
-          value="<"
-          icon={<Delete className="ml-auto mr-auto h-10 w-10" />}
-        />
-        <MemoBtn value="0" />
-
         <div className="flex border-2 border-accent">
+          <MemoBtn
+            value="<"
+            icon={<Delete className="ml-auto mr-auto h-10 w-10" />}
+            className="w-full bg-destructive/30"
+          />
           <NumpadBtn
             dispatch={dispatch}
             value="-"
-            className={cn("w-full bg-secondary/50", {
-              "bg-primary/30": negativeMode,
+            icon={<Minus className="ml-auto mr-auto h-10 w-10" />}
+            className={cn(" w-full", {
+              "bg-secondary/50": negativeMode,
             })}
           />
-          <MemoBtn value="." className="w-full bg-secondary/50" />
+        </div>
+
+        <MemoBtn value="0" />
+
+        <div className="flex border-2 border-accent">
+          <MemoBtn
+            value="."
+            className="w-full"
+            icon={<Dot className="ml-auto mr-auto h-10 w-10" />}
+          />
+          <MemoBtn
+            value="submit"
+            className="w-full bg-primary/20"
+            icon={<CornerDownRight className="ml-auto mr-auto h-10 w-10" />}
+          />
         </div>
       </div>
     );

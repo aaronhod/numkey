@@ -13,7 +13,7 @@ export function getGameRouteCustom(
   modifiers: GameModifier[],
 ) {
   const searchParams = new URLSearchParams();
-  searchParams.append("gameMode", gameMode);
+  searchParams.append("mode", gameMode);
   numbers.forEach((number) => searchParams.append("numbers", String(number)));
   operators.forEach((operator) => searchParams.append("operators", operator));
   modifiers.forEach((modifier) => searchParams.append("modifiers", modifier));

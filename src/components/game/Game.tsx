@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useReducer, useState } from "react";
 import Numpad from "./Numpad";
 import { Display } from "./Display";
 import type { Problem } from "./Problem";
-import dayjs from "dayjs";
+import dayjs, { Dayjs } from "dayjs";
 import type { RouterError } from "@/utils/api";
 import { api } from "@/utils/api";
 import { useRouter } from "next/router";
@@ -32,6 +32,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import type { FinishedRound } from "@/server/api/routers/games";
+
+// add duration plugin for dayjs
+import duration from "dayjs/plugin/duration";
+
+dayjs.extend(duration);
 
 interface GameProps {
   initialProblems: Problem[];
@@ -59,6 +65,19 @@ export function isCorrectAnswer(
     return Number(attempt) === -answer;
   }
   return Number(attempt) === answer;
+}
+
+function getElapsedTime(
+  finishedProblems: FinishedRound[],
+  lastSubmittedAt: Dayjs,
+) {
+  const finishedTotal = finishedProblems.reduce(
+    (acc, curr) => acc + curr.duration,
+    0,
+  );
+  const runningSeconds = dayjs().diff(lastSubmittedAt, "seconds");
+
+  return dayjs.duration(finishedTotal + runningSeconds, "seconds");
 }
 
 const ErrorDialog = ({
@@ -167,6 +186,9 @@ const Game: React.FC<GameProps> = ({ initialProblems, settings }) => {
     dispatch,
   ] = useReducer(gameReducer(settings), initialGameState(initialProblems));
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [runningTime, setRunningTime] = useState(
+    getElapsedTime(finishedProblems, lastSubmittedAt),
+  );
 
   const { userId } = useAuth();
   const addGameMutation = api.game.addFinishedGame.useMutation();
@@ -185,12 +207,13 @@ const Game: React.FC<GameProps> = ({ initialProblems, settings }) => {
 
   const handleKeyDown = useCallback((event: KeyboardEvent) => {
     event.preventDefault();
-
     switch (event.key.toLowerCase()) {
       // Menu Input
       case "escape":
         return setIsMenuOpen((prev) => !prev);
       // Main Game Input
+      case "enter":
+        return dispatch({ type: "add-attempt" });
       case "backspace":
         return dispatch({ type: "input-remove" });
       case "-":
@@ -220,16 +243,19 @@ const Game: React.FC<GameProps> = ({ initialProblems, settings }) => {
       dispatch({
         type: "add-attempt",
         value: inputNumber,
-        gameSettings: settings,
       });
     }
 
-    // add attempt when a user has entered a value and then cleared their input
+    // add implicit attempt when a user has entered a value and then cleared their input
+    // this is toggled off for lives mode
+    if (settings.gameMode === "lives") {
+      console.log("in lives");
+      return;
+    }
     if (inputValue === "" && prevInputValue) {
       dispatch({
         type: "add-attempt",
         value: inputNumber,
-        gameSettings: settings,
       });
     }
   }, [inputValue, currentProblem, prevInputValue, negativeMode, settings]);
@@ -239,6 +265,15 @@ const Game: React.FC<GameProps> = ({ initialProblems, settings }) => {
       void router.push(`/game/${addGameMutation.data.id}/complete`);
     }
   }, [addGameMutation.data?.id, addGameMutation.isSuccess, router]);
+
+  useEffect(() => {
+    if (isMenuOpen) return;
+
+    const interval = setInterval(() => {
+      setRunningTime(getElapsedTime(finishedProblems, lastSubmittedAt));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [finishedProblems, isMenuOpen, lastSubmittedAt]);
 
   return (
     <>
@@ -256,6 +291,10 @@ const Game: React.FC<GameProps> = ({ initialProblems, settings }) => {
           problem={currentProblem}
           negativeMode={negativeMode}
           handleKeyDown={handleKeyDown}
+          gameSettings={settings}
+          roundsCompleted={finishedProblems.length}
+          totalRounds={initialProblems.length}
+          timeElapsed={runningTime}
         />
         <Numpad dispatch={dispatch} negativeMode={negativeMode} />
       </div>
