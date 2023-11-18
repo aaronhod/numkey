@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { createTRPCRouter, protectedProcedure } from "../trpc";
+import type {Operator} from "@/components/game/Problem";
 
 const RoundAttempt = z.object({
   ordering: z.number(),
@@ -10,10 +11,10 @@ const RoundAttempt = z.object({
 const FinishedRound = z.object({
   leftValue: z.number(),
   rightValue: z.number(),
-  operator: z.string(),
+  operator: z.custom<Operator>(),
   answer: z.number(),
   isCompleted: z.boolean(),
-  duration: z.number(),
+  durationMs: z.number(),
   attempts: z.array(RoundAttempt),
 });
 
@@ -44,7 +45,7 @@ export const gameRouter = createTRPCRouter({
               operator: round.operator,
               answer: round.answer,
               isCompleted: round.isCompleted,
-              duration: round.duration,
+              durationMs: round.durationMs,
               attempts: {
                 create: round.attempts.map((attempt) => ({
                   ordering: attempt.ordering,

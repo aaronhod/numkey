@@ -2,7 +2,14 @@ import type { Problem } from "./Problem";
 import { getOperatorChar } from "./Problem";
 import { cn } from "@/utils/shad";
 import React, { useEffect } from "react";
-import { Calculator, Dice6, Heart, Layers, Tally5, Timer } from "lucide-react";
+import {
+  Calculator,
+  Dice6,
+  Heart,
+  Layers,
+  Tally5,
+  Timer as TimerIcon,
+} from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import {
   Tooltip,
@@ -10,37 +17,44 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import type { GameSettings } from "@/components/game/Game";
-import type { Duration } from "dayjs/plugin/duration";
-
 
 import duration from "dayjs/plugin/duration";
 import relativeTime from "dayjs/plugin/relativeTime";
 import dayjs from "dayjs";
+import { useInterval } from "@/hooks/useInterval";
+import { GameSettings } from "@/components/game/Game";
+import { getModeIcon, getModifierIcon } from "@/components/game/GameSettings";
 
 // add duration plugin for dayjs
 dayjs.extend(duration);
 dayjs.extend(relativeTime);
 
-interface DisplayProps {
+interface TimerProps {
+  runningMilliseconds: number;
+  setRunningMilliseconds: (ms: number) => void;
+  isPaused: boolean;
   className?: string;
-  problem: Problem | null;
-  value: string | null;
-  negativeMode: boolean;
-  gameSettings: GameSettings;
-  handleKeyDown: (e: KeyboardEvent) => void;
-  roundsCompleted: number;
-  totalRounds: number;
-  timeElapsed: Duration;
-  lives?: number;
 }
 
-const ElapsedTimer = ({ timeElapsed }: { timeElapsed: Duration }) => {
+// Update every second
+const TIMER_INTERVAL_MS = 1000;
+const Timer = ({
+  runningMilliseconds,
+  setRunningMilliseconds,
+  isPaused,
+}: TimerProps) => {
+  useInterval(() => {
+    if (isPaused) return;
+    setRunningMilliseconds(TIMER_INTERVAL_MS);
+  }, TIMER_INTERVAL_MS);
+
+  const timeElapsed = dayjs.duration(runningMilliseconds, "milliseconds");
+
   return (
     <Tooltip>
       <TooltipTrigger asChild>
         <div className="flex items-center gap-2">
-          <Timer />
+          <TimerIcon />
           <p>{timeElapsed.format("mm:ss")}</p>
         </div>
       </TooltipTrigger>
@@ -58,15 +72,18 @@ const RoundTally = ({
   completed: number;
   total: number;
 }) => {
-  const tallyString = `${completed}/${total}`;
+  const paddedCompleted = completed
+    .toString()
+    .padStart(total.toString().length, "0");
+  const tallyString = `${paddedCompleted}/${total}`;
 
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <p className="flex items-center gap-2">
+        <div className="flex items-center gap-2">
           <Tally5 />
           <p>{tallyString}</p>
-        </p>
+        </div>
       </TooltipTrigger>
       <TooltipContent>
         <p>{tallyString} rounds completed</p>
@@ -75,29 +92,46 @@ const RoundTally = ({
   );
 };
 
-const SettingsDisplay = () => {
+const SettingsDisplay = ({ settings }: { settings: GameSettings }) => {
+  const { gameMode, gameModifiers } = settings;
+
+  const GameModeIcon = getModeIcon(gameMode, { className: "w-5 h-5" });
+  const ModifierIcons = gameModifiers.map((m) =>
+    getModifierIcon(m, { className: "w-5 h-5" }),
+  );
+
   return (
     <div className="flex items-center gap-2">
-      {/*gamemode*/}
-      <Calculator />
-      <Separator orientation="vertical" />
-      <Layers />
-      <Dice6 />
-      {/*modifiers*/}
+      {GameModeIcon}
+      {ModifierIcons.length > 0 && (
+        <>
+          <Separator orientation="vertical" />
+          {ModifierIcons}
+        </>
+      )}
     </div>
   );
 };
 const TOTAL_LIVES = 3;
 
-const LivesDisplay = ({ lives }: { lives?: number }) => {
-  if (lives === undefined) {
+const LivesDisplay = ({
+  livesRemaining,
+}: {
+  livesRemaining: number | null;
+}) => {
+  if (livesRemaining === null) {
     return null;
   }
 
   const renderHearts = () => {
     const hearts = [];
     for (let i = 0; i < TOTAL_LIVES; i++) {
-      hearts.push(<Heart className={i < lives ? "" : "fill-white"} />);
+      hearts.push(
+        <Heart
+          key={`heart-${i}`}
+          className={i < livesRemaining ? "" : "fill-white"}
+        />,
+      );
     }
     return hearts;
   };
@@ -108,22 +142,69 @@ const LivesDisplay = ({ lives }: { lives?: number }) => {
         <div className="flex">{renderHearts()}</div>
       </TooltipTrigger>
       <TooltipContent>
-        <p>{`${lives}/${TOTAL_LIVES}`} lives remaining</p>
+        <p>{`${livesRemaining}/${TOTAL_LIVES}`} lives remaining</p>
       </TooltipContent>
     </Tooltip>
   );
 };
 
+interface DisplayProps {
+  handleKeyDown: (e: KeyboardEvent) => void;
+  negativeMode: boolean;
+  className?: string;
+  children?: React.ReactNode;
+}
+
+export const DisplayHeader = (props: {
+  completed: number;
+  total: number;
+  runningMilliseconds: number;
+  setRunningMilliseconds: (ms: number) => void;
+  paused: boolean;
+  lives: number | null;
+  settings: GameSettings;
+}) => {
+  return (
+    <h3 className="flex justify-between px-5 pt-3 text-foreground/50 ">
+      <RoundTally completed={props.completed} total={props.total} />
+      <Timer
+        runningMilliseconds={props.runningMilliseconds}
+        setRunningMilliseconds={props.setRunningMilliseconds}
+        isPaused={props.paused}
+      />
+      <LivesDisplay livesRemaining={props.lives} />
+      <SettingsDisplay settings={props.settings} />
+    </h3>
+  );
+};
+
+export const DisplayContent = (props: {
+  problem: Problem | null;
+  negativeMode: boolean;
+  userValue: string | null;
+}) => {
+  return (
+    <h2 className="my-auto flex w-full p-5 text-3xl sm:text-5xl">
+      {props.problem && (
+        <div className="text-inherit/75 flex w-full min-w-fit gap-0.5 self-center align-text-bottom sm:gap-4">
+          <p>{props.problem?.leftValue}</p>
+          <p>{getOperatorChar(props.problem?.operator)}</p>
+          <p>{props.problem?.rightValue}</p>
+        </div>
+      )}
+      <div className="flex max-w-[80%] cursor-default gap-1 self-center bg-inherit text-right caret-transparent focus:cursor-default focus:outline-none focus:ring-0 sm:gap-4">
+        <p>{props.negativeMode && "- "}</p>
+        <p>{props.userValue}</p>
+      </div>
+    </h2>
+  );
+};
+
 const Display: React.FC<DisplayProps> = ({
   className,
-  problem,
-  value,
   negativeMode,
   handleKeyDown,
-  roundsCompleted,
-  totalRounds,
-  timeElapsed,
-  lives,
+  children,
 }) => {
   useEffect(() => {
     window.addEventListener("keydown", handleKeyDown);
@@ -134,7 +215,7 @@ const Display: React.FC<DisplayProps> = ({
 
   return (
     <TooltipProvider>
-      <h1
+      <header
         className={cn(
           "flex flex-col",
           {
@@ -143,28 +224,8 @@ const Display: React.FC<DisplayProps> = ({
           className,
         )}
       >
-        {/*extra details: game mode specific info and time elapsed*/}
-        <h3 className="flex justify-between px-5 pt-3 text-foreground/50 ">
-          <RoundTally completed={roundsCompleted} total={totalRounds} />
-          <ElapsedTimer timeElapsed={timeElapsed} />
-          <SettingsDisplay />
-          <LivesDisplay lives={lives} />
-        </h3>
-        {/*main display: problem and user input*/}
-        <h2 className="my-auto flex w-full p-5 text-3xl sm:text-5xl">
-          {problem && (
-            <div className="text-inherit/75 flex w-full min-w-fit gap-0.5 self-center align-text-bottom sm:gap-4">
-              <p>{problem.leftValue}</p>
-              <p>{getOperatorChar(problem.operator)}</p>
-              <p>{problem.rightValue}</p>
-            </div>
-          )}
-          <div className="flex max-w-[80%] cursor-default gap-1 self-center bg-inherit text-right caret-transparent focus:cursor-default focus:outline-none focus:ring-0 sm:gap-4">
-            <p>{negativeMode && "- "}</p>
-            <p>{value}</p>
-          </div>
-        </h2>
-      </h1>
+        {children}
+      </header>
     </TooltipProvider>
   );
 };

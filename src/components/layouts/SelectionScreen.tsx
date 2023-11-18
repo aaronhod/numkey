@@ -24,9 +24,7 @@ import {
 } from "@/components/ui/hover-card";
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
-
-export type GameModifier = "random" | "timed" | "sorted";
-export type GameMode = "normal" | "endless" | "lives" | "stack";
+import type { GameMode, GameModifier } from "@/components/game/GameSettings";
 
 function SelectionHeader({ children }: { children?: ReactNode }) {
   return (
@@ -269,9 +267,6 @@ const SelectionScreen = () => {
             </ModifierSelect>
             <ModifierSelect key="timed" modifier="timed">
               <Timer />
-            </ModifierSelect>
-            <ModifierSelect key="stack" modifier="sorted">
-              <Layers />
             </ModifierSelect>
           </div>
         </div>

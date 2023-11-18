@@ -38,7 +38,7 @@ model FinishedRound {
 
   attempts    RoundAttempt[]
   isCompleted Boolean
-  duration    Int
+  durationMs  Int
 
   game   FinishedGame @relation(fields: [gameId], references: [id])
   gameId Int

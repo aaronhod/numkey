@@ -18,7 +18,9 @@ import { getOperatorChar } from "@/components/game/Problem";
 const FinishedGamePage = () => {
   const router = useRouter();
   const [gameId, setGameId] = useState<number>(Number(router.query.gameId));
-  const { data: game, error } = api.game.getById.useQuery(gameId);
+  const { data: game, error } = api.game.getById.useQuery(gameId, {
+    enabled: Boolean(gameId),
+  });
 
   useEffect(() => {
     if (!router.isReady) return;
@@ -104,7 +106,7 @@ const FinishedGamePage = () => {
                   )}
                 </TableCell>
                 <TableCell>
-                  <Time milliSeconds={problem.duration} />
+                  <Time milliSeconds={Number(problem.durationMs)} />
                 </TableCell>
                 <TableCell>{problem.attempts.length}</TableCell>
                 {/*<TableCell>todo for each problem find the users average solve time</TableCell>*/}

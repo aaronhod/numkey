@@ -1,25 +1,25 @@
 import type { Problem } from "@/components/game/Problem";
-import type {
-  GameRoundAttempt,
-  GameSettings,
-  ProblemAttempts,
-} from "@/components/game/Game";
+import type { GameRoundAttempt, GameSettings } from "@/components/game/Game";
 import { isCorrectAnswer } from "@/components/game/Game";
 import type { FinishedRound } from "@/server/api/routers/games";
-import type { Dayjs } from "dayjs";
 import dayjs from "dayjs";
 
+type ProblemAttempts = Map<number, GameRoundAttempt>;
+type ProblemQueue = {
+  problem: Problem;
+  attempts: ProblemAttempts;
+}[];
+
 export interface State {
+  startedAt: Date;
   inputValue: string | null;
   prevInputValue: string;
   negativeMode: boolean;
-  problemQueue: Problem[];
-  currentProblem: Problem | null;
-  currentProblemAttempts: ProblemAttempts;
+  problemQueue: ProblemQueue;
   finishedProblems: FinishedRound[];
-  pausedAt: Dayjs | null;
-  lastSubmittedAt: Dayjs;
   allCompleted: boolean;
+  runningMilliseconds: number;
+  lives: number | null;
 }
 
 export type Action =
@@ -27,23 +27,31 @@ export type Action =
   | { type: "input-remove" }
   | { type: "input-toggle-negative"; value: ToggleChar }
   | { type: "add-attempt"; value?: number }
-  | { type: "pause" }
-  | { type: "resume" };
+  | { type: "update-timer"; value: number };
 
 type ToggleChar = "+" | "-";
 
-export const initialGameState = (problemSet: Problem[]): State => ({
-  inputValue: null,
-  prevInputValue: "",
-  negativeMode: false,
-  problemQueue: problemSet.slice(1),
-  currentProblem: problemSet[0] ?? null,
-  currentProblemAttempts: new Map(),
-  finishedProblems: [],
-  lastSubmittedAt: dayjs(),
-  pausedAt: null,
-  allCompleted: false,
-});
+export const initialGameState = (
+  problemSet: Problem[],
+  settings: GameSettings,
+): State => {
+  const mappedProblems = problemSet.map((problem) => ({
+    problem,
+    attempts: new Map(),
+  }));
+
+  return {
+    startedAt: new Date(),
+    inputValue: null,
+    prevInputValue: "",
+    negativeMode: false,
+    problemQueue: mappedProblems,
+    finishedProblems: [],
+    allCompleted: false,
+    runningMilliseconds: 0,
+    lives: settings.gameMode === "lives" ? 3 : null,
+  };
+};
 
 export const gameReducer =
   (settings: GameSettings) =>
@@ -57,10 +65,8 @@ export const gameReducer =
         return toggleNegativeInput(action.value, state);
       case "add-attempt":
         return addRoundAttempt(action.value, state, settings);
-      case "pause":
-        return pauseGame(state);
-      case "resume":
-        return resumeGame(state);
+      case "update-timer":
+        return updateRunningSeconds(action.value, state);
       default:
         return state;
     }
@@ -80,7 +86,7 @@ function insertCharacter(newValue: string, state: State): State {
     return {
       ...state,
       inputValue: [state.inputValue, newValue].join(""),
-      prevInputValue: state.inputValue ?? "",
+      prevInputValue: [state.prevInputValue, state.inputValue ?? ""].join(""),
     };
   }
 
@@ -91,7 +97,7 @@ function removeCharacter(state: State): State {
   return {
     ...state,
     inputValue: state.inputValue?.slice(0, -1) ?? null,
-    prevInputValue: state.inputValue ?? "",
+    prevInputValue: state.prevInputValue?.slice(0, -1) ?? "",
   };
 }
 
@@ -115,34 +121,46 @@ function toggleNegativeInput(toggleChar: ToggleChar, state: State): State {
 function addRoundAttempt(
   answer: number | undefined,
   state: State,
-  { gameMode, gameModifiers }: GameSettings,
+  settings: GameSettings,
 ): State {
-  const finishedAt = dayjs();
-  const timeDiff = finishedAt.diff(state.lastSubmittedAt, "millisecond");
-  const updatedAttempts = new Map(state.currentProblemAttempts).set(
-    state.currentProblemAttempts.size,
-    {
-      value: answer ?? Number(state.inputValue),
-      secondsElapsed: timeDiff,
-    },
-  );
+  if (state.problemQueue.length === 0) {
+    return state;
+  }
 
-  if (
+  const currentProblem = state.problemQueue[0]!;
+  const currentProblemAttempts = currentProblem?.attempts ?? new Map();
+  const latestAttempt = currentProblem?.attempts?.get(
+    currentProblem?.attempts?.size - 1,
+  );
+  const latestAttemptDuration = latestAttempt?.msElapsed ?? 0;
+
+  const roundDuration =
+    dayjs().diff(state.startedAt, "millisecond") - latestAttemptDuration;
+  const updatedAttempts = new Map<number, GameRoundAttempt>(
+    currentProblemAttempts,
+  ).set(currentProblemAttempts?.size ?? 0, {
+    value: answer ?? Number(state.inputValue),
+    msElapsed: roundDuration,
+  });
+
+  const wrongAnswer =
     !answer ||
-    !state.currentProblem ||
-    !isCorrectAnswer(state.currentProblem.answer, answer, state.negativeMode)
-  ) {
-    return {
-      ...state,
-      currentProblemAttempts: updatedAttempts,
-      lastSubmittedAt: finishedAt,
-      inputValue: null,
-      prevInputValue: "",
-    };
+    !currentProblem ||
+    !isCorrectAnswer(currentProblem.problem.answer, answer, state.negativeMode);
+
+  if (wrongAnswer) {
+    return handleWrongAnswer(
+      state,
+      answer,
+      currentProblem,
+      updatedAttempts,
+      roundDuration,
+      settings,
+    );
   }
 
   const totalDuration = Array.from(updatedAttempts.values()).reduce(
-    (acc, problem) => acc + problem.secondsElapsed,
+    (acc, problem) => acc + problem.msElapsed,
     0,
   );
 
@@ -155,43 +173,117 @@ function addRoundAttempt(
   );
 
   // no remaining problems to solve, so all are completed
-  const allCompleted = state.problemQueue.length === 0;
+  const allCompleted = state.problemQueue.length === 1;
 
   return {
     ...state,
-    currentProblem: state.problemQueue[0] ?? null,
     problemQueue: state.problemQueue.slice(1),
-    currentProblemAttempts: new Map(),
-    lastSubmittedAt: finishedAt,
     inputValue: allCompleted ? "Done!" : null,
     prevInputValue: "",
     allCompleted: allCompleted,
     finishedProblems: [
       ...state.finishedProblems,
       {
-        ...state.currentProblem,
+        ...currentProblem.problem,
         isCompleted: true,
-        duration: totalDuration,
+        durationMs: totalDuration,
         attempts: mappedAttempts,
       },
     ],
   };
 }
 
-function pauseGame(state: State): State {
-  return {
+function handleWrongAnswer(
+  state: State,
+  answer: number | undefined,
+  currentProblem: { problem: Problem; attempts: ProblemAttempts },
+  updatedAttempts: Map<number, GameRoundAttempt>,
+  roundDuration: number,
+  { gameMode }: GameSettings,
+): State {
+  const queueWithNewAttempt = state.problemQueue.map((p) => {
+    if (p.problem === currentProblem.problem) {
+      return {
+        ...p,
+        attempts: updatedAttempts,
+      };
+    }
+    return p;
+  });
+
+  const updatedState = {
     ...state,
-    pausedAt: dayjs(),
+    inputValue: null,
+    prevInputValue: "",
+    problemQueue: queueWithNewAttempt,
   };
+
+  if (gameMode === "lives") {
+    const livesRemaining = (state.lives?.valueOf() ?? 0) - 1;
+    const gameIsOver = livesRemaining === 0;
+
+    const finishedAndRemainingProblems = [
+      ...state.finishedProblems,
+      {
+        ...currentProblem.problem,
+        isCompleted: false,
+        durationMs: roundDuration,
+        attempts: Array.from(
+          updatedAttempts.entries(),
+          ([ordering, { value }]) => ({
+            ordering,
+            value,
+          }),
+        ),
+      },
+      ...state.problemQueue.slice(1).map((p) => ({
+        ...p.problem,
+        isCompleted: false,
+        durationMs: 0,
+        attempts: [],
+      })),
+    ];
+
+    return {
+      ...updatedState,
+      lives: livesRemaining,
+      allCompleted: gameIsOver,
+      finishedProblems: gameIsOver
+        ? finishedAndRemainingProblems
+        : state.finishedProblems,
+    };
+  }
+
+  if (gameMode === "stack") {
+    const isLastProblem = state.problemQueue.length === 1;
+
+    if (isLastProblem) {
+      return {
+        ...updatedState,
+        problemQueue: queueWithNewAttempt,
+      };
+    }
+
+    // move problem to end of queue
+    const queueWithCurrentProblemAtEnd = [
+      ...queueWithNewAttempt.slice(1)!,
+      queueWithNewAttempt[0]!,
+    ];
+
+    return {
+      ...updatedState,
+      problemQueue: queueWithCurrentProblemAtEnd,
+    };
+  }
+
+  return updatedState;
 }
 
-function resumeGame(state: State): State {
-  const pausedAt = state.pausedAt ?? dayjs();
-  const pausedDuration = dayjs().diff(pausedAt, "millisecond");
+function updateRunningSeconds(deltaMilliseconds: number, state: State): State {
+  const updatedTime = state.runningMilliseconds + deltaMilliseconds;
 
   return {
     ...state,
-    pausedAt: null,
-    lastSubmittedAt: state.lastSubmittedAt.add(pausedDuration, "millisecond"),
+    runningMilliseconds: updatedTime,
   };
 }

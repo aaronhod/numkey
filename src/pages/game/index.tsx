@@ -5,10 +5,7 @@ import type { GameSettings } from "@/components/game/Game";
 import Game from "../../components/game/Game";
 import type { Operator, Problem } from "@/components/game/Problem";
 import { generateProblems } from "@/components/game/Problem";
-import type {
-  GameMode,
-  GameModifier,
-} from "@/components/layouts/SelectionScreen";
+import type {GameMode, GameModifier} from "@/components/game/GameSettings";
 
 interface Query {
   gameId: string;
@@ -58,7 +55,7 @@ const RunningGame = () => {
     setProblems(currentProblems);
     setGameSettings({
       gameMode: mode,
-      gameModifiers: modifiers,
+      gameModifiers: Array.isArray(modifiers) ? modifiers : [modifiers],
     });
   }, [queryParams]);
 
