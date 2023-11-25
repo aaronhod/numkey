@@ -24,11 +24,25 @@ export interface State {
 }
 
 export type Action =
-  | { type: "input-insert"; value: string }
-  | { type: "input-remove" }
-  | { type: "input-toggle-negative"; value: ToggleChar }
-  | { type: "add-attempt"; value?: number }
-  | { type: "update-timer"; value: number };
+  | {
+      type: "input-insert";
+      value: string;
+    }
+  | {
+      type: "input-remove";
+    }
+  | {
+      type: "input-toggle-negative";
+      value: ToggleChar;
+    }
+  | {
+      type: "add-attempt";
+      value?: number;
+    }
+  | {
+      type: "update-timer";
+      value: number;
+    };
 
 type ToggleChar = "+" | "-";
 
@@ -123,18 +137,63 @@ function toggleNegativeInput(toggleChar: ToggleChar, state: State): State {
   };
 }
 
-function finishRound(
-  updatedAttempts: Map<number, GameRoundAttempt>,
+// handle implicit and explicit attempts
+function addRoundAttempt(
+  answer: number | undefined,
   state: State,
-  currentProblem: { problem: Problem; attempts: ProblemAttempts },
   settings: GameSettings,
-  queueNext = true,
-) {
-  const totalDuration = Array.from(updatedAttempts.values()).reduce(
-    (acc, problem) => acc + problem.msElapsed,
+): State {
+  if (state.problemQueue.length === 0) {
+    return state;
+  }
+
+  const currentProblem = state.problemQueue[0]!;
+  const currentProblemAttempts = currentProblem?.attempts ?? new Map();
+
+  const currentProblemAttemptsDuration = Object.values(
+    currentProblemAttempts,
+  ).reduce(
+    (acc: number, curr: GameRoundAttempt) => (acc += curr.msElapsed),
+    0,
+  ) as number;
+  const allFinishedProblemsDuration = state.finishedProblems.reduce(
+    (acc, curr) => (acc += curr.durationMs),
     0,
   );
 
+  const currentAttemptDuration =
+    dayjs().diff(state.startedAt, "millisecond") -
+    (currentProblemAttemptsDuration + allFinishedProblemsDuration);
+
+  const updatedAttempts = new Map<number, GameRoundAttempt>(
+    currentProblemAttempts,
+  ).set(currentProblemAttempts?.size ?? 0, {
+    value: answer ?? Number(state.inputValue),
+    msElapsed: currentAttemptDuration,
+  });
+
+  const wrongAnswer =
+    !answer ||
+    !currentProblem ||
+    !isCorrectAnswer(currentProblem.problem.answer, answer, state.negativeMode);
+
+  if (wrongAnswer) {
+    return handleWrongAnswer(state, currentProblem, updatedAttempts, settings);
+  }
+
+  return finishRound(updatedAttempts, state, currentProblem, settings);
+}
+
+function finishRound(
+  updatedAttempts: Map<number, GameRoundAttempt>,
+  state: State,
+  currentProblem: {
+    problem: Problem;
+    attempts: ProblemAttempts;
+  },
+  settings: GameSettings,
+  queueNext = true,
+) {
   const mappedAttempts = Array.from(
     updatedAttempts.entries(),
     ([ordering, { value }]) => ({
@@ -145,6 +204,10 @@ function finishRound(
 
   // no remaining problems to solve, so all are completed
   const allCompleted = state.problemQueue.length === 1;
+  const totalDuration = Array.from(updatedAttempts.values()).reduce(
+    (acc, problem) => acc + problem.msElapsed,
+    0,
+  );
 
   return {
     ...state,
@@ -168,55 +231,13 @@ function finishRound(
   };
 }
 
-// handle implicit and explicit attempts
-function addRoundAttempt(
-  answer: number | undefined,
-  state: State,
-  settings: GameSettings,
-): State {
-  if (state.problemQueue.length === 0) {
-    return state;
-  }
-
-  const currentProblem = state.problemQueue[0]!;
-  const currentProblemAttempts = currentProblem?.attempts ?? new Map();
-  const latestAttempt = currentProblem?.attempts?.get(
-    currentProblem?.attempts?.size - 1,
-  );
-  const latestAttemptDuration = latestAttempt?.msElapsed ?? 0;
-
-  const roundDuration =
-    dayjs().diff(state.startedAt, "millisecond") - latestAttemptDuration;
-  const updatedAttempts = new Map<number, GameRoundAttempt>(
-    currentProblemAttempts,
-  ).set(currentProblemAttempts?.size ?? 0, {
-    value: answer ?? Number(state.inputValue),
-    msElapsed: roundDuration,
-  });
-
-  const wrongAnswer =
-    !answer ||
-    !currentProblem ||
-    !isCorrectAnswer(currentProblem.problem.answer, answer, state.negativeMode);
-
-  if (wrongAnswer) {
-    return handleWrongAnswer(
-      state,
-      currentProblem,
-      updatedAttempts,
-      roundDuration,
-      settings,
-    );
-  }
-
-  return finishRound(updatedAttempts, state, currentProblem, settings);
-}
-
 function handleWrongAnswer(
   state: State,
-  currentProblem: { problem: Problem; attempts: ProblemAttempts },
+  currentProblem: {
+    problem: Problem;
+    attempts: ProblemAttempts;
+  },
   updatedAttempts: Map<number, GameRoundAttempt>,
-  roundDuration: number,
   settings: GameSettings,
 ): State {
   const queueWithNewAttempt = state.problemQueue.map((p) => {
@@ -241,13 +262,17 @@ function handleWrongAnswer(
   if (settings.gameMode === "lives") {
     const livesRemaining = (state.lives?.valueOf() ?? 0) - 1;
     const gameIsOver = livesRemaining === 0;
+    const totalDuration = Array.from(updatedAttempts.values()).reduce(
+      (acc, problem) => acc + problem.msElapsed,
+      0,
+    );
 
     const finishedAndRemainingProblems = [
       ...state.finishedProblems,
       {
         ...currentProblem.problem,
         isCompleted: false,
-        durationMs: roundDuration,
+        durationMs: totalDuration,
         attempts: Array.from(
           updatedAttempts.entries(),
           ([ordering, { value }]) => ({
