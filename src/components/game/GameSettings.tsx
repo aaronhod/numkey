@@ -1,34 +1,60 @@
-import type {
-  LucideProps} from "lucide-react";
+import type { LucideProps } from "lucide-react";
 import {
   Activity,
   Calculator,
   Clock,
   Dice6,
   Layers,
-  RefreshCw,
+  RefreshCw, Shuffle,
 } from "lucide-react";
 import React from "react";
 
-export type GameModifier = "random" | "timed" | "sorted";
+export type GameModifiers = {
+  random: {
+    enabled: boolean;
+  };
+  shuffled: {
+    enabled: boolean;
+  };
+  timed: {
+    enabled: boolean;
+    durationSeconds?: number;
+  };
+};
+
+export type GameModifierName = keyof GameModifiers;
 export type GameMode = "normal" | "endless" | "lives" | "stack";
 
 interface IconProps extends LucideProps {
   className?: string;
 }
 
-export const getModifierIcon = (modifier: GameModifier, props: IconProps) => {
+export const ModifierIcon = ({
+  modifier,
+  ...props
+}: { modifier: GameModifierName } & IconProps) => {
+  return getModifierIcon(modifier, props);
+};
+
+export const ModeIcon = ({
+  mode,
+  ...props
+}: { mode: GameMode } & IconProps) => {
+  return getModeIcon(mode, props);
+};
+
+const getModifierIcon = (modifier: GameModifierName, props: IconProps) => {
   switch (modifier) {
     case "random":
       return <Dice6 {...props} />;
     case "timed":
       return <Clock {...props} />;
-    case "sorted":
-      return <Layers {...props} />;
+    case "shuffled":
+      return <Shuffle {...props} />;
   }
 };
 
-export const getModeIcon = (mode: GameMode, props: IconProps) => {
+const getModeIcon = (mode: GameMode, props: IconProps) => {
   switch (mode) {
     case "normal":
       return <Calculator {...props} />;

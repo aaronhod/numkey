@@ -31,7 +31,7 @@ import {
 
 // add duration plugin for dayjs
 import duration from "dayjs/plugin/duration";
-import type {GameMode, GameModifier} from "@/components/game/GameSettings";
+import type { GameMode, GameModifiers } from "@/components/game/GameSettings";
 
 dayjs.extend(duration);
 
@@ -47,7 +47,8 @@ export interface GameRoundAttempt {
 
 export interface GameSettings {
   gameMode: GameMode;
-  gameModifiers: GameModifier[];
+  gameModifiers: GameModifiers;
+  nextOnFail?: boolean;
 }
 
 export function isCorrectAnswer(
@@ -162,7 +163,8 @@ const Game: React.FC<GameProps> = ({ initialProblems, settings }) => {
       finishedProblems,
       allCompleted,
       negativeMode,
-      runningMilliseconds,
+      stopWatchMs,
+        timerMs,
       problemQueue,
       lives,
     },
@@ -240,13 +242,9 @@ const Game: React.FC<GameProps> = ({ initialProblems, settings }) => {
     }
     if (inputValue === "" && prevInputValue) {
       // don't add implicit attempt if the user is in the middle of typing a number
-      console.log(prevInputValue);
-      console.log(prevInputValue, currentProblem.answer.toString().length);
       if (prevInputValue.length < currentProblem.answer.toString().length) {
         return;
       }
-
-      console.log("adding implicit attempt");
 
       dispatch({
         type: "add-attempt",
@@ -279,11 +277,12 @@ const Game: React.FC<GameProps> = ({ initialProblems, settings }) => {
           <DisplayHeader
             completed={finishedProblems.length}
             total={initialProblems.length}
-            runningMilliseconds={runningMilliseconds}
-            setRunningMilliseconds={updateRunningMilliseconds}
+            runningMs={stopWatchMs}
+            setRunningMs={updateRunningMilliseconds}
             paused={isMenuOpen}
             lives={lives}
             settings={settings}
+            remainingMs={timerMs}
           />
           <DisplayContent
             problem={currentProblem ?? null}

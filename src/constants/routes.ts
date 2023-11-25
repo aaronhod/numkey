@@ -1,22 +1,17 @@
 import type { Operator } from "@/components/game/Problem";
-import type {
-  GameMode,
-  GameModifier,
-} from "@/components/layouts/SelectionScreen";
+import type {GameMode, GameModifierName} from "@/components/game/GameSettings";
 
 export const RUNNING_GAME_ROUTE = "/game";
 
-export function getGameRouteCustom(
-  numbers: number[],
-  operators: Operator[],
-  gameMode: GameMode,
-  modifiers: GameModifier[],
-) {
-  const searchParams = new URLSearchParams();
-  searchParams.append("mode", gameMode);
-  numbers.forEach((number) => searchParams.append("numbers", String(number)));
-  operators.forEach((operator) => searchParams.append("operators", operator));
-  modifiers.forEach((modifier) => searchParams.append("modifiers", modifier));
+interface GameQuery {
+  numbers: number[];
+  operators: Operator[];
+  gameMode: GameMode;
+  modifiers: GameModifierName[];
+  nextOnFail?: boolean;
+}
 
+export function getGameRouteCustom(options: GameQuery): string {
+  const searchParams = new URLSearchParams(options as never);
   return `${RUNNING_GAME_ROUTE}?${searchParams.toString()}`;
 }

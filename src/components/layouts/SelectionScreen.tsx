@@ -13,7 +13,7 @@ import {
   Layers,
   Minus,
   Plus,
-  RefreshCw,
+  RefreshCw, Shuffle,
   Timer,
   X,
 } from "lucide-react";
@@ -24,7 +24,10 @@ import {
 } from "@/components/ui/hover-card";
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
-import type { GameMode, GameModifier } from "@/components/game/GameSettings";
+import type {
+  GameMode,
+  GameModifierName,
+} from "@/components/game/GameSettings";
 
 function SelectionHeader({ children }: { children?: ReactNode }) {
   return (
@@ -38,9 +41,9 @@ const SelectionScreen = () => {
   const [selectedOperators, setSelectedOperators] = useState<Operator[]>([]);
   const [selectedNumbers, setSelectedNumbers] = useState<number[]>([]);
   const [selectedMode, setSelectedMode] = useState<GameMode | null>(null);
-  const [selectedModifiers, setSelectedModifiers] = useState<GameModifier[]>(
-    [],
-  );
+  const [selectedModifiers, setSelectedModifiers] = useState<
+    GameModifierName[]
+  >([]);
   const router = useRouter();
 
   function startGame(): void {
@@ -60,12 +63,12 @@ const SelectionScreen = () => {
       return;
     }
 
-    const gameRoute = getGameRouteCustom(
-      selectedNumbers,
-      selectedOperators,
-      selectedMode,
-      selectedModifiers,
-    );
+    const gameRoute = getGameRouteCustom({
+      numbers: selectedNumbers,
+      operators: selectedOperators,
+      gameMode: selectedMode,
+      modifiers: selectedModifiers,
+    });
     router.push(gameRoute).catch((err) => console.error(err));
   }
 
@@ -166,7 +169,7 @@ const SelectionScreen = () => {
 
   const ModifierSelect = React.forwardRef<
     HTMLButtonElement,
-    { modifier: GameModifier; children: ReactNode }
+    { modifier: GameModifierName; children: ReactNode }
   >(({ modifier, children, ...props }, ref) => {
     const isSelected = selectedModifiers.includes(modifier);
     return (
@@ -267,6 +270,9 @@ const SelectionScreen = () => {
             </ModifierSelect>
             <ModifierSelect key="timed" modifier="timed">
               <Timer />
+            </ModifierSelect>
+            <ModifierSelect key="shuffled" modifier="shuffled">
+              <Shuffle />
             </ModifierSelect>
           </div>
         </div>

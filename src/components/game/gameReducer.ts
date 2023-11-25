@@ -18,7 +18,8 @@ export interface State {
   problemQueue: ProblemQueue;
   finishedProblems: FinishedRound[];
   allCompleted: boolean;
-  runningMilliseconds: number;
+  stopWatchMs: number;
+  timerMs: number | null;
   lives: number | null;
 }
 
@@ -40,6 +41,10 @@ export const initialGameState = (
     attempts: new Map(),
   }));
 
+  const timerStartMs = settings.gameModifiers.timed.enabled
+    ? settings.gameModifiers.timed.durationSeconds ?? DEFAULT_MAX_SECONDS * 1000
+    : null;
+
   return {
     startedAt: new Date(),
     inputValue: null,
@@ -48,7 +53,8 @@ export const initialGameState = (
     problemQueue: mappedProblems,
     finishedProblems: [],
     allCompleted: false,
-    runningMilliseconds: 0,
+    stopWatchMs: 0,
+    timerMs: timerStartMs,
     lives: settings.gameMode === "lives" ? 3 : null,
   };
 };
@@ -66,7 +72,7 @@ export const gameReducer =
       case "add-attempt":
         return addRoundAttempt(action.value, state, settings);
       case "update-timer":
-        return updateRunningSeconds(action.value, state);
+        return updateRunningSeconds(action.value, state, settings);
       default:
         return state;
     }
@@ -117,6 +123,51 @@ function toggleNegativeInput(toggleChar: ToggleChar, state: State): State {
   };
 }
 
+function finishRound(
+  updatedAttempts: Map<number, GameRoundAttempt>,
+  state: State,
+  currentProblem: { problem: Problem; attempts: ProblemAttempts },
+  settings: GameSettings,
+  queueNext = true,
+) {
+  const totalDuration = Array.from(updatedAttempts.values()).reduce(
+    (acc, problem) => acc + problem.msElapsed,
+    0,
+  );
+
+  const mappedAttempts = Array.from(
+    updatedAttempts.entries(),
+    ([ordering, { value }]) => ({
+      ordering,
+      value,
+    }),
+  );
+
+  // no remaining problems to solve, so all are completed
+  const allCompleted = state.problemQueue.length === 1;
+
+  return {
+    ...state,
+    problemQueue: queueNext ? state.problemQueue.slice(1) : state.problemQueue,
+    inputValue: allCompleted ? "Done!" : null,
+    prevInputValue: "",
+    allCompleted: allCompleted,
+    timerMs: settings.gameModifiers.timed.enabled
+      ? settings.gameModifiers.timed.durationSeconds ??
+        DEFAULT_MAX_SECONDS * 1000
+      : null,
+    finishedProblems: [
+      ...state.finishedProblems,
+      {
+        ...currentProblem.problem,
+        isCompleted: true,
+        durationMs: totalDuration,
+        attempts: mappedAttempts,
+      },
+    ],
+  };
+}
+
 // handle implicit and explicit attempts
 function addRoundAttempt(
   answer: number | undefined,
@@ -151,7 +202,6 @@ function addRoundAttempt(
   if (wrongAnswer) {
     return handleWrongAnswer(
       state,
-      answer,
       currentProblem,
       updatedAttempts,
       roundDuration,
@@ -159,47 +209,15 @@ function addRoundAttempt(
     );
   }
 
-  const totalDuration = Array.from(updatedAttempts.values()).reduce(
-    (acc, problem) => acc + problem.msElapsed,
-    0,
-  );
-
-  const mappedAttempts = Array.from(
-    updatedAttempts.entries(),
-    ([ordering, { value }]) => ({
-      ordering,
-      value,
-    }),
-  );
-
-  // no remaining problems to solve, so all are completed
-  const allCompleted = state.problemQueue.length === 1;
-
-  return {
-    ...state,
-    problemQueue: state.problemQueue.slice(1),
-    inputValue: allCompleted ? "Done!" : null,
-    prevInputValue: "",
-    allCompleted: allCompleted,
-    finishedProblems: [
-      ...state.finishedProblems,
-      {
-        ...currentProblem.problem,
-        isCompleted: true,
-        durationMs: totalDuration,
-        attempts: mappedAttempts,
-      },
-    ],
-  };
+  return finishRound(updatedAttempts, state, currentProblem, settings);
 }
 
 function handleWrongAnswer(
   state: State,
-  answer: number | undefined,
   currentProblem: { problem: Problem; attempts: ProblemAttempts },
   updatedAttempts: Map<number, GameRoundAttempt>,
   roundDuration: number,
-  { gameMode }: GameSettings,
+  settings: GameSettings,
 ): State {
   const queueWithNewAttempt = state.problemQueue.map((p) => {
     if (p.problem === currentProblem.problem) {
@@ -212,13 +230,15 @@ function handleWrongAnswer(
   });
 
   const updatedState = {
-    ...state,
+    ...(settings.nextOnFail
+      ? finishRound(updatedAttempts, state, currentProblem, settings, false)
+      : state),
     inputValue: null,
     prevInputValue: "",
     problemQueue: queueWithNewAttempt,
   };
 
-  if (gameMode === "lives") {
+  if (settings.gameMode === "lives") {
     const livesRemaining = (state.lives?.valueOf() ?? 0) - 1;
     const gameIsOver = livesRemaining === 0;
 
@@ -254,7 +274,7 @@ function handleWrongAnswer(
     };
   }
 
-  if (gameMode === "stack") {
+  if (settings.gameMode === "stack") {
     const isLastProblem = state.problemQueue.length === 1;
 
     if (isLastProblem) {
@@ -279,11 +299,35 @@ function handleWrongAnswer(
   return updatedState;
 }
 
-function updateRunningSeconds(deltaMilliseconds: number, state: State): State {
-  const updatedTime = state.runningMilliseconds + deltaMilliseconds;
+const DEFAULT_MAX_SECONDS = 10;
 
-  return {
+function updateRunningSeconds(
+  deltaMilliseconds: number,
+  state: State,
+  settings: GameSettings,
+): State {
+  const updatedStopWatchTime = state.stopWatchMs + deltaMilliseconds;
+  let timerIsExpired = false;
+  let updatedTimerTime = null;
+  if (settings.gameModifiers.timed.enabled) {
+    updatedTimerTime = state.timerMs! - deltaMilliseconds;
+    if (updatedTimerTime <= 0) {
+      timerIsExpired = true;
+      updatedTimerTime = settings.gameModifiers.timed.durationSeconds
+        ? settings.gameModifiers.timed.durationSeconds * 1000
+        : DEFAULT_MAX_SECONDS * 1000;
+    }
+  }
+
+  const updatedTimeState = {
     ...state,
-    runningMilliseconds: updatedTime,
+    stopWatchMs: updatedStopWatchTime,
+    timerMs: updatedTimerTime,
   };
+
+  if (timerIsExpired) {
+    return addRoundAttempt(undefined, updatedTimeState, settings);
+  }
+
+  return updatedTimeState;
 }

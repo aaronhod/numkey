@@ -3,10 +3,9 @@ import { getOperatorChar } from "./Problem";
 import { cn } from "@/utils/shad";
 import React, { useEffect } from "react";
 import {
-  Calculator,
-  Dice6,
+  Clock,
   Heart,
-  Layers,
+  LucideInfinity,
   Tally5,
   Timer as TimerIcon,
 } from "lucide-react";
@@ -22,39 +21,40 @@ import duration from "dayjs/plugin/duration";
 import relativeTime from "dayjs/plugin/relativeTime";
 import dayjs from "dayjs";
 import { useInterval } from "@/hooks/useInterval";
-import { GameSettings } from "@/components/game/Game";
-import { getModeIcon, getModifierIcon } from "@/components/game/GameSettings";
+import type { GameSettings } from "@/components/game/Game";
+import type { GameMode ,
+  GameModifierName} from "@/components/game/GameSettings";
+import {
+  ModeIcon,
+  ModifierIcon,
+} from "@/components/game/GameSettings";
 
 // add duration plugin for dayjs
 dayjs.extend(duration);
 dayjs.extend(relativeTime);
 
 interface TimerProps {
-  runningMilliseconds: number;
-  setRunningMilliseconds: (ms: number) => void;
+  runningMs: number;
+  setRunningMs: (ms: number) => void;
   isPaused: boolean;
   className?: string;
 }
 
 // Update every second
 const TIMER_INTERVAL_MS = 1000;
-const Timer = ({
-  runningMilliseconds,
-  setRunningMilliseconds,
-  isPaused,
-}: TimerProps) => {
+const StopWatch = ({ runningMs, setRunningMs, isPaused }: TimerProps) => {
   useInterval(() => {
     if (isPaused) return;
-    setRunningMilliseconds(TIMER_INTERVAL_MS);
+    setRunningMs(TIMER_INTERVAL_MS);
   }, TIMER_INTERVAL_MS);
 
-  const timeElapsed = dayjs.duration(runningMilliseconds, "milliseconds");
+  const timeElapsed = dayjs.duration(runningMs, "milliseconds");
 
   return (
     <Tooltip>
       <TooltipTrigger asChild>
         <div className="flex items-center gap-2">
-          <TimerIcon />
+          <Clock />
           <p>{timeElapsed.format("mm:ss")}</p>
         </div>
       </TooltipTrigger>
@@ -65,24 +65,50 @@ const Timer = ({
   );
 };
 
+const Timer = ({ remainingMs }: { remainingMs: number }) => {
+  const timeRemaining = dayjs.duration(remainingMs, "milliseconds");
+
+  return (
+    <div className="flex items-center gap-2">
+      <TimerIcon />
+      <p>{timeRemaining.asSeconds().toString().padStart(2, "0")}</p>
+    </div>
+  );
+};
+
 const RoundTally = ({
   completed,
   total,
+  gameMode,
 }: {
   completed: number;
   total: number;
+  gameMode?: GameMode;
 }) => {
   const paddedCompleted = completed
     .toString()
     .padStart(total.toString().length, "0");
-  const tallyString = `${paddedCompleted}/${total}`;
+
+  let denominator: string = total.toString();
+  if (gameMode === "endless") {
+    denominator = "∞";
+  }
+
+  const tallyString = `${paddedCompleted}/${denominator}`;
 
   return (
     <Tooltip>
       <TooltipTrigger asChild>
         <div className="flex items-center gap-2">
           <Tally5 />
-          <p>{tallyString}</p>
+          <div className="flex">
+            <div>{paddedCompleted}/</div>
+            {gameMode === "endless" ? (
+              <LucideInfinity height="full" />
+            ) : (
+              <>{denominator}</>
+            )}
+          </div>
         </div>
       </TooltipTrigger>
       <TooltipContent>
@@ -94,11 +120,19 @@ const RoundTally = ({
 
 const SettingsDisplay = ({ settings }: { settings: GameSettings }) => {
   const { gameMode, gameModifiers } = settings;
-
-  const GameModeIcon = getModeIcon(gameMode, { className: "w-5 h-5" });
-  const ModifierIcons = gameModifiers.map((m) =>
-    getModifierIcon(m, { className: "w-5 h-5" }),
-  );
+  const GameModeIcon = <ModeIcon mode={gameMode} className="h-5 w-5" />;
+  const ModifierIcons = Object.entries(gameModifiers)
+    .map(([name, val]) => {
+      if (!val.enabled) return null;
+      return (
+        <ModifierIcon
+          key={name}
+          modifier={name as GameModifierName}
+          className="h-5 w-5"
+        />
+      );
+    })
+    .filter((icon) => icon !== null);
 
   return (
     <div className="flex items-center gap-2">
@@ -129,11 +163,11 @@ const LivesDisplay = ({
       hearts.push(
         <Heart
           key={`heart-${i}`}
-          className={i < livesRemaining ? "" : "fill-white"}
+          className={i < livesRemaining ? "fill-white" : ""}
         />,
       );
     }
-    return hearts;
+    return hearts.reverse();
   };
 
   return (
@@ -158,20 +192,28 @@ interface DisplayProps {
 export const DisplayHeader = (props: {
   completed: number;
   total: number;
-  runningMilliseconds: number;
-  setRunningMilliseconds: (ms: number) => void;
+  runningMs: number;
+  setRunningMs: (ms: number) => void;
   paused: boolean;
   lives: number | null;
   settings: GameSettings;
+  remainingMs: number | null;
 }) => {
   return (
     <h3 className="flex justify-between px-5 pt-3 text-foreground/50 ">
-      <RoundTally completed={props.completed} total={props.total} />
-      <Timer
-        runningMilliseconds={props.runningMilliseconds}
-        setRunningMilliseconds={props.setRunningMilliseconds}
+      <RoundTally
+        completed={props.completed}
+        total={props.total}
+        gameMode={props.settings.gameMode}
+      />
+      <StopWatch
+        runningMs={props.runningMs}
+        setRunningMs={props.setRunningMs}
         isPaused={props.paused}
       />
+      {props.settings.gameModifiers.timed.enabled && (
+        <Timer remainingMs={props.remainingMs!} />
+      )}
       <LivesDisplay livesRemaining={props.lives} />
       <SettingsDisplay settings={props.settings} />
     </h3>
