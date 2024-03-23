@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
-import {type NextPage} from "next";
+import { type NextPage } from "next";
 import Head from "next/head";
 import React from "react";
 import Header from "@/components/layouts/Header";
-import {SelectionScreen} from "@/components/layouts/SelectionScreen";
+import { SelectionScreen } from "@/components/layouts/SelectionScreen";
 
 const Home: NextPage = () => {
   return (

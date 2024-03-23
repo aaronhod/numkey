@@ -22,12 +22,11 @@ import relativeTime from "dayjs/plugin/relativeTime";
 import dayjs from "dayjs";
 import { useInterval } from "@/hooks/useInterval";
 import type { GameSettings } from "@/components/game/Game";
-import type { GameMode ,
-  GameModifierName} from "@/components/game/GameSettings";
-import {
-  ModeIcon,
-  ModifierIcon,
+import type {
+  GameMode,
+  GameModifierName,
 } from "@/components/game/GameSettings";
+import { ModeIcon, ModifierIcon } from "@/components/game/GameSettings";
 
 // add duration plugin for dayjs
 dayjs.extend(duration);

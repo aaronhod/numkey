@@ -5,7 +5,8 @@ import {
   Clock,
   Dice6,
   Layers,
-  RefreshCw, Shuffle,
+  RefreshCw,
+  Shuffle,
 } from "lucide-react";
 import React from "react";
 

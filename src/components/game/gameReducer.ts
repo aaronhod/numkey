@@ -21,6 +21,7 @@ export interface State {
   stopWatchMs: number;
   timerMs: number | null;
   lives: number | null;
+  onGameComplete?: () => void;
 }
 
 export type Action =
@@ -311,7 +312,7 @@ function handleWrongAnswer(
 
     // move problem to end of queue
     const queueWithCurrentProblemAtEnd = [
-      ...queueWithNewAttempt.slice(1)!,
+      ...queueWithNewAttempt.slice(1),
       queueWithNewAttempt[0]!,
     ];
 

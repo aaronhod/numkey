@@ -1,5 +1,8 @@
 import type { Operator } from "@/components/game/Problem";
-import type {GameMode, GameModifierName} from "@/components/game/GameSettings";
+import type {
+  GameMode,
+  GameModifierName,
+} from "@/components/game/GameSettings";
 
 export const RUNNING_GAME_ROUTE = "/game";
 

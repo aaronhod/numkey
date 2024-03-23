@@ -42,3 +42,4 @@ yarn-error.log*
 *.tsbuildinfo
 /.idea/checkstyle-idea.xml
 /.idea/
+/.env*

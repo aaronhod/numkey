@@ -13,7 +13,8 @@ import {
   Layers,
   Minus,
   Plus,
-  RefreshCw, Shuffle,
+  RefreshCw,
+  Shuffle,
   Timer,
   X,
 } from "lucide-react";

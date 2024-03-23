@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 import { createTRPCRouter, protectedProcedure } from "../trpc";
-import type {Operator} from "@/components/game/Problem";
+import type { Operator } from "@/components/game/Problem";
 
 const RoundAttempt = z.object({
   ordering: z.number(),
@@ -32,7 +32,7 @@ export type RoundAttempt = z.infer<typeof RoundAttempt>;
 export const gameRouter = createTRPCRouter({
   addFinishedGame: protectedProcedure
     .input(FinishedGame)
-    .mutation(({ ctx, input }) => {
+    .mutation(async ({ ctx, input }) => {
       return ctx.db.finishedGame.create({
         data: {
           userId: input.userId,

@@ -92,7 +92,6 @@ const ErrorDialog = ({
         </AlertDialogHeader>
         <AlertDialogFooter className="mt-1">
           <AlertDialogAction
-            variant="outline"
             className="mr-auto"
             onClick={() => void router.push("/")}
           >
@@ -164,7 +163,7 @@ const Game: React.FC<GameProps> = ({ initialProblems, settings }) => {
       allCompleted,
       negativeMode,
       stopWatchMs,
-        timerMs,
+      timerMs,
       problemQueue,
       lives,
     },
@@ -217,11 +216,10 @@ const Game: React.FC<GameProps> = ({ initialProblems, settings }) => {
   }, []);
 
   useEffect(() => {
-    if (addGameMutation.isLoading) return;
-    if (!allCompleted) return;
+    if (!allCompleted || !addGameMutation.isIdle) return;
 
     submitGame();
-  }, [addGameMutation.isLoading, allCompleted, submitGame]);
+  }, [addGameMutation.isIdle, allCompleted, submitGame]);
 
   useEffect(() => {
     if (!currentProblem) return;
@@ -265,9 +263,9 @@ const Game: React.FC<GameProps> = ({ initialProblems, settings }) => {
       <ErrorDialog
         error={addGameMutation.error}
         refetch={submitGame}
-        isLoading={addGameMutation.isLoading}
+        isLoading={addGameMutation.isPending}
       />
-      <LoaderOverlay isLoading={addGameMutation.isLoading} />
+      <LoaderOverlay isLoading={addGameMutation.isPending} />
       <div className="flex h-full flex-col font-mono text-lg font-semibold">
         <Display
           className="h-1/4"
