@@ -1,12 +1,15 @@
 import React, { useCallback, useEffect, useReducer, useState } from "react";
 import Numpad from "src/components/views/Numpad";
-import { Display, DisplayContent, DisplayHeader } from "src/components/views/Display";
-import type { ProblemDefinition } from "@/components/game/Problem";
+import {
+  Display,
+  DisplayContent,
+  DisplayHeader,
+} from "src/components/views/Display";
+import type { ProblemDefinition } from "@/components/game/problem";
 import dayjs from "dayjs";
 import type { RouterError } from "@/utils/api";
 import { api } from "@/utils/api";
 import { useRouter } from "next/router";
-import { useAuth } from "@clerk/nextjs";
 import { AlertDialogTitle } from "@radix-ui/react-alert-dialog";
 import {
   AlertDialog,
@@ -32,34 +35,21 @@ import {
 // add duration plugin for dayjs
 import duration from "dayjs/plugin/duration";
 import type { GameMode, GameModifiers } from "@/components/views/GameSettings";
+import { redirect } from "next/navigation";
+import { auth } from "@clerk/nextjs";
 
 dayjs.extend(duration);
 
 interface GameProps {
+  userId: string;
   initialProblems: ProblemDefinition[];
   settings: GameSettings;
-}
-
-export interface GameRoundAttempt {
-  value: number;
-  msElapsed: number;
 }
 
 export interface GameSettings {
   gameMode: GameMode;
   gameModifiers: GameModifiers;
   nextOnFail?: boolean;
-}
-
-export function isCorrectAnswer(
-  answer: number,
-  attempt: string | number,
-  negativeMode: boolean,
-) {
-  if (negativeMode) {
-    return Number(attempt) === -answer;
-  }
-  return Number(attempt) === answer;
 }
 
 const ErrorDialog = ({
@@ -153,45 +143,33 @@ const PauseMenu = ({
   );
 };
 
-const Game: React.FC<GameProps> = ({ initialProblems, settings }) => {
+const Game: React.FC<GameProps> = ({ userId, initialProblems, settings }) => {
+  const router = useRouter();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const addGameMutation = api.game.addFinishedGame.useMutation();
+
   const [
     {
-      startedAt,
+      gameInstance,
       inputValue,
       prevInputValue,
-      finishedProblems,
-      allCompleted,
       negativeMode,
-      stopWatchMs,
-      timerMs,
-      problemQueue,
-      lives,
+      gameStopWatchMs,
+      problemTimerMs,
     },
     dispatch,
   ] = useReducer(
     gameReducer(settings),
-    initialGameState(initialProblems, settings),
+    initialGameState(userId, initialProblems, settings),
   );
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-
-  const { userId } = useAuth();
-  const addGameMutation = api.game.addFinishedGame.useMutation();
-  const router = useRouter();
-  const currentProblem = problemQueue[0]?.problem;
 
   const updateRunningMilliseconds = useCallback((deltaMilliseconds: number) => {
     dispatch({ type: "update-timer", value: deltaMilliseconds });
   }, []);
 
   const submitGame = useCallback(() => {
-    const finishedGame = {
-      userId: userId!,
-      startedAt: startedAt,
-      finishedAt: dayjs().toDate(),
-      rounds: finishedProblems,
-    };
-    addGameMutation.mutate(finishedGame);
-  }, [addGameMutation, finishedProblems, startedAt, userId]);
+    addGameMutation.mutate(gameInstance.toFinishedGame());
+  }, [addGameMutation, gameInstance]);
 
   const handleKeyDown = useCallback((event: KeyboardEvent) => {
     event.preventDefault();
@@ -216,22 +194,14 @@ const Game: React.FC<GameProps> = ({ initialProblems, settings }) => {
   }, []);
 
   useEffect(() => {
-    if (!allCompleted || !addGameMutation.isIdle) return;
+    if (gameInstance.state !== "finished" || !addGameMutation.isIdle) return;
 
     submitGame();
-  }, [addGameMutation.isIdle, allCompleted, submitGame]);
+  }, [addGameMutation.isIdle, gameInstance.state, submitGame]);
 
   useEffect(() => {
-    if (!currentProblem) return;
+    if (!gameInstance.currentProblem) return;
     const inputNumber = Number(inputValue);
-
-    // add attempt for correct answer
-    if (isCorrectAnswer(currentProblem.answer, inputNumber, negativeMode)) {
-      dispatch({
-        type: "add-attempt",
-        value: inputNumber,
-      });
-    }
 
     // add implicit attempt when a user has entered a value and then cleared their input
     // this is toggled off for lives mode
@@ -240,7 +210,10 @@ const Game: React.FC<GameProps> = ({ initialProblems, settings }) => {
     }
     if (inputValue === "" && prevInputValue) {
       // don't add implicit attempt if the user is in the middle of typing a number
-      if (prevInputValue.length < currentProblem.answer.toString().length) {
+      if (
+        prevInputValue.length <
+        gameInstance.currentProblem.answer.toString().length
+      ) {
         return;
       }
 
@@ -248,8 +221,19 @@ const Game: React.FC<GameProps> = ({ initialProblems, settings }) => {
         type: "add-attempt",
         value: inputNumber,
       });
+    } else {
+      dispatch({
+        type: "add-attempt",
+        value: inputNumber,
+      });
     }
-  }, [inputValue, currentProblem, prevInputValue, negativeMode, settings]);
+  }, [
+    inputValue,
+    gameInstance.currentProblem,
+    prevInputValue,
+    negativeMode,
+    settings,
+  ]);
 
   useEffect(() => {
     if (addGameMutation.isSuccess) {
@@ -273,17 +257,17 @@ const Game: React.FC<GameProps> = ({ initialProblems, settings }) => {
           handleKeyDown={handleKeyDown}
         >
           <DisplayHeader
-            completed={finishedProblems.length}
+            completed={gameInstance.completedProblems.length}
             total={initialProblems.length}
-            runningMs={stopWatchMs}
+            runningMs={gameStopWatchMs}
             setRunningMs={updateRunningMilliseconds}
             paused={isMenuOpen}
-            lives={lives}
+            lives={gameInstance.lives}
             settings={settings}
-            remainingMs={timerMs}
+            remainingMs={problemTimerMs ?? null}
           />
           <DisplayContent
-            problem={currentProblem ?? null}
+            problem={gameInstance.currentProblem ?? null}
             negativeMode={negativeMode}
             userValue={inputValue}
           />

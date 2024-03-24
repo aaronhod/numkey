@@ -3,16 +3,22 @@ import type { ParsedUrlQuery } from "querystring";
 import { useEffect, useState } from "react";
 import type { GameSettings } from "@/components/views/Game";
 import Game from "src/components/views/Game";
-import type { Operator, ProblemDefinition } from "@/components/game/Problem";
+import type { Operator, ProblemDefinition } from "@/components/game/problem";
 import {
   generateProblems,
   shuffleProblemListNumbers,
   shuffleProblemListOrder,
-} from "@/components/game/Problem";
+} from "@/components/game/problem";
 import type {
   GameMode,
   GameModifierName,
 } from "@/components/views/GameSettings";
+import { redirect } from "next/navigation";
+import {
+  type GetServerSideProps,
+  type InferGetServerSidePropsType,
+} from "next";
+import { buildClerkProps, getAuth } from "@clerk/nextjs/server";
 
 interface Query {
   gameId: string;
@@ -33,7 +39,22 @@ interface QueryParams extends Query {
   modifiers: GameModifierName[];
 }
 
-const RunningGame = () => {
+export const getServerSideProps: GetServerSideProps = async (ctx) => {
+  const { userId } = getAuth(ctx.req);
+
+  if (!userId) {
+    redirect("/");
+  }
+
+  // Load any data your application needs for the page using the userId
+  return { props: { ...buildClerkProps(ctx.req), userId: userId } };
+};
+
+type Props = { userId: string } & InferGetServerSidePropsType<
+  typeof getServerSideProps
+>;
+
+export default function RunningGame({ userId }: Readonly<Props>) {
   const [problems, setProblems] = useState<ProblemDefinition[] | null>(null);
   const [queryParams, setQueryParams] = useState<QueryParams | null>(null);
   const [gameSettings, setGameSettings] = useState<GameSettings | null>(null);
@@ -83,6 +104,7 @@ const RunningGame = () => {
         },
         timed: {
           enabled: enabledModifiers.includes("timed"),
+          durationSeconds: 10,
         },
         shuffled: {
           enabled: enabledModifiers.includes("shuffled"),
@@ -95,7 +117,7 @@ const RunningGame = () => {
     return null;
   }
 
-  return <Game initialProblems={problems} settings={gameSettings} />;
-};
-
-export { RunningGame as default };
+  return (
+    <Game userId={userId} initialProblems={problems} settings={gameSettings} />
+  );
+}

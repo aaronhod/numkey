@@ -1,37 +1,39 @@
 import { z } from "zod";
 
 import { createTRPCRouter, protectedProcedure } from "../trpc";
-import type { Operator } from "@/components/game/Problem";
+import type { Operator } from "@/components/game/problem";
 
-const RoundAttempt = z.object({
+const RoundAttemptValidator = z.object({
   ordering: z.number(),
   value: z.number(),
 });
 
-const FinishedRound = z.object({
+const FinishedRoundValidator = z.object({
   leftValue: z.number(),
   rightValue: z.number(),
   operator: z.custom<Operator>(),
   answer: z.number(),
   isCompleted: z.boolean(),
   durationMs: z.number(),
-  attempts: z.array(RoundAttempt),
+  attempts: z.array(RoundAttemptValidator),
 });
 
-const FinishedGame = z.object({
+const FinishedGameValidator = z.object({
   userId: z.string(),
   startedAt: z.date(),
   finishedAt: z.date(),
-  rounds: z.array(FinishedRound),
+  rounds: z.array(FinishedRoundValidator),
 });
 
-export type FinishedGame = z.infer<typeof FinishedGame>;
-export type FinishedRound = z.infer<typeof FinishedRound>;
-export type RoundAttempt = z.infer<typeof RoundAttempt>;
+export type FinishedGame = z.infer<typeof FinishedGameValidator>;
+export type FinishedRound = z.infer<typeof FinishedRoundValidator>;
+export type RoundAttempt = z.infer<typeof RoundAttemptValidator>;
 
+
+// https://youtrack.jetbrains.com/issue/WEB-65284/Prisma-Plugin-Argument-type-is-not-assignable-to-parameter-type-SelectSubset
 export const gameRouter = createTRPCRouter({
   addFinishedGame: protectedProcedure
-    .input(FinishedGame)
+    .input(FinishedGameValidator)
     .mutation(async ({ ctx, input }) => {
       return ctx.db.finishedGame.create({
         data: {

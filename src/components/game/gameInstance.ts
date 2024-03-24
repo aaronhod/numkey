@@ -1,8 +1,9 @@
 import type { GameMode, GameModifiers } from "@/components/views/GameSettings";
-import { type ProblemDefinition } from "@/components/game/Problem";
+import { type ProblemDefinition } from "@/components/game/problem";
+import { type FinishedGame } from "@/server/api/routers/games";
 
 interface ProblemAttempt {
-  attempt: number;
+  attempt: number | null;
   msElapsed: number;
 }
 
@@ -13,120 +14,142 @@ interface Problem extends ProblemDefinition {
 }
 
 export default class GameInstance {
-  private playerId: number;
-  private state: "running" | "paused" | "errored" | "finished";
+  readonly #playerId: string;
+  #state: "running" | "paused" | "errored" | "finished";
 
-  private mode: GameMode;
-  private modifiers: GameModifiers;
-  private lives: number;
+  readonly #mode: GameMode;
+  readonly #modifiers: GameModifiers;
+  #lives: number;
 
-  private startedAt: Date;
-  private finishedAt?: Date;
-  private msElapsed: number;
+  readonly #startedAt: Date;
+  #finishedAt?: Date;
+  #msElapsed: number;
 
-  private currentProblem: Problem | undefined;
+  #currentProblem: Problem | undefined;
 
-  private remainingProblems: Problem[];
-  private completedProblems: Problem[];
+  #remainingProblems: Problem[];
+  #completedProblems: Problem[];
 
   constructor(
-    playerId: number,
+    playerId: string,
     mode: GameMode,
     modifiers: GameModifiers,
     lives: number,
     startedAt: Date,
-    currentProblem: ProblemDefinition,
     initialProblems: ProblemDefinition[],
   ) {
     if (!initialProblems.length) throw new Error("No problems provided");
 
-    this.state = "running";
-    this.playerId = playerId;
-    this.mode = mode;
-    this.modifiers = modifiers;
-    this.lives = lives;
-    this.startedAt = startedAt;
+    this.#playerId = playerId;
+    this.#state = "running";
+    this.#mode = mode;
+    this.#modifiers = modifiers;
+    this.#lives = lives;
+    this.#startedAt = startedAt;
+    this.#finishedAt = undefined;
 
-    this.msElapsed = 0;
-    this.remainingProblems = initialProblems.map((problem) => ({
+    this.#msElapsed = 0;
+    this.#remainingProblems = initialProblems.map((problem) => ({
       ...problem,
       isCompleted: false,
       attempts: [],
       durationMs: 0,
     }));
-    this.completedProblems = [];
+    this.#completedProblems = [];
 
-    const poppedProblem = this.remainingProblems.shift();
+    const poppedProblem = this.#remainingProblems.shift();
     if (!poppedProblem) {
       throw new Error("No problems provided");
     }
-    this.currentProblem = poppedProblem;
+    this.#currentProblem = poppedProblem;
   }
 
   private getRelativeTime(): number {
-    return Date.now() - this.startedAt.getTime();
+    return Date.now() - this.#startedAt.getTime();
   }
 
-  public addAttempt(answer: number) {
-    if (this.currentProblem === undefined) {
+  public toFinishedGame(): FinishedGame {
+    return {
+      userId: this.#playerId,
+      startedAt: this.#startedAt,
+      finishedAt: new Date(),
+      rounds: this.#completedProblems.map((problem) => ({
+        leftValue: problem.leftValue,
+        rightValue: problem.rightValue,
+        operator: problem.operator,
+        answer: problem.answer,
+        isCompleted: problem.isCompleted,
+        durationMs: problem.durationMs,
+        attempts: problem.attempts.map((attempt, index) => ({
+          ordering: index,
+          value: attempt.attempt ?? 0,
+        })),
+      })),
+    } as FinishedGame;
+  }
+
+  public addAttempt(answer: number | undefined): void {
+    if (this.#currentProblem === undefined) {
       throw new Error("No current problem");
     }
 
-    if (this.currentProblem.isCompleted) {
+    if (this.#currentProblem.isCompleted) {
       throw new Error("Current problem is already completed");
     }
 
-    let msElapsed = this.getRelativeTime() + this.msElapsed;
-    if (this.currentProblem.attempts.length > 0) {
+    let msElapsed = this.getRelativeTime() + this.#msElapsed;
+    if (this.#currentProblem.attempts.length > 0) {
       const lastAttempt =
-        this.currentProblem.attempts[this.currentProblem.attempts.length - 1]!;
+        this.#currentProblem.attempts[
+          this.#currentProblem.attempts.length - 1
+        ]!;
       msElapsed -= lastAttempt.msElapsed;
     }
-    this.currentProblem.attempts.push({
-      attempt: answer,
+    this.#currentProblem.attempts.push({
+      attempt: answer ?? null,
       msElapsed: msElapsed,
     });
 
-    if (this.currentProblem.answer === answer) {
-      this.completedProblems.push({
-        ...this.currentProblem,
+    if (this.#currentProblem.answer === answer) {
+      this.#completedProblems.push({
+        ...this.#currentProblem,
         isCompleted: true,
-        durationMs: this.currentProblem.attempts.reduce(
+        durationMs: this.#currentProblem.attempts.reduce(
           (acc, attempt) => acc + attempt.msElapsed,
           0,
         ),
       });
 
-      if (this.remainingProblems.length === 0) {
-        this.state = "finished";
+      if (this.#remainingProblems.length === 0) {
+        this.#state = "finished";
       } else {
-        const nextProblem = this.remainingProblems.shift();
+        const nextProblem = this.#remainingProblems.shift();
         if (!nextProblem) {
           throw new Error("No problems remaining");
         }
-        this.currentProblem = nextProblem;
+        this.#currentProblem = nextProblem;
       }
     } else {
-      switch (this.mode) {
+      switch (this.#mode) {
         case "lives": {
-          this.lives--;
-          if (this.lives <= 0) {
-            this.state = "finished";
+          this.#lives--;
+          if (this.#lives <= 0) {
+            this.#state = "finished";
           }
           break;
         }
 
         case "stack": {
-          if (this.remainingProblems.length <= 1) {
+          if (this.#remainingProblems.length <= 1) {
             return;
           }
-          const newProblem = this.remainingProblems.pop();
+          const newProblem = this.#remainingProblems.pop();
           if (!newProblem) {
             throw new Error("No problems remaining");
           }
 
-          this.remainingProblems.unshift(this.currentProblem);
-          this.currentProblem = newProblem;
+          this.#remainingProblems.unshift(this.#currentProblem);
+          this.#currentProblem = newProblem;
           break;
         }
         case "endless":
@@ -136,5 +159,53 @@ export default class GameInstance {
         }
       }
     }
+  }
+
+  get playerId(): string {
+    return this.#playerId;
+  }
+
+  get state(): "running" | "paused" | "errored" | "finished" {
+    return this.#state;
+  }
+
+  get mode(): GameMode {
+    return this.#mode;
+  }
+
+  get modifiers(): GameModifiers {
+    return this.#modifiers;
+  }
+
+  get lives(): number {
+    return this.#lives;
+  }
+
+  get startedAt(): Date {
+    return this.#startedAt;
+  }
+
+  get finishedAt(): Date | undefined {
+    return this.#finishedAt;
+  }
+
+  get msElapsed(): number {
+    return this.#msElapsed;
+  }
+
+  set msElapsed(value: number) {
+    this.#msElapsed = value;
+  }
+
+  get currentProblem(): Problem | undefined {
+    return this.#currentProblem;
+  }
+
+  get remainingProblems(): Problem[] {
+    return this.#remainingProblems;
+  }
+
+  get completedProblems(): Problem[] {
+    return this.#completedProblems;
   }
 }

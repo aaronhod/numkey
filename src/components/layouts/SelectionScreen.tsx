@@ -2,7 +2,7 @@ import { useRouter } from "next/router";
 import type { ReactNode } from "react";
 import React, { useState } from "react";
 import { getGameRouteCustom } from "@/constants/routes";
-import type { Operator } from "@/components/game/Problem";
+import type { Operator } from "@/components/game/problem";
 import { Button } from "@/components/shad-ui/button";
 import { cn } from "@/utils/shad";
 import {

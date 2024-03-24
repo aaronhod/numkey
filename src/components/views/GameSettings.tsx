@@ -19,7 +19,7 @@ export type GameModifiers = {
   };
   timed: {
     enabled: boolean;
-    durationSeconds?: number;
+    durationSeconds: number;
   };
 };
 
