@@ -1,12 +1,12 @@
-import type { Problem } from "@/components/game/Problem";
-import type { GameRoundAttempt, GameSettings } from "@/components/game/Game";
-import { isCorrectAnswer } from "@/components/game/Game";
+import type { ProblemDefinition } from "@/components/game/Problem";
+import type { GameRoundAttempt, GameSettings } from "@/components/views/Game";
+import { isCorrectAnswer } from "@/components/views/Game";
 import type { FinishedRound } from "@/server/api/routers/games";
 import dayjs from "dayjs";
 
 type ProblemAttempts = Map<number, GameRoundAttempt>;
 type ProblemQueue = {
-  problem: Problem;
+  problem: ProblemDefinition;
   attempts: ProblemAttempts;
 }[];
 
@@ -48,7 +48,7 @@ export type Action =
 type ToggleChar = "+" | "-";
 
 export const initialGameState = (
-  problemSet: Problem[],
+  problemSet: ProblemDefinition[],
   settings: GameSettings,
 ): State => {
   const mappedProblems = problemSet.map((problem) => ({
@@ -189,7 +189,7 @@ function finishRound(
   updatedAttempts: Map<number, GameRoundAttempt>,
   state: State,
   currentProblem: {
-    problem: Problem;
+    problem: ProblemDefinition;
     attempts: ProblemAttempts;
   },
   settings: GameSettings,
@@ -235,7 +235,7 @@ function finishRound(
 function handleWrongAnswer(
   state: State,
   currentProblem: {
-    problem: Problem;
+    problem: ProblemDefinition;
     attempts: ProblemAttempts;
   },
   updatedAttempts: Map<number, GameRoundAttempt>,
