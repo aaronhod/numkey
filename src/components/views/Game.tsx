@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useReducer, useState } from "react";
-import Numpad from "./Numpad";
-import { Display, DisplayContent, DisplayHeader } from "./Display";
-import type { Problem } from "./Problem";
+import Numpad from "src/components/views/Numpad";
+import { Display, DisplayContent, DisplayHeader } from "src/components/views/Display";
+import type { ProblemDefinition } from "@/components/game/Problem";
 import dayjs from "dayjs";
 import type { RouterError } from "@/utils/api";
 import { api } from "@/utils/api";
@@ -15,11 +15,11 @@ import {
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
-} from "@/components/ui/alert-dialog";
+} from "@/components/shad-ui/alert-dialog";
 import { Loader2 } from "lucide-react";
-import { gameReducer, initialGameState } from "@/components/game/gameReducer";
+import { gameReducer, initialGameState } from "@/components/views/gameReducer";
 import { LoaderOverlay } from "@/components/LoaderOverlay";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/shad-ui/button";
 import {
   Dialog,
   DialogContent,
@@ -27,16 +27,16 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
+} from "@/components/shad-ui/dialog";
 
 // add duration plugin for dayjs
 import duration from "dayjs/plugin/duration";
-import type { GameMode, GameModifiers } from "@/components/game/GameSettings";
+import type { GameMode, GameModifiers } from "@/components/views/GameSettings";
 
 dayjs.extend(duration);
 
 interface GameProps {
-  initialProblems: Problem[];
+  initialProblems: ProblemDefinition[];
   settings: GameSettings;
 }
 

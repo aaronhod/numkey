@@ -1,9 +1,9 @@
 import type { ReactElement } from "react";
 import React, { memo, useCallback } from "react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/shad-ui/button";
 import { CornerDownRight, Delete, Dot, Minus } from "lucide-react";
 import { cn } from "@/utils/shad";
-import type { Action } from "@/components/game/gameReducer";
+import type { Action } from "@/components/views/gameReducer";
 
 interface NumpadProps {
   dispatch: React.Dispatch<Action>;

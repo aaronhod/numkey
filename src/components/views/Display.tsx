@@ -1,5 +1,5 @@
-import type { Problem } from "./Problem";
-import { getOperatorChar } from "./Problem";
+import type { ProblemDefinition } from "@/components/game/Problem";
+import { getOperatorChar } from "@/components/game/Problem";
 import { cn } from "@/utils/shad";
 import React, { useEffect } from "react";
 import {
@@ -9,24 +9,24 @@ import {
   Tally5,
   Timer as TimerIcon,
 } from "lucide-react";
-import { Separator } from "@/components/ui/separator";
+import { Separator } from "@/components/shad-ui/separator";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
+} from "@/components/shad-ui/tooltip";
 
 import duration from "dayjs/plugin/duration";
 import relativeTime from "dayjs/plugin/relativeTime";
 import dayjs from "dayjs";
 import { useInterval } from "@/hooks/useInterval";
-import type { GameSettings } from "@/components/game/Game";
+import type { GameSettings } from "@/components/views/Game";
 import type {
   GameMode,
   GameModifierName,
-} from "@/components/game/GameSettings";
-import { ModeIcon, ModifierIcon } from "@/components/game/GameSettings";
+} from "@/components/views/GameSettings";
+import { ModeIcon, ModifierIcon } from "@/components/views/GameSettings";
 
 // add duration plugin for dayjs
 dayjs.extend(duration);
@@ -220,7 +220,7 @@ export const DisplayHeader = (props: {
 };
 
 export const DisplayContent = (props: {
-  problem: Problem | null;
+  problem: ProblemDefinition | null;
   negativeMode: boolean;
   userValue: string | null;
 }) => {

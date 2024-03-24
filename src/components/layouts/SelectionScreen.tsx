@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import React, { useState } from "react";
 import { getGameRouteCustom } from "@/constants/routes";
 import type { Operator } from "@/components/game/Problem";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/shad-ui/button";
 import { cn } from "@/utils/shad";
 import {
   Activity,
@@ -22,13 +22,13 @@ import {
   HoverCard,
   HoverCardContent,
   HoverCardTrigger,
-} from "@/components/ui/hover-card";
+} from "@/components/shad-ui/hover-card";
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
 import type {
   GameMode,
   GameModifierName,
-} from "@/components/game/GameSettings";
+} from "@/components/views/GameSettings";
 
 function SelectionHeader({ children }: { children?: ReactNode }) {
   return (

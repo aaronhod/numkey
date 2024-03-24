@@ -1,6 +1,6 @@
 export type Operator = "ADD" | "SUBTRACT" | "MULTIPLY" | "DIVIDE";
 
-export interface Problem {
+export interface ProblemDefinition {
   leftValue: number;
   rightValue: number;
   operator: Operator;
@@ -29,7 +29,7 @@ function createProblem({
   leftValue,
   rightValue,
   operator,
-}: Omit<Problem, "answer">): Problem {
+}: Omit<ProblemDefinition, "answer">): ProblemDefinition {
   const calculateAnswer = () => {
     switch (operator) {
       case "ADD":
@@ -56,8 +56,8 @@ function createProblem({
 export function generateProblems(
   numbers: number[],
   operators: Operator[],
-): Problem[] {
-  const problems: Problem[] = [];
+): ProblemDefinition[] {
+  const problems: ProblemDefinition[] = [];
 
   for (const operator of operators) {
     for (const number of numbers) {
@@ -73,23 +73,23 @@ export function generateProblems(
 }
 
 export function shuffleProblemListOrderAndNumbers(
-  problems: Problem[],
-): Problem[] {
+  problems: ProblemDefinition[],
+): ProblemDefinition[] {
   return shuffleProblemListNumbers(shuffleProblemListOrder(problems));
 }
 
-export function shuffleProblemListOrder(problems: Problem[]): Problem[] {
+export function shuffleProblemListOrder(problems: ProblemDefinition[]): ProblemDefinition[] {
   return problems
     .map((value) => ({ value, sort: Math.random() }))
     .sort((a, b) => a.sort - b.sort)
     .map(({ value }) => value);
 }
 
-export function shuffleProblemListNumbers(problems: Problem[]): Problem[] {
+export function shuffleProblemListNumbers(problems: ProblemDefinition[]): ProblemDefinition[] {
   return problems.map((problem) => shuffleProblemNumbers(problem));
 }
 
-function shuffleProblemNumbers(problem: Problem): Problem {
+function shuffleProblemNumbers(problem: ProblemDefinition): ProblemDefinition {
   const { leftValue, rightValue } = problem;
   const rand = Math.random();
 

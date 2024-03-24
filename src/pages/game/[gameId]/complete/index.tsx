@@ -8,8 +8,8 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
+} from "@/components/shad-ui/table";
+import { Button } from "@/components/shad-ui/button";
 import { CheckCircle2, CircleSlash } from "lucide-react";
 import { LoaderOverlay } from "@/components/LoaderOverlay";
 import type { Operator } from "@/components/game/Problem";

@@ -1,9 +1,9 @@
 import { useRouter } from "next/router";
 import type { ParsedUrlQuery } from "querystring";
 import { useEffect, useState } from "react";
-import type { GameSettings } from "@/components/game/Game";
-import Game from "../../components/game/Game";
-import type { Operator, Problem } from "@/components/game/Problem";
+import type { GameSettings } from "@/components/views/Game";
+import Game from "src/components/views/Game";
+import type { Operator, ProblemDefinition } from "@/components/game/Problem";
 import {
   generateProblems,
   shuffleProblemListNumbers,
@@ -12,7 +12,7 @@ import {
 import type {
   GameMode,
   GameModifierName,
-} from "@/components/game/GameSettings";
+} from "@/components/views/GameSettings";
 
 interface Query {
   gameId: string;
@@ -34,7 +34,7 @@ interface QueryParams extends Query {
 }
 
 const RunningGame = () => {
-  const [problems, setProblems] = useState<Problem[] | null>(null);
+  const [problems, setProblems] = useState<ProblemDefinition[] | null>(null);
   const [queryParams, setQueryParams] = useState<QueryParams | null>(null);
   const [gameSettings, setGameSettings] = useState<GameSettings | null>(null);
   const router = useRouter();
