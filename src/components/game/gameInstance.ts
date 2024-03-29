@@ -13,199 +13,172 @@ interface Problem extends ProblemDefinition {
   durationMs: number;
 }
 
-export default class GameInstance {
-  readonly #playerId: string;
-  #state: "running" | "paused" | "errored" | "finished";
+type GameState = "running" | "paused" | "errored" | "finished";
 
-  readonly #mode: GameMode;
-  readonly #modifiers: GameModifiers;
-  #lives: number;
+interface GameInstance {
+  playerId: string;
+  state: GameState;
+  mode: GameMode;
+  modifiers: GameModifiers;
+  lives: number;
+  startedAt: Date;
+  finishedAt?: Date;
+  msElapsed: number;
+  currentProblem?: Problem;
+  remainingProblems: Problem[];
+  completedProblems: Problem[];
+}
 
-  readonly #startedAt: Date;
-  #finishedAt?: Date;
-  #msElapsed: number;
-
-  #currentProblem: Problem | undefined;
-
-  #remainingProblems: Problem[];
-  #completedProblems: Problem[];
-
-  constructor(
-    playerId: string,
-    mode: GameMode,
-    modifiers: GameModifiers,
-    lives: number,
-    startedAt: Date,
-    initialProblems: ProblemDefinition[],
-  ) {
-    if (!initialProblems.length) throw new Error("No problems provided");
-
-    this.#playerId = playerId;
-    this.#state = "running";
-    this.#mode = mode;
-    this.#modifiers = modifiers;
-    this.#lives = lives;
-    this.#startedAt = startedAt;
-    this.#finishedAt = undefined;
-
-    this.#msElapsed = 0;
-    this.#remainingProblems = initialProblems.map((problem) => ({
-      ...problem,
-      isCompleted: false,
-      attempts: [],
-      durationMs: 0,
-    }));
-    this.#completedProblems = [];
-
-    const poppedProblem = this.#remainingProblems.shift();
-    if (!poppedProblem) {
-      throw new Error("No problems provided");
-    }
-    this.#currentProblem = poppedProblem;
+const newGameInstance = (
+  playerId: string,
+  mode: GameMode,
+  modifiers: GameModifiers,
+  lives: number,
+  startedAt: Date,
+  initialProblems: ProblemDefinition[],
+): GameInstance => {
+  if (!initialProblems.length) {
+    throw new Error("No problems provided");
   }
 
-  private getRelativeTime(): number {
-    return Date.now() - this.#startedAt.getTime();
+  const remainingProblems = initialProblems.map((problem) => ({
+    ...problem,
+    isCompleted: false,
+    attempts: [],
+    durationMs: 0,
+  }));
+  const currentProblem = remainingProblems.shift();
+  if (!currentProblem) {
+    throw new Error("No problems provided");
   }
 
-  public toFinishedGame(): FinishedGame {
-    return {
-      userId: this.#playerId,
-      startedAt: this.#startedAt,
-      finishedAt: new Date(),
-      rounds: this.#completedProblems.map((problem) => ({
-        leftValue: problem.leftValue,
-        rightValue: problem.rightValue,
-        operator: problem.operator,
-        answer: problem.answer,
-        isCompleted: problem.isCompleted,
-        durationMs: problem.durationMs,
-        attempts: problem.attempts.map((attempt, index) => ({
-          ordering: index,
-          value: attempt.attempt ?? 0,
-        })),
-      })),
-    } as FinishedGame;
+  return {
+    playerId,
+    state: "running",
+    mode,
+    modifiers,
+    lives,
+    startedAt,
+    finishedAt: undefined,
+    msElapsed: 0,
+    currentProblem: currentProblem,
+    remainingProblems: remainingProblems,
+    completedProblems: [],
+  };
+};
+
+const addAttempt = (
+  game: GameInstance,
+  answer: number | undefined,
+): GameInstance => {
+  if (game.currentProblem === undefined) {
+    throw new Error("No current problem");
   }
 
-  public addAttempt(answer: number | undefined): void {
-    if (this.#currentProblem === undefined) {
-      throw new Error("No current problem");
-    }
+  if (game.currentProblem.isCompleted) {
+    throw new Error("Current problem is already completed");
+  }
 
-    if (this.#currentProblem.isCompleted) {
-      throw new Error("Current problem is already completed");
-    }
+  let msElapsed = getRelativeTime(game.startedAt) + game.msElapsed;
+  if (game.currentProblem.attempts.length > 0) {
+    const lastAttempt =
+      game.currentProblem.attempts[game.currentProblem.attempts.length - 1]!;
+    msElapsed -= lastAttempt.msElapsed;
+  }
+  game.currentProblem.attempts.push({
+    attempt: answer ?? null,
+    msElapsed: msElapsed,
+  });
 
-    let msElapsed = this.getRelativeTime() + this.#msElapsed;
-    if (this.#currentProblem.attempts.length > 0) {
-      const lastAttempt =
-        this.#currentProblem.attempts[
-          this.#currentProblem.attempts.length - 1
-        ]!;
-      msElapsed -= lastAttempt.msElapsed;
-    }
-    this.#currentProblem.attempts.push({
-      attempt: answer ?? null,
-      msElapsed: msElapsed,
+  // correct answer
+  if (game.currentProblem.answer === answer) {
+    game.completedProblems.push({
+      ...game.currentProblem,
+      isCompleted: true,
+      durationMs: game.currentProblem.attempts.reduce(
+        (acc, attempt) => acc + attempt.msElapsed,
+        0,
+      ),
     });
 
-    if (this.#currentProblem.answer === answer) {
-      this.#completedProblems.push({
-        ...this.#currentProblem,
-        isCompleted: true,
-        durationMs: this.#currentProblem.attempts.reduce(
-          (acc, attempt) => acc + attempt.msElapsed,
-          0,
-        ),
-      });
+    // finish game or move to next problem
+    if (game.remainingProblems.length === 0) {
+      game.state = "finished";
+    } else {
+      const nextProblem = game.remainingProblems.shift();
+      if (!nextProblem) {
+        throw new Error("No problems remaining");
+      }
+      game.currentProblem = nextProblem;
+    }
+  } else {
+    switch (game.mode) {
+      case "lives": {
+        game.lives--;
+        if (game.lives <= 0) {
+          game.state = "finished";
+        }
+        break;
+      }
 
-      if (this.#remainingProblems.length === 0) {
-        this.#state = "finished";
-      } else {
-        const nextProblem = this.#remainingProblems.shift();
-        if (!nextProblem) {
+      case "stack": {
+        if (game.remainingProblems.length <= 1) {
+          break;
+        }
+        const newProblem = game.remainingProblems.pop();
+        if (!newProblem) {
           throw new Error("No problems remaining");
         }
-        this.#currentProblem = nextProblem;
+
+        game.remainingProblems.unshift(game.currentProblem);
+        game.currentProblem = newProblem;
+        break;
       }
-    } else {
-      switch (this.#mode) {
-        case "lives": {
-          this.#lives--;
-          if (this.#lives <= 0) {
-            this.#state = "finished";
-          }
-          break;
-        }
-
-        case "stack": {
-          if (this.#remainingProblems.length <= 1) {
-            return;
-          }
-          const newProblem = this.#remainingProblems.pop();
-          if (!newProblem) {
-            throw new Error("No problems remaining");
-          }
-
-          this.#remainingProblems.unshift(this.#currentProblem);
-          this.#currentProblem = newProblem;
-          break;
-        }
-        case "endless":
-        case "normal":
-        default: {
-          break;
-        }
+      case "endless":
+      case "normal":
+      default: {
+        break;
       }
     }
   }
+  return game;
+};
 
-  get playerId(): string {
-    return this.#playerId;
-  }
+const getRelativeTime = (time: Date): number => {
+  return Date.now() - time.getTime();
+};
 
-  get state(): "running" | "paused" | "errored" | "finished" {
-    return this.#state;
-  }
+const getFinishedGame = (game: GameInstance): FinishedGame => {
+  return {
+    userId: game.playerId,
+    startedAt: game.startedAt,
+    finishedAt: new Date(),
+    rounds: game.completedProblems.map((problem) => ({
+      leftValue: problem.leftValue,
+      rightValue: problem.rightValue,
+      operator: problem.operator,
+      answer: problem.answer,
+      isCompleted: problem.isCompleted,
+      durationMs: problem.durationMs,
+      attempts: problem.attempts.map((attempt, index) => ({
+        ordering: index,
+        value: attempt.attempt ?? 0,
+      })),
+    })),
+  } as FinishedGame;
+};
 
-  get mode(): GameMode {
-    return this.#mode;
-  }
+const isAnswerCorrect = (
+  problem: ProblemDefinition,
+  answer: number,
+): boolean => {
+  return problem.answer === answer;
+};
 
-  get modifiers(): GameModifiers {
-    return this.#modifiers;
-  }
-
-  get lives(): number {
-    return this.#lives;
-  }
-
-  get startedAt(): Date {
-    return this.#startedAt;
-  }
-
-  get finishedAt(): Date | undefined {
-    return this.#finishedAt;
-  }
-
-  get msElapsed(): number {
-    return this.#msElapsed;
-  }
-
-  set msElapsed(value: number) {
-    this.#msElapsed = value;
-  }
-
-  get currentProblem(): Problem | undefined {
-    return this.#currentProblem;
-  }
-
-  get remainingProblems(): Problem[] {
-    return this.#remainingProblems;
-  }
-
-  get completedProblems(): Problem[] {
-    return this.#completedProblems;
-  }
-}
+export type { GameInstance, Problem, ProblemAttempt };
+export {
+  newGameInstance as default,
+  addAttempt,
+  getFinishedGame,
+  isAnswerCorrect,
+};

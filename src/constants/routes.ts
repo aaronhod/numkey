@@ -1,4 +1,4 @@
-import type { Operator } from "@/components/game/Problem";
+import type { Operator } from "@/components/game/problem";
 import type {
   GameMode,
   GameModifierName,

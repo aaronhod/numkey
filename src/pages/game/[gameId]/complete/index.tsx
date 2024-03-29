@@ -12,8 +12,8 @@ import {
 import { Button } from "@/components/shad-ui/button";
 import { CheckCircle2, CircleSlash } from "lucide-react";
 import { LoaderOverlay } from "@/components/LoaderOverlay";
-import type { Operator } from "@/components/game/Problem";
-import { getOperatorChar } from "@/components/game/Problem";
+import type { Operator } from "@/components/game/problem";
+import { getOperatorChar } from "@/components/game/problem";
 
 const FinishedGamePage = () => {
   const router = useRouter();

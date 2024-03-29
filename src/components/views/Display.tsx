@@ -1,5 +1,5 @@
-import type { ProblemDefinition } from "@/components/game/Problem";
-import { getOperatorChar } from "@/components/game/Problem";
+import type { ProblemDefinition } from "@/components/game/problem";
+import { getOperatorChar } from "@/components/game/problem";
 import { cn } from "@/utils/shad";
 import React, { useEffect } from "react";
 import {

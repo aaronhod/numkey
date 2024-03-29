@@ -1,6 +1,9 @@
 import type { ProblemDefinition } from "@/components/game/problem";
 import type { GameSettings } from "@/components/views/Game";
-import GameInstance from "@/components/game/gameInstance";
+import newGameInstance, {
+  addAttempt,
+  GameInstance,
+} from "@/components/game/gameInstance";
 
 export type Action =
   | {
@@ -26,7 +29,7 @@ export type Action =
 type ToggleChar = "+" | "-";
 
 export interface GameReducerState {
-  gameInstance: GameInstance;
+  game: GameInstance;
   inputValue: string | null;
   prevInputValue: string;
   negativeMode: boolean;
@@ -45,7 +48,7 @@ export const initialGameState = (
   problemSet: ProblemDefinition[],
   settings: GameSettings,
 ): GameReducerState => {
-  const gameInstance = new GameInstance(
+  const gameInstance = newGameInstance(
     playerId,
     settings.gameMode,
     settings.gameModifiers,
@@ -55,7 +58,7 @@ export const initialGameState = (
   );
 
   return {
-    gameInstance: gameInstance,
+    game: gameInstance,
     inputValue: null,
     prevInputValue: "",
     negativeMode: false,
@@ -122,6 +125,7 @@ function toggleNegativeInput(
   toggleChar: ToggleChar,
   state: GameReducerState,
 ): GameReducerState {
+  console.log("yyyyyooooo");
   if (toggleChar === "-") {
     return {
       ...state,
@@ -140,7 +144,7 @@ function addRoundAttempt(
   answer: number | undefined,
   state: GameReducerState,
 ): GameReducerState {
-  if (!state.gameInstance.currentProblem) {
+  if (!state.game.currentProblem) {
     return state;
   }
 
@@ -149,10 +153,24 @@ function addRoundAttempt(
     ans = -ans;
   }
 
-  state.gameInstance.addAttempt(ans);
+  let newInputValue = state.inputValue;
+  let prevInputValue = state.prevInputValue;
+  if (ans && state.game.currentProblem.answer === ans) {
+    if (state.game.state === "finished") {
+      newInputValue = "Done!";
+    } else {
+      newInputValue = null;
+    }
+    prevInputValue = "";
+  }
+
+  console.log("addRoundAttempt", state, ans, newInputValue);
+
   return {
     ...state,
-    gameInstance: state.gameInstance,
+    game: addAttempt(structuredClone(state.game), ans),
+    inputValue: newInputValue,
+    prevInputValue: prevInputValue,
   };
 }
 

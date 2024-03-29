@@ -35,8 +35,10 @@ import {
 // add duration plugin for dayjs
 import duration from "dayjs/plugin/duration";
 import type { GameMode, GameModifiers } from "@/components/views/GameSettings";
-import { redirect } from "next/navigation";
-import { auth } from "@clerk/nextjs";
+import {
+  getFinishedGame,
+  isAnswerCorrect,
+} from "@/components/game/gameInstance";
 
 dayjs.extend(duration);
 
@@ -150,7 +152,7 @@ const Game: React.FC<GameProps> = ({ userId, initialProblems, settings }) => {
 
   const [
     {
-      gameInstance,
+      game,
       inputValue,
       prevInputValue,
       negativeMode,
@@ -168,8 +170,8 @@ const Game: React.FC<GameProps> = ({ userId, initialProblems, settings }) => {
   }, []);
 
   const submitGame = useCallback(() => {
-    addGameMutation.mutate(gameInstance.toFinishedGame());
-  }, [addGameMutation, gameInstance]);
+    addGameMutation.mutate(getFinishedGame(game));
+  }, [addGameMutation, game]);
 
   const handleKeyDown = useCallback((event: KeyboardEvent) => {
     event.preventDefault();
@@ -184,57 +186,64 @@ const Game: React.FC<GameProps> = ({ userId, initialProblems, settings }) => {
         return dispatch({ type: "input-remove" });
       case "-":
         return dispatch({ type: "input-toggle-negative", value: "-" });
-      // on small keyboards, + and = are the same key. = isn't used so we do this for now.
+      // on small keyboards, + and = are the same key. = isn't used, so we do this for now.
       case "+":
       case "=":
         return dispatch({ type: "input-toggle-negative", value: "+" });
-      default:
-        dispatch({ type: "input-insert", value: event.key });
+      // Number Input
+      default: {
+        const keyNumber = Number(event.key);
+        if (Number.isNaN(keyNumber) || !game.currentProblem) {
+          return;
+        }
+
+        const fullAnswer = Number(inputValue + event.key);
+        if (isAnswerCorrect(game.currentProblem, fullAnswer)) {
+          return dispatch({
+            type: "add-attempt",
+            value: fullAnswer,
+          });
+        }
+
+        return dispatch({
+          type: "input-insert",
+          value: keyNumber.toString(),
+        });
+      }
     }
-  }, []);
+  }, [game.currentProblem, inputValue]);
 
+  // submit game when game is finished
   useEffect(() => {
-    if (gameInstance.state !== "finished" || !addGameMutation.isIdle) return;
-
-    submitGame();
-  }, [addGameMutation.isIdle, gameInstance.state, submitGame]);
-
-  useEffect(() => {
-    if (!gameInstance.currentProblem) return;
-    const inputNumber = Number(inputValue);
-
-    // add implicit attempt when a user has entered a value and then cleared their input
-    // this is toggled off for lives mode
-    if (settings.gameMode === "lives") {
+    if (game.state !== "finished" || !addGameMutation.isIdle) {
       return;
     }
-    if (inputValue === "" && prevInputValue) {
-      // don't add implicit attempt if the user is in the middle of typing a number
-      if (
-        prevInputValue.length <
-        gameInstance.currentProblem.answer.toString().length
-      ) {
-        return;
-      }
 
+    submitGame();
+  }, [addGameMutation.isIdle, game.state, submitGame]);
+
+  // auto add attempt on user action
+  useEffect(() => {
+    if (!game.currentProblem || (!inputValue && !prevInputValue)) {
+      return;
+    }
+
+    const userIsTyping =
+      game.currentProblem &&
+      prevInputValue.length < game.currentProblem.answer.toString().length;
+
+    const shouldDispatchAttempt =
+      settings.gameMode !== "lives" && inputValue === "" && prevInputValue;
+
+    if (!userIsTyping && shouldDispatchAttempt) {
       dispatch({
         type: "add-attempt",
-        value: inputNumber,
-      });
-    } else {
-      dispatch({
-        type: "add-attempt",
-        value: inputNumber,
+        value: Number(inputValue),
       });
     }
-  }, [
-    inputValue,
-    gameInstance.currentProblem,
-    prevInputValue,
-    negativeMode,
-    settings,
-  ]);
+  }, [inputValue, game.currentProblem, prevInputValue, settings.gameMode]);
 
+  // redirect to complete page when game is submitted
   useEffect(() => {
     if (addGameMutation.isSuccess) {
       void router.push(`/game/${addGameMutation.data.id}/complete`);
@@ -257,17 +266,17 @@ const Game: React.FC<GameProps> = ({ userId, initialProblems, settings }) => {
           handleKeyDown={handleKeyDown}
         >
           <DisplayHeader
-            completed={gameInstance.completedProblems.length}
+            completed={game.completedProblems.length}
             total={initialProblems.length}
             runningMs={gameStopWatchMs}
             setRunningMs={updateRunningMilliseconds}
             paused={isMenuOpen}
-            lives={gameInstance.lives}
+            lives={game.lives}
             settings={settings}
             remainingMs={problemTimerMs ?? null}
           />
           <DisplayContent
-            problem={gameInstance.currentProblem ?? null}
+            problem={game.currentProblem ?? null}
             negativeMode={negativeMode}
             userValue={inputValue}
           />
