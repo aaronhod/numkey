@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "build": "next build",
+    "db:generate": "yarn with-dev-env prisma generate",
     "db:start": "yarn with-dev-env ./start-database.sh",
     "db:push": "yarn with-dev-env prisma db push && prisma generate",
     "db:studio": "yarn with-dev-env prisma studio",
@@ -47,14 +48,18 @@
     "dotenv-cli": "^7.4.1",
     "lodash": "^4.17.21",
     "lucide-react": "^0.363.0",
-    "next": "^14.1.4",
+    "next": "14.1.0",
+    "next-superjson-plugin": "0.5.10",
     "next-themes": "^0.3.0",
+    "nextjs-cors": "^2.2.0",
     "react": "18.2.0",
     "react-day-picker": "^8.10.0",
     "react-dom": "18.2.0",
-    "superjson": "2.2.1",
+    "superjson": "^1.13.3",
     "tailwind-merge": "^2.2.2",
     "tailwindcss-animate": "^1.0.7",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.7.1",
     "zod": "^3.22.4"
   },
   "devDependencies": {
@@ -74,7 +79,9 @@
     "tailwindcss": "^3.4.1",
     "typescript": "^5.4.3"
   },
-  "ct3aMetadata": {
-    "initVersion": "7.3.0"
-  }
+  "prisma": {
+    "schema": "prisma/schema.prisma",
+    "seed": "yarn with-dev-env tsx prisma/seed_problems.ts"
+  },
+  "resolutions": { "rollup": "bun:@rollup/wasm-node" }
 }
