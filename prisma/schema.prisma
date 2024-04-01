@@ -15,6 +15,16 @@ enum Operator {
   DIVIDE
 }
 
+model ProblemDefinition {
+  id         Int      @id @default(autoincrement())
+  leftValue  Float
+  rightValue Float
+  operator   Operator
+  answer     Float
+
+  FinishedRound FinishedRound[]
+}
+
 model FinishedGame {
   id         Int             @id @default(autoincrement())
   userId     String
@@ -24,24 +34,22 @@ model FinishedGame {
 }
 
 model FinishedRound {
-  id         Int      @id @default(autoincrement())
-  leftValue  Int
-  rightValue Int
-  operator   Operator
-  answer     Int
-
+  id          Int            @id @default(autoincrement())
   attempts    RoundAttempt[]
   isCompleted Boolean
   durationMs  Int
+
+  problem   ProblemDefinition @relation(fields: [problemId], references: [id])
+  problemId Int
 
   game   FinishedGame @relation(fields: [gameId], references: [id])
   gameId Int
 }
 
 model RoundAttempt {
-  id       Int @id @default(autoincrement())
+  id       Int   @id @default(autoincrement())
   ordering Int
-  value    Int
+  value    Float
 
   round   FinishedRound @relation(fields: [roundId], references: [id])
   roundId Int

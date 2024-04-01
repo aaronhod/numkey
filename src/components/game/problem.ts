@@ -7,6 +7,10 @@ export interface ProblemDefinition {
   answer: number;
 }
 
+export interface Problem extends ProblemDefinition {
+  id: number;
+}
+
 const MAX_NUM = 12;
 const MIN_NUM = 2;
 

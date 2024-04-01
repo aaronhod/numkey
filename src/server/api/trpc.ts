@@ -6,14 +6,14 @@
  * TL;DR - This is where all the tRPC server stuff is created and plugged in. The pieces you will
  * need to use are documented accordingly near the end.
  */
-import { initTRPC, TRPCError } from "@trpc/server";
-import { type CreateNextContextOptions } from "@trpc/server/adapters/next";
-import superjson from "superjson";
-import { ZodError } from "zod";
+import {initTRPC, TRPCError} from '@trpc/server';
+import {type CreateNextContextOptions} from '@trpc/server/adapters/next';
+import superjson from 'superjson';
+import {ZodError} from 'zod';
 
-import { db } from "@/server/db";
-import type { SignedInAuthObject, SignedOutAuthObject } from "@clerk/backend";
-import { getAuth } from "@clerk/nextjs/server";
+import {db} from '@/server/db';
+import type {SignedInAuthObject, SignedOutAuthObject} from '@clerk/backend';
+import {getAuth} from '@clerk/nextjs/server';
 
 /**
  * 1. CONTEXT
@@ -23,7 +23,7 @@ import { getAuth } from "@clerk/nextjs/server";
  * These allow you to access things when processing a request, like the database, the session, etc.
  */
 type AuthContextProps = {
-  auth: SignedInAuthObject | SignedOutAuthObject;
+  auth?: SignedInAuthObject | SignedOutAuthObject;
 };
 
 /**
@@ -51,7 +51,11 @@ export const createContextInner = async ({ auth }: AuthContextProps) => {
  * @see https://trpc.io/docs/context
  */
 export const createTRPCContext = async (opts: CreateNextContextOptions) => {
-  return await createContextInner({ auth: getAuth(opts.req) });
+  const contextInner = await createContextInner({ auth: getAuth(opts.req) });
+
+  return {
+    ...contextInner,
+  }
 };
 
 /**
@@ -76,7 +80,7 @@ const t = initTRPC.context<typeof createTRPCContext>().create({
 });
 
 const isAuthed = t.middleware(({ next, ctx }) => {
-  if (!ctx.auth.userId) {
+  if (!ctx.auth?.userId) {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
   return next({
