@@ -1,13 +1,14 @@
 import type { GameMode, GameModifiers } from "@/components/views/GameSettings";
-import { type ProblemDefinition } from "@/components/game/problem";
+import { Problem, type ProblemDefinition } from "@/components/game/problem";
 import { type FinishedGame } from "@/server/api/routers/games";
+import dayjs from "dayjs";
 
 interface ProblemAttempt {
   attempt: number | null;
   msElapsed: number;
 }
 
-interface Problem extends ProblemDefinition {
+interface ActiveProblem extends Problem {
   isCompleted: boolean;
   attempts: ProblemAttempt[];
   durationMs: number;
@@ -24,9 +25,14 @@ interface GameInstance {
   startedAt: Date;
   finishedAt?: Date;
   msElapsed: number;
-  currentProblem?: Problem;
-  remainingProblems: Problem[];
-  completedProblems: Problem[];
+  pause: {
+    isPaused: boolean;
+    startedAt?: Date;
+    endedAt?: Date;
+  };
+  currentProblem?: ActiveProblem;
+  remainingProblems: ActiveProblem[];
+  completedProblems: ActiveProblem[];
 }
 
 const newGameInstance = (
@@ -35,7 +41,7 @@ const newGameInstance = (
   modifiers: GameModifiers,
   lives: number,
   startedAt: Date,
-  initialProblems: ProblemDefinition[],
+  initialProblems: Problem[],
 ): GameInstance => {
   if (!initialProblems.length) {
     throw new Error("No problems provided");
@@ -61,6 +67,9 @@ const newGameInstance = (
     startedAt,
     finishedAt: undefined,
     msElapsed: 0,
+    pause: {
+      isPaused: false,
+    },
     currentProblem: currentProblem,
     remainingProblems: remainingProblems,
     completedProblems: [],
@@ -74,20 +83,36 @@ const addAttempt = (
   if (game.currentProblem === undefined) {
     throw new Error("No current problem");
   }
-
   if (game.currentProblem.isCompleted) {
     throw new Error("Current problem is already completed");
   }
 
-  let msElapsed = getRelativeTime(game.startedAt) + game.msElapsed;
-  if (game.currentProblem.attempts.length > 0) {
-    const lastAttempt =
-      game.currentProblem.attempts[game.currentProblem.attempts.length - 1]!;
-    msElapsed -= lastAttempt.msElapsed;
+  const currentProblemAttemptsDuration = game.currentProblem.attempts.reduce(
+    (acc, attempt) => acc + attempt.msElapsed,
+    0,
+  );
+  const allFinishedProblemsDuration = game.completedProblems.reduce(
+    (acc, problem) => acc + problem.durationMs,
+    0,
+  );
+  const pausedDuration = dayjs(game.pause.endedAt).diff(
+    game.pause.startedAt,
+    "millisecond",
+  );
+
+  const currentAttemptDuration =
+    dayjs().diff(game.startedAt, "millisecond") -
+    (currentProblemAttemptsDuration + allFinishedProblemsDuration) -
+    pausedDuration;
+
+  if (game.pause.endedAt) {
+    game.msElapsed += dayjs().diff(game.pause.endedAt, "millisecond");
+    game.pause.endedAt = undefined;
   }
+
   game.currentProblem.attempts.push({
     attempt: answer ?? null,
-    msElapsed: msElapsed,
+    msElapsed: currentAttemptDuration,
   });
 
   // correct answer
@@ -102,6 +127,12 @@ const addAttempt = (
     });
 
     // finish game or move to next problem
+    game.pause = {
+      isPaused: false,
+      startedAt: undefined,
+      endedAt: undefined,
+    };
+
     if (game.remainingProblems.length === 0) {
       game.state = "finished";
     } else {
@@ -144,20 +175,13 @@ const addAttempt = (
   return game;
 };
 
-const getRelativeTime = (time: Date): number => {
-  return Date.now() - time.getTime();
-};
-
 const getFinishedGame = (game: GameInstance): FinishedGame => {
   return {
     userId: game.playerId,
     startedAt: game.startedAt,
     finishedAt: new Date(),
     rounds: game.completedProblems.map((problem) => ({
-      leftValue: problem.leftValue,
-      rightValue: problem.rightValue,
-      operator: problem.operator,
-      answer: problem.answer,
+      problemId: problem.id,
       isCompleted: problem.isCompleted,
       durationMs: problem.durationMs,
       attempts: problem.attempts.map((attempt, index) => ({
@@ -175,7 +199,7 @@ const isAnswerCorrect = (
   return problem.answer === answer;
 };
 
-export type { GameInstance, Problem, ProblemAttempt };
+export type { GameInstance, ActiveProblem, ProblemAttempt };
 export {
   newGameInstance as default,
   addAttempt,

@@ -1,11 +1,11 @@
-import React, { useCallback, useEffect, useReducer, useState } from "react";
+import React, { useCallback, useEffect, useReducer } from "react";
 import Numpad from "src/components/views/Numpad";
 import {
   Display,
   DisplayContent,
   DisplayHeader,
 } from "src/components/views/Display";
-import type { ProblemDefinition } from "@/components/game/problem";
+import type { Problem } from "@/components/game/problem";
 import dayjs from "dayjs";
 import type { RouterError } from "@/utils/api";
 import { api } from "@/utils/api";
@@ -44,7 +44,7 @@ dayjs.extend(duration);
 
 interface GameProps {
   userId: string;
-  initialProblems: ProblemDefinition[];
+  initialProblems: Problem[];
   settings: GameSettings;
 }
 
@@ -147,7 +147,6 @@ const PauseMenu = ({
 
 const Game: React.FC<GameProps> = ({ userId, initialProblems, settings }) => {
   const router = useRouter();
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const addGameMutation = api.game.addFinishedGame.useMutation();
 
   const [
@@ -165,6 +164,10 @@ const Game: React.FC<GameProps> = ({ userId, initialProblems, settings }) => {
     initialGameState(userId, initialProblems, settings),
   );
 
+  const pauseGame = useCallback((newPauseState?: boolean) => {
+    dispatch({ type: "pause-game", value: newPauseState });
+  }, []);
+
   const updateRunningMilliseconds = useCallback((deltaMilliseconds: number) => {
     dispatch({ type: "update-timer", value: deltaMilliseconds });
   }, []);
@@ -173,45 +176,57 @@ const Game: React.FC<GameProps> = ({ userId, initialProblems, settings }) => {
     addGameMutation.mutate(getFinishedGame(game));
   }, [addGameMutation, game]);
 
-  const handleKeyDown = useCallback((event: KeyboardEvent) => {
-    event.preventDefault();
-    switch (event.key.toLowerCase()) {
-      // Menu Input
-      case "escape":
-        return setIsMenuOpen((prev) => !prev);
-      // Main Game Input
-      case "enter":
-        return dispatch({ type: "add-attempt" });
-      case "backspace":
-        return dispatch({ type: "input-remove" });
-      case "-":
-        return dispatch({ type: "input-toggle-negative", value: "-" });
-      // on small keyboards, + and = are the same key. = isn't used, so we do this for now.
-      case "+":
-      case "=":
-        return dispatch({ type: "input-toggle-negative", value: "+" });
-      // Number Input
-      default: {
-        const keyNumber = Number(event.key);
-        if (Number.isNaN(keyNumber) || !game.currentProblem) {
-          return;
-        }
+  const handleKeyDown = useCallback(
+    (event: KeyboardEvent) => {
+      event.preventDefault();
+      switch (event.key.toLowerCase()) {
+        // Menu Input
+        case "escape":
+          return pauseGame();
+        // Main Game Input
+        case "enter":
+          return dispatch({ type: "add-attempt" });
+        case "backspace":
+          if (inputValue === null) {
+            return;
+          }
 
-        const fullAnswer = Number(inputValue + event.key);
-        if (isAnswerCorrect(game.currentProblem, fullAnswer)) {
+          if (inputValue.length === 1) {
+            addImplicitAttempt();
+          }
+
+          dispatch({ type: "input-remove" });
+          return;
+        case "-":
+          return dispatch({ type: "input-toggle-negative", value: "-" });
+        // on small keyboards, + and = are the same key. = isn't used, so we do this for now.
+        case "+":
+        case "=":
+          return dispatch({ type: "input-toggle-negative", value: "+" });
+        // Number Input
+        default: {
+          const keyNumber = Number(event.key);
+          if (Number.isNaN(keyNumber) || !game.currentProblem) {
+            return;
+          }
+
+          const fullAnswer = Number(inputValue + event.key);
+          if (isAnswerCorrect(game.currentProblem, fullAnswer)) {
+            return dispatch({
+              type: "add-attempt",
+              value: fullAnswer,
+            });
+          }
+
           return dispatch({
-            type: "add-attempt",
-            value: fullAnswer,
+            type: "input-insert",
+            value: keyNumber.toString(),
           });
         }
-
-        return dispatch({
-          type: "input-insert",
-          value: keyNumber.toString(),
-        });
       }
-    }
-  }, [game.currentProblem, inputValue]);
+    },
+    [game.currentProblem, inputValue],
+  );
 
   // submit game when game is finished
   useEffect(() => {
@@ -223,8 +238,11 @@ const Game: React.FC<GameProps> = ({ userId, initialProblems, settings }) => {
   }, [addGameMutation.isIdle, game.state, submitGame]);
 
   // auto add attempt on user action
-  useEffect(() => {
-    if (!game.currentProblem || (!inputValue && !prevInputValue)) {
+  function addImplicitAttempt() {
+    if (
+      !game.currentProblem ||
+      (inputValue === null && prevInputValue === "")
+    ) {
       return;
     }
 
@@ -232,16 +250,13 @@ const Game: React.FC<GameProps> = ({ userId, initialProblems, settings }) => {
       game.currentProblem &&
       prevInputValue.length < game.currentProblem.answer.toString().length;
 
-    const shouldDispatchAttempt =
-      settings.gameMode !== "lives" && inputValue === "" && prevInputValue;
-
-    if (!userIsTyping && shouldDispatchAttempt) {
+    if (!userIsTyping && settings.gameMode !== "lives") {
       dispatch({
         type: "add-attempt",
         value: Number(inputValue),
       });
     }
-  }, [inputValue, game.currentProblem, prevInputValue, settings.gameMode]);
+  }
 
   // redirect to complete page when game is submitted
   useEffect(() => {
@@ -252,7 +267,7 @@ const Game: React.FC<GameProps> = ({ userId, initialProblems, settings }) => {
 
   return (
     <>
-      <PauseMenu isOpen={isMenuOpen} setIsOpen={setIsMenuOpen} />
+      <PauseMenu isOpen={game.pause.isPaused} setIsOpen={pauseGame} />
       <ErrorDialog
         error={addGameMutation.error}
         refetch={submitGame}
@@ -270,7 +285,7 @@ const Game: React.FC<GameProps> = ({ userId, initialProblems, settings }) => {
             total={initialProblems.length}
             runningMs={gameStopWatchMs}
             setRunningMs={updateRunningMilliseconds}
-            paused={isMenuOpen}
+            paused={game.pause.isPaused}
             lives={game.lives}
             settings={settings}
             remainingMs={problemTimerMs ?? null}

@@ -1,4 +1,4 @@
-import type { ProblemDefinition } from "@/components/game/problem";
+import type { Problem } from "@/components/game/problem";
 import type { GameSettings } from "@/components/views/Game";
 import newGameInstance, {
   addAttempt,
@@ -24,6 +24,10 @@ export type Action =
   | {
       type: "update-timer";
       value: number;
+    }
+  | {
+      type: "pause-game";
+      value?: boolean;
     };
 
 type ToggleChar = "+" | "-";
@@ -45,7 +49,7 @@ export interface GameReducerState {
 
 export const initialGameState = (
   playerId: string,
-  problemSet: ProblemDefinition[],
+  problemSet: Problem[],
   settings: GameSettings,
 ): GameReducerState => {
   const gameInstance = newGameInstance(
@@ -74,23 +78,46 @@ export const gameReducer =
   (state: GameReducerState, action: Action): GameReducerState => {
     switch (action.type) {
       case "input-insert":
-        return insertCharacter(action.value, state);
+        return insertCharacter(state, action.value);
       case "input-remove":
         return removeCharacter(state);
       case "input-toggle-negative":
-        return toggleNegativeInput(action.value, state);
+        return toggleNegativeInput(state, action.value);
       case "add-attempt":
-        return addRoundAttempt(action.value, state);
+        return addRoundAttempt(state, action.value);
       case "update-timer":
-        return updateRunningSeconds(action.value, state, settings);
+        return updateRunningSeconds(state, action.value, settings);
+      case "pause-game":
+        return togglePausedGame(state, action.value);
       default:
         return state;
     }
   };
 
-function insertCharacter(
-  newValue: string,
+function togglePausedGame(
   state: GameReducerState,
+  newPauseState?: boolean,
+): GameReducerState {
+  const isPaused = newPauseState ?? !state.game.pause.isPaused;
+
+  const updatedPauseMenu = {
+    isPaused,
+    startedAt: isPaused ? new Date() : state.game.pause.startedAt,
+    endedAt: !isPaused ? new Date() : state.game.pause.endedAt,
+  };
+
+  return {
+    ...state,
+    game: {
+      ...state.game,
+      pause: updatedPauseMenu,
+    },
+  };
+}
+
+function insertCharacter(
+  state: GameReducerState,
+  newValue: string,
 ): GameReducerState {
   const asNumber = Number(newValue);
   const validValue =
@@ -122,10 +149,9 @@ function removeCharacter(state: GameReducerState): GameReducerState {
 
 // - is a toggle, + is a reset
 function toggleNegativeInput(
-  toggleChar: ToggleChar,
   state: GameReducerState,
+  toggleChar: ToggleChar,
 ): GameReducerState {
-  console.log("yyyyyooooo");
   if (toggleChar === "-") {
     return {
       ...state,
@@ -141,8 +167,8 @@ function toggleNegativeInput(
 }
 
 function addRoundAttempt(
-  answer: number | undefined,
   state: GameReducerState,
+  answer: number | undefined,
 ): GameReducerState {
   if (!state.game.currentProblem) {
     return state;
@@ -164,8 +190,6 @@ function addRoundAttempt(
     prevInputValue = "";
   }
 
-  console.log("addRoundAttempt", state, ans, newInputValue);
-
   return {
     ...state,
     game: addAttempt(structuredClone(state.game), ans),
@@ -177,8 +201,8 @@ function addRoundAttempt(
 const DEFAULT_MAX_SECONDS = 10;
 
 function updateRunningSeconds(
-  deltaMilliseconds: number,
   state: GameReducerState,
+  deltaMilliseconds: number,
   settings: GameSettings,
 ): GameReducerState {
   const updatedStopWatchTime = state.gameStopWatchMs + deltaMilliseconds;
@@ -205,7 +229,7 @@ function updateRunningSeconds(
   } as GameReducerState;
 
   if (timerIsExpired) {
-    return addRoundAttempt(Number(state.inputValue), updatedTimeState);
+    return addRoundAttempt(updatedTimeState, Number(state.inputValue));
   }
 
   return updatedTimeState;
