@@ -17,12 +17,16 @@ enum Operator {
 
 model ProblemDefinition {
   id         Int      @id @default(autoincrement())
+  hash       String
   leftValue  Float
   rightValue Float
   operator   Operator
   answer     Float
 
   FinishedRound FinishedRound[]
+
+  @@unique([hash, leftValue, rightValue, operator, answer])
+  @@index([hash])
 }
 
 model FinishedGame {

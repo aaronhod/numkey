@@ -9,6 +9,7 @@ export interface ProblemDefinition {
 
 export interface Problem extends ProblemDefinition {
   id: number;
+  hash: string;
 }
 
 const MAX_NUM = 12;
@@ -82,14 +83,18 @@ export function shuffleProblemListOrderAndNumbers(
   return shuffleProblemListNumbers(shuffleProblemListOrder(problems));
 }
 
-export function shuffleProblemListOrder(problems: ProblemDefinition[]): ProblemDefinition[] {
+export function shuffleProblemListOrder(
+  problems: ProblemDefinition[],
+): ProblemDefinition[] {
   return problems
     .map((value) => ({ value, sort: Math.random() }))
     .sort((a, b) => a.sort - b.sort)
     .map(({ value }) => value);
 }
 
-export function shuffleProblemListNumbers(problems: ProblemDefinition[]): ProblemDefinition[] {
+export function shuffleProblemListNumbers(
+  problems: ProblemDefinition[],
+): ProblemDefinition[] {
   return problems.map((problem) => shuffleProblemNumbers(problem));
 }
 

@@ -2,22 +2,9 @@ import { z } from "zod";
 
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 
-const OperatorEnum = z.enum(["ADD", "SUBTRACT", "MULTIPLY", "DIVIDE"]);
-
 const RoundAttemptRequest = z.object({
   ordering: z.number(),
   value: z.number(),
-});
-
-const CursorPagedRequest = z.object({
-  cursor: z.string(),
-  take: z.number(),
-  skip: z.literal(1),
-});
-
-const OffsetPagedRequest = z.object({
-  take: z.number(),
-  skip: z.number(),
 });
 
 const FinishedRoundRequest = z.object({
@@ -32,29 +19,6 @@ const FinishedGameRequest = z.object({
   startedAt: z.date(),
   finishedAt: z.date(),
   rounds: z.array(FinishedRoundRequest),
-});
-
-const PagedProblemDefinitionQuery = z.object({
-  leftRange: z.object({
-    min: z.number(),
-    max: z.number(),
-  }),
-  rightRange: z.object({
-    min: z.number(),
-    max: z.number(),
-  }),
-  operators: z.array(OperatorEnum).min(1),
-  pagedParams: CursorPagedRequest.or(OffsetPagedRequest),
-});
-
-const ProblemDefinitionDetails = z.object({
-  leftValue: z.number(),
-  rightValue: z.number(),
-  operator: OperatorEnum,
-});
-
-const ProblemDefinitionListQuery = z.object({
-  problems: z.array(ProblemDefinitionDetails),
 });
 
 export type FinishedGame = z.infer<typeof FinishedGameRequest>;
@@ -116,39 +80,15 @@ export const gameRouter = createTRPCRouter({
         },
       });
     }),
-  findProblemsByDomainProblems: protectedProcedure
-    .input(ProblemDefinitionListQuery)
-    .query(async ({ ctx, input }) => {
-      const problemPromises = input.problems.map(async (problem) => {
-        return await ctx.db.problemDefinition.findFirst({
-          where: {
-            leftValue: problem.leftValue,
-            rightValue: problem.rightValue,
-            operator: problem.operator,
-          }
-        });
-      });
-
-      return Promise.all(problemPromises);
-    }),
-  findProblems: protectedProcedure
-      .input(PagedProblemDefinitionQuery)
-      .query(async ({ ctx, input }) => {
-        return ctx.db.problemDefinition.findMany({
-          where: {
-            leftValue: {
-              gte: input.leftRange.min,
-              lte: input.leftRange.max,
-            },
-            rightValue: {
-              gte: input.rightRange.min,
-              lte: input.rightRange.max,
-            },
-            operator: {
-              in: input.operators,
-            },
+  findProblemsByHash: protectedProcedure
+    .input(z.array(z.string().min(1)).min(1))
+    .query(({ ctx, input }) => {
+      return ctx.db.problemDefinition.findMany({
+        where: {
+          hash: {
+            in: input,
           },
-          ...input.pagedParams,
-        });
-      }),
+        },
+      });
+    }),
 });

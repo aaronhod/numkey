@@ -4,7 +4,7 @@ import superjson from "superjson";
 import type { ParsedUrlQuery } from "querystring";
 import type { GameSettings } from "@/components/views/Game";
 import Game from "src/components/views/Game";
-import { generateProblems, Operator, Problem } from "@/components/game/problem";
+import { generateProblems, type Operator, type Problem } from "@/components/game/problem";
 import type {
   GameMode,
   GameModifierName,
@@ -17,6 +17,7 @@ import {
 import { buildClerkProps, clerkClient, getAuth } from "@clerk/nextjs/server";
 import { appRouter } from "@/server/api/root";
 import { createContextInner } from "@/server/api/trpc";
+import { hashProblemDefs } from "@/utils/hash";
 
 interface Query {
   gameId: string;
@@ -52,9 +53,10 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
   });
 
   const parsedQuery: QueryParams = parseQueryParams(ctx.query);
-  const problems = (await helpers.game.findProblemsByDomainProblems.fetch({
-    problems: generateProblems(parsedQuery.numbers, parsedQuery.operators),
-  })) as Problem[];
+  const problemHashes = await hashProblemDefs(
+    generateProblems(parsedQuery.numbers, parsedQuery.operators),
+  );
+  const problems = await helpers.game.findProblemsByHash.fetch(problemHashes);
 
   const gameSettings = {
     gameMode: parsedQuery.gameMode,
