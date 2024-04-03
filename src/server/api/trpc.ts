@@ -55,7 +55,7 @@ export const createTRPCContext = async (opts: CreateNextContextOptions) => {
 
   return {
     ...contextInner,
-  }
+  };
 };
 
 /**

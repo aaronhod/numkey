@@ -4,7 +4,11 @@ import superjson from "superjson";
 import type { ParsedUrlQuery } from "querystring";
 import type { GameSettings } from "@/components/views/Game";
 import Game from "src/components/views/Game";
-import { generateProblems, type Operator, type Problem } from "@/components/game/problem";
+import {
+  generateProblems,
+  type Operator,
+  type Problem,
+} from "@/components/game/problem";
 import type {
   GameMode,
   GameModifierName,

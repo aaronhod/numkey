@@ -4,7 +4,7 @@ import { cn } from "@/utils/shad";
 import type { LucideProps } from "lucide-react";
 import { Loader as LucideLoader } from "lucide-react";
 
-interface LoaderProps extends LucideProps {}
+type LoaderProps = LucideProps;
 
 export const SpinningLoader = React.forwardRef<HTMLDivElement, LoaderProps>(
   ({ className, ...props }) => (

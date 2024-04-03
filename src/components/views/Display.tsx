@@ -43,7 +43,9 @@ interface TimerProps {
 const TIMER_INTERVAL_MS = 1000;
 const StopWatch = ({ runningMs, setRunningMs, isPaused }: TimerProps) => {
   useInterval(() => {
-    if (isPaused) return;
+    if (isPaused) {
+      return;
+    }
     setRunningMs(TIMER_INTERVAL_MS);
   }, TIMER_INTERVAL_MS);
 
@@ -122,7 +124,9 @@ const SettingsDisplay = ({ settings }: { settings: GameSettings }) => {
   const GameModeIcon = <ModeIcon mode={gameMode} className="h-5 w-5" />;
   const ModifierIcons = Object.entries(gameModifiers)
     .map(([name, val]) => {
-      if (!val.enabled) return null;
+      if (!val.enabled) {
+        return null;
+      }
       return (
         <ModifierIcon
           key={name}
@@ -271,4 +275,4 @@ const Display: React.FC<DisplayProps> = ({
   );
 };
 
-export { Display };
+export {Display};

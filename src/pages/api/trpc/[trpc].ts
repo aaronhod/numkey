@@ -1,7 +1,7 @@
 import {
-  NextApiResponse,
   createNextApiHandler,
-  NextApiRequest,
+  type NextApiRequest,
+  type NextApiResponse,
 } from "@trpc/server/adapters/next";
 
 import { env } from "@/env.js";

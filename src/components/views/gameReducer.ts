@@ -2,7 +2,7 @@ import type { Problem } from "@/components/game/problem";
 import type { GameSettings } from "@/components/views/Game";
 import newGameInstance, {
   addAttempt,
-  GameInstance,
+  type GameInstance,
 } from "@/components/game/gameInstance";
 
 export type Action =

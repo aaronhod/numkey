@@ -1,4 +1,4 @@
-import { RouterOutputs } from "@/utils/api";
+import { type RouterOutputs } from "@/utils/api";
 import { useRouter } from "next/router";
 import {
   Table,
@@ -19,7 +19,10 @@ import { createServerSideHelpers } from "@trpc/react-query/server";
 import { redirect } from "next/navigation";
 import superjson from "superjson";
 import { clerkClient, getAuth } from "@clerk/nextjs/server";
-import { type GetServerSideProps, InferGetServerSidePropsType } from "next";
+import {
+  type GetServerSideProps,
+  type InferGetServerSidePropsType,
+} from "next";
 
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
   const { userId } = getAuth(ctx.req);
