@@ -1,9 +1,9 @@
-import type { Problem } from "@/components/game/problem";
+import type { Problem } from "@/game/problem";
 import type { GameSettings } from "@/components/views/Game";
 import newGameInstance, {
   addAttempt,
   type GameInstance,
-} from "@/components/game/gameInstance";
+} from "@/game/gameInstance";
 
 export type Action =
   | {

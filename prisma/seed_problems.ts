@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import { generateProblems, type Operator } from "@/components/game/problem";
+import { generateProblems, type Operator } from "@/game/problem";
 import { hashProblemDef } from "@/utils/hash";
 
 const NUMBERS: number[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];

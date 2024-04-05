@@ -2,7 +2,7 @@ import xxhash from "xxhash-wasm";
 import {
   type Problem,
   type ProblemDefinition,
-} from "@/components/game/problem";
+} from "@/game/problem";
 
 const SEED = 21;
 

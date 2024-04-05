@@ -11,8 +11,8 @@ import {
 import { Button } from "@/components/shad-ui/button";
 import { CheckCircle2, CircleSlash } from "lucide-react";
 import { LoaderOverlay } from "@/components/LoaderOverlay";
-import type { Operator } from "@/components/game/problem";
-import { getOperatorChar } from "@/components/game/problem";
+import type { Operator } from "@/game/problem";
+import { getOperatorChar } from "@/game/problem";
 import { appRouter } from "@/server/api/root";
 import { createContextInner } from "@/server/api/trpc";
 import { createServerSideHelpers } from "@trpc/react-query/server";

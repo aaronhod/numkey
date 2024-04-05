@@ -5,7 +5,7 @@ import {
   DisplayContent,
   DisplayHeader,
 } from "src/components/views/Display";
-import type { Problem } from "@/components/game/problem";
+import type { Problem } from "@/game/problem";
 import dayjs from "dayjs";
 import type { RouterError } from "@/utils/api";
 import { api } from "@/utils/api";
@@ -38,7 +38,7 @@ import type { GameMode, GameModifiers } from "@/components/views/GameSettings";
 import {
   getFinishedGame,
   isAnswerCorrect,
-} from "@/components/game/gameInstance";
+} from "@/game/gameInstance";
 
 dayjs.extend(duration);
 

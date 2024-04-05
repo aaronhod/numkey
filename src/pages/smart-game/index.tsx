@@ -8,7 +8,7 @@ import {
   generateProblems,
   type Operator,
   type Problem,
-} from "@/components/game/problem";
+} from "@/game/problem";
 import type {
   GameMode,
   GameModifierName,
