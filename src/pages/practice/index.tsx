@@ -2,7 +2,7 @@ import { type NextPageWithLayout } from "@/pages/_app";
 import Head from "next/head";
 import HeaderLayout from "@/components/layouts/HeaderLayout";
 import { type PropsWithChildren, type ReactElement, useState } from "react";
-import { type Operator, OPERATOR_CHARS } from "@/game/problem";
+import { getOperatorChar, type Operator, OPERATORS } from "@/game/problem";
 import { Toggle } from "@/components/shad-ui/toggle";
 import {
   BookOpenText,
@@ -11,6 +11,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { Button } from "@/components/shad-ui/button";
+import { useRouter } from "next/router";
 
 const LEARNING_MODES = ["flashcards", "game", "repetition"] as const;
 type LearningMode = (typeof LEARNING_MODES)[number];
@@ -19,7 +20,6 @@ const LEARNING_MODE_ICONS: Record<LearningMode, LucideIcon> = {
   game: Gamepad2,
   repetition: BrainCog,
 };
-
 const NUMBER_OPTIONS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
 
 interface ToggleButtonProps {
@@ -42,33 +42,35 @@ const ToggleButton = ({ children, active, onClick }: ToggleButtonProps) => {
   );
 };
 
+const SelectionSection = ({ children }: PropsWithChildren) => {
+  return (
+    <section className="flex flex-col rounded-md border p-3">
+      {children}
+    </section>
+  );
+};
+
+const SelectionSectionHeader = ({ text }: { text: string }) => {
+  return (
+    <h2 className="mb-3 text-xl font-bold leading-tight tracking-tighter">
+      {text}
+    </h2>
+  );
+};
+
 const Page: NextPageWithLayout = () => {
   const [operator, setOperator] = useState<null | Operator>(null);
   const [number, setNumber] = useState<null | number>(null);
   const [mode, setMode] = useState<null | LearningMode>(null);
-
+  const router = useRouter();
   const startDisabled = !operator || !number || !mode;
-  const startPractice = () => {
+
+  const startPractice = async () => {
     if (startDisabled) {
       return;
     }
-    console.log("Starting practice with", { operator, number, mode });
-  };
 
-  const SelectionSection = ({ children }: PropsWithChildren) => {
-    return (
-      <section className="flex flex-col rounded-md border p-3">
-        {children}
-      </section>
-    );
-  };
-
-  const SelectionSectionHeader = ({ text }: { text: string }) => {
-    return (
-      <h2 className="mb-3 text-xl font-bold leading-tight tracking-tighter">
-        {text}
-      </h2>
-    );
+    await router.push(`practice/${mode}/${operator}_${number}`);
   };
 
   return (
@@ -77,7 +79,7 @@ const Page: NextPageWithLayout = () => {
         <title>Practice</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <main className="flex min-h-screen w-full flex-col px-12">
+      <main className="flex w-full flex-col px-12">
         <h1 className="my-4 text-4xl font-bold leading-tight tracking-tighter">
           Practice
         </h1>
@@ -85,21 +87,20 @@ const Page: NextPageWithLayout = () => {
           <SelectionSection>
             <SelectionSectionHeader text="Operator" />
             <div className="flex flex-row gap-4">
-              {OPERATOR_CHARS.map((op) => (
+              {OPERATORS.map((op) => (
                 <ToggleButton
                   key={op}
                   active={op === operator}
                   onClick={() => setOperator(op)}
                 >
-                  {op}
+                  {getOperatorChar(op)}
                 </ToggleButton>
               ))}
             </div>
           </SelectionSection>
           <SelectionSection>
             <SelectionSectionHeader text="Number" />
-            {/*flex flex-wrap justify-evenly gap-1*/}
-            <div className=" grid grid-flow-col grid-rows-3 gap-1 ">
+            <div className=" grid justify-start gap-4 grid-cols-fill-12 md:flex-col ">
               {NUMBER_OPTIONS.map((num) => (
                 <ToggleButton
                   key={num}

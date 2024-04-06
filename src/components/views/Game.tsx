@@ -34,15 +34,19 @@ import {
 
 // add duration plugin for dayjs
 import duration from "dayjs/plugin/duration";
-import type { GameMode, GameModifiers } from "@/components/views/GameSettings";
+import {
+  DEFAULT_GAME_MODIFIERS,
+  GameMode,
+  GameModifiers,
+} from "@/components/views/GameSettings";
 import { getFinishedGame, isAnswerCorrect } from "@/game/gameInstance";
 
 dayjs.extend(duration);
 
 interface GameProps {
-  userId: string;
   initialProblems: Problem[];
-  settings: GameSettings;
+  userId?: string;
+  settings?: GameSettings;
 }
 
 export interface GameSettings {
@@ -50,6 +54,12 @@ export interface GameSettings {
   gameModifiers: GameModifiers;
   nextOnFail?: boolean;
 }
+
+const DEFAULT_GAME_SETTINGS: GameSettings = {
+  gameMode: "normal",
+  gameModifiers: DEFAULT_GAME_MODIFIERS,
+  nextOnFail: undefined,
+};
 
 const ErrorDialog = ({
   error,
@@ -142,7 +152,11 @@ const PauseMenu = ({
   );
 };
 
-const Game: React.FC<GameProps> = ({ userId, initialProblems, settings }) => {
+const Game = ({
+  userId,
+  initialProblems,
+  settings = DEFAULT_GAME_SETTINGS,
+}: GameProps) => {
   const router = useRouter();
   const addGameMutation = api.game.addFinishedGame.useMutation();
 
@@ -158,7 +172,7 @@ const Game: React.FC<GameProps> = ({ userId, initialProblems, settings }) => {
     dispatch,
   ] = useReducer(
     gameReducer(settings),
-    initialGameState(userId, initialProblems, settings),
+    initialGameState(userId ?? null, initialProblems, settings),
   );
 
   const pauseGame = useCallback((newPauseState?: boolean) => {
@@ -247,7 +261,7 @@ const Game: React.FC<GameProps> = ({ userId, initialProblems, settings }) => {
       game.currentProblem &&
       prevInputValue.length < game.currentProblem.answer.toString().length;
 
-    if (!userIsTyping && settings.gameMode !== "lives") {
+    if (!userIsTyping && settings?.gameMode !== "lives") {
       dispatch({
         type: "add-attempt",
         value: Number(inputValue),
@@ -298,4 +312,5 @@ const Game: React.FC<GameProps> = ({ userId, initialProblems, settings }) => {
     </>
   );
 };
+
 export { Game as default };

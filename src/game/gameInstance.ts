@@ -1,4 +1,8 @@
-import type { GameMode, GameModifiers } from "@/components/views/GameSettings";
+import {
+  DEFAULT_GAME_MODIFIERS,
+  GameMode,
+  GameModifiers,
+} from "@/components/views/GameSettings";
 import { type Problem, type ProblemDefinition } from "@/game/problem";
 import { type FinishedGame } from "@/server/api/routers/games";
 import dayjs from "dayjs";
@@ -17,7 +21,7 @@ interface ActiveProblem extends Problem {
 type GameState = "running" | "paused" | "errored" | "finished";
 
 interface GameInstance {
-  playerId: string;
+  playerId: string | null;
   state: GameState;
   mode: GameMode;
   modifiers: GameModifiers;
@@ -36,9 +40,9 @@ interface GameInstance {
 }
 
 const newGameInstance = (
-  playerId: string,
-  mode: GameMode,
-  modifiers: GameModifiers,
+  playerId: string | null,
+  mode: GameMode = "normal",
+  modifiers: GameModifiers = DEFAULT_GAME_MODIFIERS,
   lives: number,
   startedAt: Date,
   initialProblems: Problem[],

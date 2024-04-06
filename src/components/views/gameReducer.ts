@@ -48,7 +48,7 @@ export interface GameReducerState {
 }
 
 export const initialGameState = (
-  playerId: string,
+  playerId: string | null,
   problemSet: Problem[],
   settings: GameSettings,
 ): GameReducerState => {
@@ -74,7 +74,7 @@ export const initialGameState = (
 };
 
 export const gameReducer =
-  (settings: GameSettings) =>
+  (settings?: GameSettings) =>
   (state: GameReducerState, action: Action): GameReducerState => {
     switch (action.type) {
       case "input-insert":
@@ -203,13 +203,14 @@ const DEFAULT_MAX_SECONDS = 10;
 function updateRunningSeconds(
   state: GameReducerState,
   deltaMilliseconds: number,
-  settings: GameSettings,
+  settings?: GameSettings,
 ): GameReducerState {
   const updatedStopWatchTime = state.gameStopWatchMs + deltaMilliseconds;
   let timerIsExpired = false;
   let updatedTimerTime = null;
 
   if (
+    settings &&
     settings.gameModifiers.timed.enabled &&
     state.problemTimerMs !== undefined
   ) {

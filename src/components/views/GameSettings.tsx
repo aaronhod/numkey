@@ -26,6 +26,19 @@ export type GameModifiers = {
 export type GameModifierName = keyof GameModifiers;
 export type GameMode = "normal" | "endless" | "lives" | "stack";
 
+export const DEFAULT_GAME_MODIFIERS: GameModifiers = {
+  random: {
+    enabled: false,
+  },
+  shuffled: {
+    enabled: false,
+  },
+  timed: {
+    enabled: false,
+    durationSeconds: 10,
+  },
+};
+
 interface IconProps extends LucideProps {
   className?: string;
 }

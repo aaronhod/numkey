@@ -1,5 +1,5 @@
-export const OPERATORS = ["ADD", "SUBTRACT", "MULTIPLY", "DIVIDE"];
-export const OPERATOR_CHARS = ["+", "-", "×", "÷"];
+export const OPERATORS = ["ADD", "SUBTRACT", "MULTIPLY", "DIVIDE"] as const;
+export const OPERATOR_CHARS = ["+", "-", "×", "÷"] as const;
 
 export type Operator = (typeof OPERATORS)[number];
 export type OperatorChar = (typeof OPERATOR_CHARS)[number];
@@ -116,4 +116,25 @@ function shuffleProblemNumbers(problem: ProblemDefinition): ProblemDefinition {
   }
 
   return problem;
+}
+
+export function fromProblemSetId(problemSetId: string): ProblemDefinition[] {
+  const [operator, number] = problemSetId.split("_");
+  if (operator === undefined || number === undefined) {
+    throw new Error(`Invalid problem set id ${problemSetId}`);
+  }
+  if (OPERATORS.find((op) => op === operator) === undefined) {
+    throw new Error(`Unknown operator ${operator}`);
+  }
+
+  const parsedNumber = parseInt(number, 10);
+  if (
+    Number.isNaN(parsedNumber) ||
+    parsedNumber < MIN_NUM ||
+    parsedNumber > MAX_NUM
+  ) {
+    throw new Error(`Unknown number ${number}`);
+  }
+
+  return generateProblems([parsedNumber], [operator as Operator]);
 }

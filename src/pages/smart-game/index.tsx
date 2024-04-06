@@ -1,6 +1,3 @@
-import { createServerSideHelpers } from "@trpc/react-query/server";
-import superjson from "superjson";
-
 import type { ParsedUrlQuery } from "querystring";
 import type { GameSettings } from "@/components/views/Game";
 import Game from "src/components/views/Game";
@@ -15,9 +12,8 @@ import {
   type InferGetServerSidePropsType,
 } from "next";
 import { buildClerkProps, clerkClient, getAuth } from "@clerk/nextjs/server";
-import { appRouter } from "@/server/api/root";
-import { createContextInner } from "@/server/api/trpc";
 import { hashProblemDefs } from "@/utils/hash";
+import { ssgHelper } from "@/server/ssgHelper";
 
 interface Query {
   gameId: string;
@@ -46,11 +42,7 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
     redirect("/");
   }
 
-  const helpers = createServerSideHelpers({
-    router: appRouter,
-    ctx: await createContextInner({ auth: getAuth(ctx.req) }),
-    transformer: superjson,
-  });
+  const helpers = await ssgHelper(ctx);
 
   const parsedQuery: QueryParams = parseQueryParams(ctx.query);
   const problemHashes = await hashProblemDefs(
@@ -91,9 +83,11 @@ function parseQueryParams(query: ParsedUrlQuery): QueryParams {
   const numbers = Array.isArray(parsedQuery.numbers)
     ? parsedQuery.numbers.map((num) => Number(num))
     : [Number(parsedQuery.numbers)];
-  const operators = Array.isArray(parsedQuery.operators)
-    ? parsedQuery.operators
-    : [parsedQuery.operators];
+  const operators: Operator[] = (
+    Array.isArray(parsedQuery.operators)
+      ? parsedQuery.operators
+      : [parsedQuery.operators]
+  ) as Operator[];
   const nextOnFail = parsedQuery.nextOnFail === "true";
   const modifiers = parsedQuery.modifiers.split(",") as GameModifierName[];
 
