@@ -201,7 +201,7 @@ const SelectionScreen = () => {
   return (
     <div className="flex h-full flex-col items-center gap-4">
       <div className="flex">
-        <h1 className="mt-5 text-5xl font-bold leading-tight tracking-tighter ">
+        <h1 className="mt-5 text-5xl font-bold leading-tight tracking-tighter">
           Start Game
         </h1>
       </div>
@@ -248,7 +248,7 @@ const SelectionScreen = () => {
       </div>
       <div className="flex flex-col items-center gap-1.5 px-10">
         <SelectionHeader>Numbers</SelectionHeader>
-        <div className="flex  flex-wrap content-start justify-center gap-1 sm:w-3/6 sm:gap-2">
+        <div className="flex flex-wrap content-start justify-center gap-1 sm:w-3/6 sm:gap-2">
           <NumberSelect key={2} number={2} />
           <NumberSelect key={3} number={3} />
           <NumberSelect key={4} number={4} />

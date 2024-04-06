@@ -1,8 +1,5 @@
 import type { GameMode, GameModifiers } from "@/components/views/GameSettings";
-import {
-  type Problem,
-  type ProblemDefinition,
-} from "@/game/problem";
+import { type Problem, type ProblemDefinition } from "@/game/problem";
 import { type FinishedGame } from "@/server/api/routers/games";
 import dayjs from "dayjs";
 

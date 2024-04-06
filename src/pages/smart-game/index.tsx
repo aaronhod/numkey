@@ -4,11 +4,7 @@ import superjson from "superjson";
 import type { ParsedUrlQuery } from "querystring";
 import type { GameSettings } from "@/components/views/Game";
 import Game from "src/components/views/Game";
-import {
-  generateProblems,
-  type Operator,
-  type Problem,
-} from "@/game/problem";
+import { generateProblems, type Operator, type Problem } from "@/game/problem";
 import type {
   GameMode,
   GameModifierName,
@@ -96,8 +92,8 @@ function parseQueryParams(query: ParsedUrlQuery): QueryParams {
     ? parsedQuery.numbers.map((num) => Number(num))
     : [Number(parsedQuery.numbers)];
   const operators = Array.isArray(parsedQuery.operators)
-    ? (parsedQuery.operators as Operator[])
-    : [parsedQuery.operators as Operator];
+    ? parsedQuery.operators
+    : [parsedQuery.operators];
   const nextOnFail = parsedQuery.nextOnFail === "true";
   const modifiers = parsedQuery.modifiers.split(",") as GameModifierName[];
 

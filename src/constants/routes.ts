@@ -4,7 +4,7 @@ import type {
   GameModifierName,
 } from "@/components/views/GameSettings";
 
-export const RUNNING_GAME_ROUTE = "/game";
+export const RUNNING_GAME_ROUTE = "/smart-game";
 
 interface GameQuery {
   numbers: number[];

@@ -1,5 +1,5 @@
-import {createTRPCRouter} from './trpc';
-import {gameRouter} from '@/server/api/routers/games';
+import { createTRPCRouter } from "./trpc";
+import { gameRouter } from "@/server/api/routers/games";
 
 /**
  * This is the primary router for your server.

@@ -12,7 +12,6 @@ interface ThemeProps extends UseThemeProps {
 }
 
 const SwitchThemeButton: React.FC = () => {
-  //eslint-disable-next-line @typescript-eslint/no-unsafe-call
   const { theme, setTheme } = useTheme() as ThemeProps;
 
   const toggleTheme = () => {
@@ -33,26 +32,37 @@ const SwitchThemeButton: React.FC = () => {
   );
 };
 
-const Header: React.FC = () => {
-  return (
-    <header className="top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-14 items-center">
-        <div className="mr-4 hidden md:flex">
-          <Link href="/" className="mr-6 flex items-center space-x-2">
-            <span className="hidden font-bold sm:inline-block">MathGame</span>
-          </Link>
-        </div>
-        <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
-          <nav className="flex items-center gap-1">
-            <SwitchThemeButton />
-            <div>
-              <UserButton afterSignOutUrl="/" />
-            </div>
-          </nav>
-        </div>
+interface Props {
+  children: React.ReactNode;
+}
+
+const Header = () => (
+  <header className="top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <div className="container flex h-14 items-center">
+      <div className="mr-4 hidden md:flex">
+        <Link href="/" className="mr-6 flex items-center space-x-2">
+          <span className="hidden font-bold sm:inline-block">MathGame</span>
+        </Link>
       </div>
-    </header>
+      <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
+        <nav className="flex items-center gap-1">
+          <SwitchThemeButton />
+          <div>
+            <UserButton afterSignOutUrl="/" />
+          </div>
+        </nav>
+      </div>
+    </div>
+  </header>
+);
+
+const HeaderLayout = ({ children }: Props) => {
+  return (
+    <main className="relative flex h-full flex-col">
+      <Header />
+      {children}
+    </main>
   );
 };
 
-export default Header;
+export default HeaderLayout;

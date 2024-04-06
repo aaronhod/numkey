@@ -1,8 +1,5 @@
 import xxhash from "xxhash-wasm";
-import {
-  type Problem,
-  type ProblemDefinition,
-} from "@/game/problem";
+import { type Problem, type ProblemDefinition } from "@/game/problem";
 
 const SEED = 21;
 

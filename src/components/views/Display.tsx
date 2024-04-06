@@ -275,4 +275,4 @@ const Display: React.FC<DisplayProps> = ({
   );
 };
 
-export {Display};
+export { Display };

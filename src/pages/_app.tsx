@@ -1,19 +1,31 @@
-import { type AppType } from "next/app";
+import { AppProps, type AppType } from "next/app";
 
 import { api } from "@/utils/api";
 
 import "@/styles/style.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { ClerkProvider } from "@clerk/nextjs";
+import { NextPage } from "next/types";
+import { ReactElement, ReactNode } from "react";
 
 const themes = ["dark", "light", "system"];
 export type Theme = (typeof themes)[number];
 
-const MyApp: AppType = ({ Component, pageProps }) => {
+export type NextPageWithLayout<P = {}, IP = P> = NextPage<P, IP> & {
+  getLayout?: (page: ReactElement) => ReactNode;
+};
+
+type AppPropsWithLayout = AppProps & {
+  Component: NextPageWithLayout;
+};
+
+const MyApp: AppType = ({ Component, pageProps }: AppPropsWithLayout) => {
+  const getLayout = Component.getLayout ?? ((page) => page);
+
   return (
     <ClerkProvider {...pageProps}>
       <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
-        <Component {...pageProps} />
+        {getLayout(<Component {...pageProps} />)}
       </ThemeProvider>
     </ClerkProvider>
   );

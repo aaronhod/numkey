@@ -1,4 +1,15 @@
-export type Operator = "ADD" | "SUBTRACT" | "MULTIPLY" | "DIVIDE";
+export const OPERATORS = ["ADD", "SUBTRACT", "MULTIPLY", "DIVIDE"];
+export const OPERATOR_CHARS = ["+", "-", "×", "÷"];
+
+export type Operator = (typeof OPERATORS)[number];
+export type OperatorChar = (typeof OPERATOR_CHARS)[number];
+
+export const OPERATOR_CHAR_MAP: Record<Operator, OperatorChar> = {
+  ADD: "+",
+  SUBTRACT: "-",
+  MULTIPLY: "×",
+  DIVIDE: "÷",
+};
 
 export interface ProblemDefinition {
   leftValue: number;
@@ -16,18 +27,11 @@ const MAX_NUM = 12;
 const MIN_NUM = 2;
 
 export function getOperatorChar(operator: Operator) {
-  switch (operator) {
-    case "ADD":
-      return "+";
-    case "SUBTRACT":
-      return "-";
-    case "MULTIPLY":
-      return "×";
-    case "DIVIDE":
-      return "÷";
-    default:
-      throw new Error(`Unknown operator ${operator as string}`);
+  const operatorChar = OPERATOR_CHAR_MAP[operator];
+  if (!operatorChar) {
+    throw new Error(`Unknown operator ${operator}`);
   }
+  return operatorChar;
 }
 
 function createProblem({
@@ -46,7 +50,7 @@ function createProblem({
       case "DIVIDE":
         return leftValue / rightValue;
       default:
-        throw new Error(`Unknown operator ${operator as string}`);
+        throw new Error(`Unknown operator ${operator}`);
     }
   };
 

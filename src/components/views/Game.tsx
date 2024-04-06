@@ -35,10 +35,7 @@ import {
 // add duration plugin for dayjs
 import duration from "dayjs/plugin/duration";
 import type { GameMode, GameModifiers } from "@/components/views/GameSettings";
-import {
-  getFinishedGame,
-  isAnswerCorrect,
-} from "@/game/gameInstance";
+import { getFinishedGame, isAnswerCorrect } from "@/game/gameInstance";
 
 dayjs.extend(duration);
 
