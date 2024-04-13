@@ -1,7 +1,7 @@
 import { type GetServerSideProps } from "next/types";
-import { fromProblemSetId, type Problem } from "@/game/problem";
+import { type Problem } from "@/game/problem";
 import Game from "@/components/views/Game";
-import { hashProblemDefs } from "@/utils/hash";
+import { getProblemsFromSetId } from "@/utils/hash";
 import { ssgHelper } from "@/server/ssgHelper";
 
 interface PageProps {
@@ -17,8 +17,7 @@ const getServerSideProps: GetServerSideProps = async (ctx) => {
   }
 
   const helpers = await ssgHelper(ctx);
-  const problemHashes = await hashProblemDefs(fromProblemSetId(setId));
-  const problems = await helpers.game.findProblemsByHash.fetch(problemHashes);
+  const problems = await getProblemsFromSetId(setId, helpers);
 
   return {
     props: {

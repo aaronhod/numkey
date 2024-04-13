@@ -23,8 +23,12 @@ export interface Problem extends ProblemDefinition {
   hash: string;
 }
 
-const MAX_NUM = 12;
-const MIN_NUM = 2;
+export const BASIC_MAX_NUM = 12;
+export const BASIC_MIN_NUM = 2;
+
+export function toString(problem: ProblemDefinition): string {
+  return `${problem.leftValue} ${getOperatorChar(problem.operator)} ${problem.rightValue}`;
+}
 
 export function getOperatorChar(operator: Operator) {
   const operatorChar = OPERATOR_CHAR_MAP[operator];
@@ -50,7 +54,7 @@ function createProblem({
       case "DIVIDE":
         return leftValue / rightValue;
       default:
-        throw new Error(`Unknown operator ${operator}`);
+        throw new Error(`Unknown operator ${operator as string}`);
     }
   };
 
@@ -70,7 +74,7 @@ export function generateProblems(
 
   for (const operator of operators) {
     for (const number of numbers) {
-      for (let i = MIN_NUM; i < MAX_NUM + 1; i++) {
+      for (let i = BASIC_MIN_NUM; i < BASIC_MAX_NUM + 1; i++) {
         problems.push(
           createProblem({ leftValue: i, rightValue: number, operator }),
         );
@@ -116,25 +120,4 @@ function shuffleProblemNumbers(problem: ProblemDefinition): ProblemDefinition {
   }
 
   return problem;
-}
-
-export function fromProblemSetId(problemSetId: string): ProblemDefinition[] {
-  const [operator, number] = problemSetId.split("_");
-  if (operator === undefined || number === undefined) {
-    throw new Error(`Invalid problem set id ${problemSetId}`);
-  }
-  if (OPERATORS.find((op) => op === operator) === undefined) {
-    throw new Error(`Unknown operator ${operator}`);
-  }
-
-  const parsedNumber = parseInt(number, 10);
-  if (
-    Number.isNaN(parsedNumber) ||
-    parsedNumber < MIN_NUM ||
-    parsedNumber > MAX_NUM
-  ) {
-    throw new Error(`Unknown number ${number}`);
-  }
-
-  return generateProblems([parsedNumber], [operator as Operator]);
 }

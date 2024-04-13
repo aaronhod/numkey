@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/shad-ui/button";
 import { useRouter } from "next/router";
+import { cn } from "@/utils/shad";
 
 const LEARNING_MODES = ["flashcards", "game", "repetition"] as const;
 type LearningMode = (typeof LEARNING_MODES)[number];
@@ -26,16 +27,23 @@ interface ToggleButtonProps {
   children: React.ReactNode;
   active: boolean;
   onClick: () => void;
+  className?: string;
 }
 
-const ToggleButton = ({ children, active, onClick }: ToggleButtonProps) => {
+const ToggleButton = ({
+  children,
+  active,
+  onClick,
+  className,
+}: ToggleButtonProps) => {
   return (
     <Toggle
       pressed={active}
       onPressedChange={onClick}
-      className={
-        "h-14 w-14 bg-secondary text-secondary-foreground hover:bg-secondary/50 data-[state=on]:bg-primary data-[state=on]:hover:bg-primary/50"
-      }
+      className={cn(
+        "h-14 w-14 bg-secondary text-secondary-foreground hover:bg-secondary/50 data-[state=on]:bg-primary data-[state=on]:hover:bg-primary/50",
+        className,
+      )}
     >
       {children}
     </Toggle>
@@ -122,8 +130,14 @@ const Page: NextPageWithLayout = () => {
                     key={m}
                     active={m === mode}
                     onClick={() => setMode(m)}
+                    className="h-16 w-28"
                   >
-                    <Icon />
+                    <div className="flex flex-col items-center justify-center gap-0.5">
+                      <Icon />
+                      <span className="leading-tight tracking-tighter">
+                        {m}
+                      </span>
+                    </div>
                   </ToggleButton>
                 );
               })}

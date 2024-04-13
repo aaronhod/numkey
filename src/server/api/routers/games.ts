@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { createTRPCRouter, protectedProcedure } from "../trpc";
+import { createTRPCRouter, protectedProcedure, publicProcedure } from "../trpc";
 
 const RoundAttemptRequest = z.object({
   ordering: z.number(),
@@ -80,7 +80,7 @@ export const gameRouter = createTRPCRouter({
         },
       });
     }),
-  findProblemsByHash: protectedProcedure
+  findProblemsByHash: publicProcedure
     .input(z.array(z.string().min(1)).min(1))
     .query(({ ctx, input }) => {
       return ctx.db.problemDefinition.findMany({

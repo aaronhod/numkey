@@ -1,5 +1,7 @@
 import xxhash from "xxhash-wasm";
 import { type Problem, type ProblemDefinition } from "@/game/problem";
+import { type ssgHelper } from "@/server/ssgHelper";
+import { fromProblemSetId, type ProblemSetId } from "@/game/problemSet";
 
 const SEED = 21;
 
@@ -30,4 +32,13 @@ export const hashProblemDefs = async (
   problems: ProblemDefinition[],
 ): Promise<string[]> => {
   return Promise.all(problems.map(hashProblemDef));
+};
+
+export const getProblemsFromSetId = async (
+  setId: ProblemSetId,
+  helpers: Awaited<ReturnType<typeof ssgHelper>>,
+): Promise<Problem[]> => {
+  const problemDefs = fromProblemSetId(setId);
+  const problemHashes = await hashProblemDefs(problemDefs);
+  return await helpers.game.findProblemsByHash.fetch(problemHashes);
 };

@@ -11,7 +11,10 @@ import { ReactElement, ReactNode } from "react";
 const themes = ["dark", "light", "system"];
 export type Theme = (typeof themes)[number];
 
-export type NextPageWithLayout<P = {}, IP = P> = NextPage<P, IP> & {
+export type NextPageWithLayout<P = NonNullable<unknown>, IP = P> = NextPage<
+  P,
+  IP
+> & {
   getLayout?: (page: ReactElement) => ReactNode;
 };
 
