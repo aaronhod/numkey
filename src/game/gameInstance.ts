@@ -1,14 +1,15 @@
-import {
-  DEFAULT_GAME_MODIFIERS,
-  GameMode,
-  GameModifiers,
-} from "@/components/views/GameSettings";
 import { type Problem, type ProblemDefinition } from "@/game/problem";
 import { type FinishedGame } from "@/server/api/routers/games";
 import dayjs from "dayjs";
+import {
+  DEFAULT_GAME_SETTINGS,
+  type GameCategory,
+  type GameSettings,
+} from "@/components/views/GameSettings";
 
 interface ProblemAttempt {
   attempt: number | null;
+  type: "IMPLICIT" | "EXPLICIT" | "SKIPPED";
   msElapsed: number;
 }
 
@@ -21,10 +22,10 @@ interface ActiveProblem extends Problem {
 type GameState = "running" | "paused" | "errored" | "finished";
 
 interface GameInstance {
-  playerId: string | null;
+  playerId: string;
   state: GameState;
-  mode: GameMode;
-  modifiers: GameModifiers;
+  category: GameCategory;
+  settings: GameSettings;
   lives: number;
   startedAt: Date;
   finishedAt?: Date;
@@ -40,9 +41,9 @@ interface GameInstance {
 }
 
 const newGameInstance = (
-  playerId: string | null,
-  mode: GameMode = "normal",
-  modifiers: GameModifiers = DEFAULT_GAME_MODIFIERS,
+  playerId: string,
+  category: GameCategory,
+  settings: GameSettings = DEFAULT_GAME_SETTINGS,
   lives: number,
   startedAt: Date,
   initialProblems: Problem[],
@@ -65,8 +66,8 @@ const newGameInstance = (
   return {
     playerId,
     state: "running",
-    mode,
-    modifiers,
+    category,
+    settings,
     lives,
     startedAt,
     finishedAt: undefined,
@@ -117,6 +118,7 @@ const addAttempt = (
   game.currentProblem.attempts.push({
     attempt: answer ?? null,
     msElapsed: currentAttemptDuration,
+    type: answer ? "EXPLICIT" : "SKIPPED",
   });
 
   // correct answer
@@ -147,7 +149,7 @@ const addAttempt = (
       game.currentProblem = nextProblem;
     }
   } else {
-    switch (game.mode) {
+    switch (game.settings.gameMode) {
       case "lives": {
         game.lives--;
         if (game.lives <= 0) {
@@ -182,6 +184,8 @@ const addAttempt = (
 const getFinishedGame = (game: GameInstance): FinishedGame => {
   return {
     userId: game.playerId,
+    category: game.category,
+    settings: game.settings,
     startedAt: game.startedAt,
     finishedAt: new Date(),
     rounds: game.completedProblems.map((problem) => ({
@@ -191,9 +195,10 @@ const getFinishedGame = (game: GameInstance): FinishedGame => {
       attempts: problem.attempts.map((attempt, index) => ({
         ordering: index,
         value: attempt.attempt ?? 0,
+        type: attempt.type,
       })),
     })),
-  } as FinishedGame;
+  } satisfies FinishedGame;
 };
 
 const isAnswerCorrect = (

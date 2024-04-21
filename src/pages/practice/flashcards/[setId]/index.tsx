@@ -17,18 +17,12 @@ interface FlashCardProps {
 
 const FlashCard = ({ problem }: FlashCardProps) => {
   const [flipped, setFlipped] = useReducer((flipped) => !flipped, false);
-  let innerContent;
 
-  if (flipped) {
-    innerContent = (
-      <div className="h-full flex-1 flex-col content-center items-center text-center text-4xl">
-        <p className="text-3xl font-bold leading-tight tracking-tighter">
-          {problem.answer}
-        </p>
-      </div>
-    );
-  } else {
-    innerContent = (
+  return (
+    <Card
+      className="w-32 cursor-pointer select-none p-4 text-right"
+      onClick={setFlipped}
+    >
       <div className="flex flex-col text-4xl">
         <p>{problem.leftValue}</p>
         <div className="flex flex-row">
@@ -38,16 +32,10 @@ const FlashCard = ({ problem }: FlashCardProps) => {
           <p>{problem.rightValue}</p>
         </div>
         <Separator />
+        <div className="flex min-h-10 flex-col">
+          <p className="mt-auto leading-5">{flipped ? problem.answer : " "}</p>
+        </div>
       </div>
-    );
-  }
-
-  return (
-    <Card
-      className="h-32 w-32 cursor-pointer select-none p-4 text-right"
-      onClick={setFlipped}
-    >
-      {innerContent}
     </Card>
   );
 };

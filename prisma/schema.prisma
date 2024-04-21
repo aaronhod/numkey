@@ -29,12 +29,23 @@ model ProblemDefinition {
   @@index([hash])
 }
 
+enum GameCategory {
+  CUSTOM
+  SMART
+  VERSUS
+  PRACTICE
+}
+
 model FinishedGame {
   id         Int             @id @default(autoincrement())
   userId     String
+  category   GameCategory
+  settings   Json?
   startedAt  DateTime
   finishedAt DateTime        @default(now())
   rounds     FinishedRound[]
+
+  @@index([userId, category])
 }
 
 model FinishedRound {
@@ -50,10 +61,17 @@ model FinishedRound {
   gameId Int
 }
 
+enum AttemptType {
+  IMPLICIT
+  EXPLICIT
+  SKIPPED
+}
+
 model RoundAttempt {
-  id       Int   @id @default(autoincrement())
+  id       Int         @id @default(autoincrement())
   ordering Int
   value    Float
+  type     AttemptType
 
   round   FinishedRound @relation(fields: [roundId], references: [id])
   roundId Int

@@ -23,7 +23,7 @@ try {
         hash: problem.hash,
         leftValue: problem.leftValue,
         rightValue: problem.rightValue,
-        operator: problem.operator as Operator,
+        operator: problem.operator,
         answer: problem.answer,
       })),
       skipDuplicates: true,

@@ -1,12 +1,12 @@
-import { AppProps, type AppType } from "next/app";
+import { type AppProps, type AppType } from "next/app";
 
 import { api } from "@/utils/api";
 
 import "@/styles/style.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { ClerkProvider } from "@clerk/nextjs";
-import { NextPage } from "next/types";
-import { ReactElement, ReactNode } from "react";
+import { type NextPage } from "next/types";
+import { type ReactElement, type ReactNode } from "react";
 
 const themes = ["dark", "light", "system"];
 export type Theme = (typeof themes)[number];

@@ -34,32 +34,21 @@ import {
 
 // add duration plugin for dayjs
 import duration from "dayjs/plugin/duration";
-import {
-  DEFAULT_GAME_MODIFIERS,
-  GameMode,
-  GameModifiers,
-} from "@/components/views/GameSettings";
 import { getFinishedGame, isAnswerCorrect } from "@/game/gameInstance";
+import {
+  DEFAULT_GAME_SETTINGS,
+  type GameCategory,
+  type GameSettings,
+} from "@/components/views/GameSettings";
 
 dayjs.extend(duration);
 
 interface GameProps {
   initialProblems: Problem[];
-  userId?: string;
+  userId: string;
+  category: GameCategory;
   settings?: GameSettings;
 }
-
-export interface GameSettings {
-  gameMode: GameMode;
-  gameModifiers: GameModifiers;
-  nextOnFail?: boolean;
-}
-
-const DEFAULT_GAME_SETTINGS: GameSettings = {
-  gameMode: "normal",
-  gameModifiers: DEFAULT_GAME_MODIFIERS,
-  nextOnFail: undefined,
-};
 
 const ErrorDialog = ({
   error,
@@ -155,6 +144,7 @@ const PauseMenu = ({
 const Game = ({
   userId,
   initialProblems,
+  category,
   settings = DEFAULT_GAME_SETTINGS,
 }: GameProps) => {
   const router = useRouter();
@@ -172,7 +162,7 @@ const Game = ({
     dispatch,
   ] = useReducer(
     gameReducer(settings),
-    initialGameState(userId ?? null, initialProblems, settings),
+    initialGameState(userId, initialProblems, category, settings),
   );
 
   const pauseGame = useCallback((newPauseState?: boolean) => {
@@ -189,6 +179,26 @@ const Game = ({
 
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
+      function addImplicitAttempt() {
+        if (
+          !game.currentProblem ||
+          (inputValue === null && prevInputValue === "")
+        ) {
+          return;
+        }
+
+        const userIsTyping =
+          game.currentProblem &&
+          prevInputValue.length < game.currentProblem.answer.toString().length;
+
+        if (!userIsTyping && settings?.gameMode !== "lives") {
+          dispatch({
+            type: "add-attempt",
+            value: Number(inputValue),
+          });
+        }
+      }
+
       event.preventDefault();
       switch (event.key.toLowerCase()) {
         // Menu Input
@@ -236,7 +246,13 @@ const Game = ({
         }
       }
     },
-    [game.currentProblem, inputValue],
+    [
+      game.currentProblem,
+      inputValue,
+      pauseGame,
+      prevInputValue,
+      settings?.gameMode,
+    ],
   );
 
   // submit game when game is finished
@@ -247,27 +263,6 @@ const Game = ({
 
     submitGame();
   }, [addGameMutation.isIdle, game.state, submitGame]);
-
-  // auto add attempt on user action
-  function addImplicitAttempt() {
-    if (
-      !game.currentProblem ||
-      (inputValue === null && prevInputValue === "")
-    ) {
-      return;
-    }
-
-    const userIsTyping =
-      game.currentProblem &&
-      prevInputValue.length < game.currentProblem.answer.toString().length;
-
-    if (!userIsTyping && settings?.gameMode !== "lives") {
-      dispatch({
-        type: "add-attempt",
-        value: Number(inputValue),
-      });
-    }
-  }
 
   // redirect to complete page when game is submitted
   useEffect(() => {

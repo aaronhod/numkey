@@ -25,8 +25,15 @@ export type GameModifiers = {
 
 export type GameModifierName = keyof GameModifiers;
 export type GameMode = "normal" | "endless" | "lives" | "stack";
+export type GameCategory = "CUSTOM" | "SMART" | "VERSUS" | "PRACTICE";
 
-export const DEFAULT_GAME_MODIFIERS: GameModifiers = {
+export interface GameSettings {
+  gameMode: GameMode;
+  gameModifiers: GameModifiers;
+  nextOnFail?: boolean;
+}
+
+const DEFAULT_GAME_MODIFIERS: GameModifiers = {
   random: {
     enabled: false,
   },
@@ -37,6 +44,12 @@ export const DEFAULT_GAME_MODIFIERS: GameModifiers = {
     enabled: false,
     durationSeconds: 10,
   },
+};
+
+export const DEFAULT_GAME_SETTINGS: GameSettings = {
+  gameMode: "normal",
+  gameModifiers: DEFAULT_GAME_MODIFIERS,
+  nextOnFail: undefined,
 };
 
 interface IconProps extends LucideProps {

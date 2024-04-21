@@ -1,9 +1,12 @@
-import type { Problem } from "@/game/problem";
-import type { GameSettings } from "@/components/views/Game";
+import {
+  type GameCategory,
+  type GameSettings,
+} from "@/components/views/GameSettings";
 import newGameInstance, {
   addAttempt,
   type GameInstance,
 } from "@/game/gameInstance";
+import { type Problem } from "@/game/problem";
 
 export type Action =
   | {
@@ -48,14 +51,15 @@ export interface GameReducerState {
 }
 
 export const initialGameState = (
-  playerId: string | null,
+  playerId: string,
   problemSet: Problem[],
+  category: GameCategory,
   settings: GameSettings,
 ): GameReducerState => {
   const gameInstance = newGameInstance(
     playerId,
-    settings.gameMode,
-    settings.gameModifiers,
+    category,
+    settings,
     3,
     new Date(),
     problemSet,

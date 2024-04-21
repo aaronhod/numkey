@@ -1,10 +1,10 @@
 import type { ParsedUrlQuery } from "querystring";
-import type { GameSettings } from "@/components/views/Game";
 import Game from "src/components/views/Game";
 import { generateProblems, type Operator, type Problem } from "@/game/problem";
 import type {
   GameMode,
   GameModifierName,
+  GameSettings,
 } from "@/components/views/GameSettings";
 import { redirect } from "next/navigation";
 import {
@@ -116,6 +116,11 @@ export default function RunningGame({
   }
 
   return (
-    <Game userId={userId} initialProblems={problems} settings={settings} />
+    <Game
+      userId={userId}
+      category="SMART"
+      initialProblems={problems}
+      settings={settings}
+    />
   );
 }

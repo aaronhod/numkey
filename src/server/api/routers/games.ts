@@ -5,6 +5,7 @@ import { createTRPCRouter, protectedProcedure, publicProcedure } from "../trpc";
 const RoundAttemptRequest = z.object({
   ordering: z.number(),
   value: z.number(),
+  type: z.enum(["IMPLICIT", "EXPLICIT", "SKIPPED"]),
 });
 
 const FinishedRoundRequest = z.object({
@@ -16,6 +17,25 @@ const FinishedRoundRequest = z.object({
 
 const FinishedGameRequest = z.object({
   userId: z.string(),
+  category: z.enum(["CUSTOM", "SMART", "VERSUS", "PRACTICE"]),
+  settings: z
+    .object({
+      gameMode: z.enum(["normal", "endless", "lives", "stack"]),
+      gameModifiers: z.object({
+        random: z.object({
+          enabled: z.boolean(),
+        }),
+        shuffled: z.object({
+          enabled: z.boolean(),
+        }),
+        timed: z.object({
+          enabled: z.boolean(),
+          durationSeconds: z.number(),
+        }),
+      }),
+      nextOnFail: z.boolean().optional(),
+    })
+    .optional(),
   startedAt: z.date(),
   finishedAt: z.date(),
   rounds: z.array(FinishedRoundRequest),
@@ -25,7 +45,6 @@ export type FinishedGame = z.infer<typeof FinishedGameRequest>;
 export type FinishedRound = z.infer<typeof FinishedRoundRequest>;
 export type RoundAttempt = z.infer<typeof RoundAttemptRequest>;
 
-// https://youtrack.jetbrains.com/issue/WEB-65284/Prisma-Plugin-Argument-type-is-not-assignable-to-parameter-type-SelectSubset
 export const gameRouter = createTRPCRouter({
   addFinishedGame: protectedProcedure
     .input(FinishedGameRequest)
@@ -33,6 +52,8 @@ export const gameRouter = createTRPCRouter({
       return ctx.db.finishedGame.create({
         data: {
           userId: input.userId,
+          category: input.category,
+          settings: input.settings,
           startedAt: input.startedAt,
           finishedAt: input.finishedAt,
           rounds: {
@@ -44,6 +65,7 @@ export const gameRouter = createTRPCRouter({
                 create: round.attempts.map((attempt) => ({
                   ordering: attempt.ordering,
                   value: attempt.value,
+                  type: attempt.type,
                 })),
               },
             })),
