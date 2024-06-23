@@ -4,7 +4,12 @@ import type {
   GameModifierName,
 } from "@/components/views/GameSettings";
 
-export const RUNNING_GAME_ROUTE = "/smart-game";
+export const GAME_SMART_ROUTE = "smart-game";
+export const GAME_CUSTOM_ROUTE = "game-custom";
+export const GAME_BATTLE_ROUTE = "game-battle";
+
+export const GAME_ROUTES = [GAME_SMART_ROUTE, GAME_CUSTOM_ROUTE, GAME_BATTLE_ROUTE] as const;
+export type GameRoute = typeof GAME_ROUTES[number];
 
 interface GameQuery {
   numbers: number[];
@@ -16,5 +21,5 @@ interface GameQuery {
 
 export function getGameRouteCustom(options: GameQuery): string {
   const searchParams = new URLSearchParams(options as never);
-  return `${RUNNING_GAME_ROUTE}?${searchParams.toString()}`;
+  return `${GAME_SMART_ROUTE}?${searchParams.toString()}`;
 }

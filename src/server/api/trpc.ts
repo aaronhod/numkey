@@ -4,11 +4,11 @@ import superjson from "superjson";
 import { ZodError } from "zod";
 
 import { db } from "@/server/db";
-import type { SignedInAuthObject, SignedOutAuthObject } from "@clerk/backend";
 import { getAuth } from "@clerk/nextjs/server";
 
+type AuthObject = ReturnType<typeof getAuth>;
 type AuthContextProps = {
-  auth?: SignedInAuthObject | SignedOutAuthObject;
+  auth?: AuthObject;
 };
 
 export const createContextInner = async ({ auth }: AuthContextProps) => {
@@ -25,7 +25,9 @@ export const createContextInner = async ({ auth }: AuthContextProps) => {
  * @see https://trpc.io/docs/context
  */
 export const createTRPCContext = async (opts: CreateNextContextOptions) => {
-  const contextInner = await createContextInner({ auth: getAuth(opts.req) });
+  const contextInner = await createContextInner({
+    auth: getAuth(opts.req),
+  });
 
   return {
     ...contextInner,
@@ -50,6 +52,8 @@ const isAuthed = t.middleware(({ next, ctx }) => {
   if (!ctx.auth?.userId) {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
+  console.log(ctx)
+
   return next({
     ctx: {
       auth: ctx.auth,

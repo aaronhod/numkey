@@ -40,6 +40,7 @@ import {
   type GameCategory,
   type GameSettings,
 } from "@/components/views/GameSettings";
+import {GameRoute} from '@/constants/routes';
 
 dayjs.extend(duration);
 
@@ -47,6 +48,7 @@ interface GameProps {
   initialProblems: Problem[];
   userId: string;
   category: GameCategory;
+  route: GameRoute;
   settings?: GameSettings;
 }
 
@@ -145,6 +147,7 @@ const Game = ({
   userId,
   initialProblems,
   category,
+  route,
   settings = DEFAULT_GAME_SETTINGS,
 }: GameProps) => {
   const router = useRouter();
@@ -267,7 +270,7 @@ const Game = ({
   // redirect to complete page when game is submitted
   useEffect(() => {
     if (addGameMutation.isSuccess) {
-      void router.push(`/game/${addGameMutation.data.id}/complete`);
+      void router.push(`/${route}/${addGameMutation.data.id}/complete`);
     }
   }, [addGameMutation.data?.id, addGameMutation.isSuccess, router]);
 
