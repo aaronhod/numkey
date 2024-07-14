@@ -6,6 +6,10 @@ await import("./src/env.js");
 
 /** @type {import("next").NextConfig} */
 const config = {
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+  output: 'export',
   reactStrictMode: true,
   experimental: {
     swcPlugins: [

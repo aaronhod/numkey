@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Macaca</string>
+    <string name="title_activity_main">Macaca</string>
+    <string name="package_name">com.macaca.app</string>
+    <string name="custom_url_scheme">com.macaca.app</string>
+</resources>
