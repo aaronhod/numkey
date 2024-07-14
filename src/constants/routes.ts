@@ -4,7 +4,7 @@ import type {
   GameModifierName,
 } from "@/components/views/GameSettings";
 
-export const GAME_SMART_ROUTE = "smart-game";
+export const GAME_SMART_ROUTE = "game-smart";
 export const GAME_CUSTOM_ROUTE = "game-custom";
 export const GAME_BATTLE_ROUTE = "game-battle";
 

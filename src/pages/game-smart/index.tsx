@@ -1,82 +1,32 @@
 import type { ParsedUrlQuery } from "querystring";
-import Game from "src/components/views/Game";
-import { generateProblems, type Operator, type Problem } from "@/game/problem";
+import Game from "@/components/views/Game";
+import { generateProblems, type Operator } from "@/game/problem";
 import type {
   GameMode,
   GameModifierName,
   GameSettings,
 } from "@/components/views/GameSettings";
 import { redirect } from "next/navigation";
-import {
-  type GetServerSideProps,
-  type InferGetServerSidePropsType,
-} from "next";
-import { buildClerkProps, clerkClient, getAuth } from "@clerk/nextjs/server";
 import { hashProblemDefs } from "@/utils/hash";
-import { ssgHelper } from "@/server/ssgHelper";
+import { GAME_SMART_ROUTE } from "@/constants/routes";
+import { useUser } from "@clerk/nextjs";
+import { useEffect, useState } from "react";
+import { api } from "@/utils/api";
+import { useRouter } from "next/router";
 
-interface Query {
-  gameId: string;
+interface ParsedQueryParams extends ParsedUrlQuery {
   gameMode: GameMode;
-}
-
-interface ParsedQueryParams extends ParsedUrlQuery, Query {
   numbers: string[] | string;
   operators: string[] | string;
   nextOnFail: string;
   modifiers: string;
 }
 
-interface QueryParams extends Query {
+interface QueryParams {
   numbers: number[];
   operators: Operator[];
-  nextOnFail: boolean;
-  modifiers: GameModifierName[];
+  gameSettings: GameSettings;
 }
-
-export const getServerSideProps: GetServerSideProps = async (ctx) => {
-  const { userId } = getAuth(ctx.req);
-  const user = userId ? await clerkClient.users.getUser(userId) : undefined;
-
-  if (!user || !userId) {
-    redirect("/");
-  }
-
-  const helpers = await ssgHelper(ctx);
-
-  const parsedQuery: QueryParams = parseQueryParams(ctx.query);
-  const problemHashes = await hashProblemDefs(
-    generateProblems(parsedQuery.numbers, parsedQuery.operators),
-  );
-  const problems = await helpers.game.findProblemsByHash.fetch(problemHashes);
-
-  const gameSettings = {
-    gameMode: parsedQuery.gameMode,
-    gameModifiers: {
-      random: {
-        enabled: parsedQuery.modifiers.includes("random"),
-      },
-      timed: {
-        enabled: parsedQuery.modifiers.includes("timed"),
-        durationSeconds: 10,
-      },
-      shuffled: {
-        enabled: parsedQuery.modifiers.includes("shuffled"),
-      },
-    },
-  };
-
-  // Load any data your application needs for the page using the userId
-  return {
-    props: {
-      ...buildClerkProps(ctx.req),
-      userId: userId,
-      problems: problems,
-      settings: gameSettings,
-      trpcState: helpers.dehydrate(),
-    } satisfies Props,
-  };
-};
 
 function parseQueryParams(query: ParsedUrlQuery): QueryParams {
   const parsedQuery = query as ParsedQueryParams;
@@ -91,36 +41,82 @@ function parseQueryParams(query: ParsedUrlQuery): QueryParams {
   const nextOnFail = parsedQuery.nextOnFail === "true";
   const modifiers = parsedQuery.modifiers.split(",") as GameModifierName[];
 
+  const gameSettings = {
+    gameMode: parsedQuery.gameMode,
+    gameModifiers: {
+      random: {
+        enabled: modifiers.includes("random"),
+      },
+      timed: {
+        enabled: modifiers.includes("timed"),
+        durationSeconds: 10,
+      },
+      shuffled: {
+        enabled: modifiers.includes("shuffled"),
+      },
+    },
+    nextOnFail: nextOnFail,
+  } satisfies GameSettings;
+
   return {
-    ...parsedQuery,
-    operators,
     numbers,
-    nextOnFail,
-    modifiers,
+    operators,
+    gameSettings,
   };
 }
 
-type Props = {
-  userId: string;
-  problems: Problem[];
-  settings: GameSettings;
-} & InferGetServerSidePropsType<typeof getServerSideProps>;
+export default function RunningGame() {
+  const { user, isLoaded } = useUser();
+  const router = useRouter();
 
-export default function RunningGame({
-  userId,
-  problems,
-  settings,
-}: Readonly<Props>) {
-  if (!problems || !settings) {
+  const [settings, setSettings] = useState<GameSettings>();
+  const [problemDefinitions, setProblemDefinitions] = useState<string[]>([]);
+  const problemQuery = api.game.findProblemsByHash.useQuery(
+    problemDefinitions,
+    {
+      enabled: problemDefinitions.length > 0,
+    },
+  );
+
+  useEffect(() => {
+    if (!isLoaded || !router.isReady) {
+      return;
+    }
+
+    const params = parseQueryParams(router.query);
+    setSettings(params.gameSettings);
+
+    console.log("here")
+    console.info("params", params)
+
+    const loadData = async () => {
+      setProblemDefinitions(
+        await hashProblemDefs(
+          generateProblems(params.numbers, params.operators),
+        ),
+      );
+    };
+
+    void loadData();
+  }, [router.isReady, isLoaded]);
+
+  console.log(problemDefinitions);
+
+  if (!isLoaded || !settings || !problemQuery.data) {
     return null;
+  }
+
+  if (!user) {
+    redirect("/");
   }
 
   return (
     <Game
-      userId={userId}
+      userId={user.id}
       category="SMART"
-      initialProblems={problems}
+      initialProblems={problemQuery.data ?? []}
       settings={settings}
+      route={GAME_SMART_ROUTE}
     />
   );
 }

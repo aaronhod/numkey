@@ -1,4 +1,4 @@
-import { type RouterOutputs } from "@/utils/api";
+import { api } from "@/utils/api";
 import { useRouter } from "next/router";
 import {
   Table,
@@ -13,64 +13,25 @@ import { CheckCircle2, CircleSlash } from "lucide-react";
 import { LoaderOverlay } from "@/components/LoaderOverlay";
 import type { Operator } from "@/game/problem";
 import { getOperatorChar } from "@/game/problem";
-import { appRouter } from "@/server/api/root";
-import { createContextInner } from "@/server/api/trpc";
-import { createServerSideHelpers } from "@trpc/react-query/server";
-import { redirect } from "next/navigation";
-import superjson from "superjson";
-import { clerkClient, getAuth } from "@clerk/nextjs/server";
-import {
-  type GetServerSideProps,
-  type InferGetServerSidePropsType,
-} from "next";
+import { useEffect, useState } from "react";
+import { useUser } from "@clerk/nextjs";
 
-export const getServerSideProps: GetServerSideProps = async (ctx) => {
-  const { userId } = getAuth(ctx.req);
-  const user = userId ? await clerkClient.users.getUser(userId) : undefined;
+const FinishedGamePage = () => {
+  const { user, isLoaded } = useUser();
+  const router = useRouter();
+  const [gameId, setGameId] = useState<number>();
 
-  if (!user || !userId) {
-    redirect("/");
-  }
-
-  const helpers = createServerSideHelpers({
-    router: appRouter,
-    ctx: await createContextInner({ auth: getAuth(ctx.req) }),
-    transformer: superjson,
+  const { data: game, error } = api.game.getById.useQuery(gameId!, {
+    enabled: gameId !== undefined,
   });
 
-  const gameId = Number(ctx.query.gameId);
-  if (Number.isNaN(gameId)) {
-    return {
-      props: {
-        error: new Error("Invalid game id"),
-      },
-    };
-  }
-
-  try {
-    const game = await helpers.game.getById.fetch(gameId);
-
-    return {
-      props: {
-        game,
-      },
-    };
-  } catch (error) {
-    return {
-      props: {
-        error: error,
-      },
-    };
-  }
-};
-
-type Props = {
-  game: RouterOutputs["game"]["getById"];
-  error?: Error;
-} & InferGetServerSidePropsType<typeof getServerSideProps>;
-
-const FinishedGamePage = ({ game, error }: Props) => {
-  const router = useRouter();
+  useEffect(() => {
+    if (!isLoaded || !router.isReady) {
+      return;
+    }
+    const { gameId: queryGameId } = router.query;
+    setGameId(Number(queryGameId));
+  }, [isLoaded, router.isReady]);
 
   function newGame() {
     router.push("/game").catch((err) => console.error(err));
@@ -121,7 +82,7 @@ const FinishedGamePage = ({ game, error }: Props) => {
 
   return (
     <div className="container flex h-full flex-col items-center justify-center p-5">
-      <div className="h-full w-full ">
+      <div className="h-full w-full">
         <div className="flex w-full items-center">
           <h1 className="py-3 text-4xl font-bold">Game Complete</h1>
         </div>

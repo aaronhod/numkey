@@ -73,9 +73,11 @@ export const gameRouter = createTRPCRouter({
         },
       });
     }),
+
   getAll: protectedProcedure.query(({ ctx }) => {
     return ctx.db.finishedGame.findMany();
   }),
+
   getAllByUserId: protectedProcedure
     .input(z.string())
     .query(({ ctx, input }) => {
@@ -85,6 +87,7 @@ export const gameRouter = createTRPCRouter({
         },
       });
     }),
+
   getById: protectedProcedure
     .input(z.number().int())
     .query(({ ctx, input }) => {
@@ -102,6 +105,7 @@ export const gameRouter = createTRPCRouter({
         },
       });
     }),
+
   findProblemsByHash: publicProcedure
     .input(z.array(z.string().min(1)).min(1))
     .query(({ ctx, input }) => {
@@ -113,4 +117,5 @@ export const gameRouter = createTRPCRouter({
         },
       });
     }),
+
 });
