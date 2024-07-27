@@ -2,7 +2,7 @@ import type { Operator } from "@/game/problem";
 import type {
   GameMode,
   GameModifierName,
-} from "@/components/views/GameSettings";
+} from "@/app/_components/views/GameSettings";
 
 export const GAME_SMART_ROUTE = "game-smart";
 export const GAME_CUSTOM_ROUTE = "game-custom";

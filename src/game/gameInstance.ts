@@ -5,7 +5,7 @@ import {
   DEFAULT_GAME_SETTINGS,
   type GameCategory,
   type GameSettings,
-} from "@/components/views/GameSettings";
+} from "@/app/_components/views/GameSettings";
 
 interface ProblemAttempt {
   attempt: number | null;

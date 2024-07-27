@@ -1,5 +1,4 @@
 import { initTRPC, TRPCError } from "@trpc/server";
-import { type CreateNextContextOptions } from "@trpc/server/adapters/next";
 import superjson from "superjson";
 import { ZodError } from "zod";
 
@@ -7,16 +6,6 @@ import { db } from "@/server/db";
 import { getAuth } from "@clerk/nextjs/server";
 
 type AuthObject = ReturnType<typeof getAuth>;
-type AuthContextProps = {
-  auth?: AuthObject;
-};
-
-export const createContextInner = async ({ auth }: AuthContextProps) => {
-  return {
-    auth,
-    db,
-  };
-};
 
 /**
  * This is the actual context you will use in your router. It will be used to process every request
@@ -24,14 +13,12 @@ export const createContextInner = async ({ auth }: AuthContextProps) => {
  *
  * @see https://trpc.io/docs/context
  */
-export const createTRPCContext = async (opts: CreateNextContextOptions) => {
-  const contextInner = await createContextInner({
-    auth: getAuth(opts.req),
-  });
-
-  return {
-    ...contextInner,
-  };
+export const createTRPCContext = async (opts: {headers: Headers; auth: AuthObject; }) => {
+    return {
+      db,
+      userId: opts.auth.userId,
+      ...opts,
+    };
 };
 
 const t = initTRPC.context<typeof createTRPCContext>().create({
@@ -42,24 +29,18 @@ const t = initTRPC.context<typeof createTRPCContext>().create({
       data: {
         ...shape.data,
         zodError:
-          error.cause instanceof ZodError ? error.cause.flatten() : null,
+            error.cause instanceof ZodError ? error.cause.flatten() : null,
       },
     };
   },
 });
 
-const isAuthed = t.middleware(({ next, ctx }) => {
-  if (!ctx.auth?.userId) {
-    throw new TRPCError({ code: "UNAUTHORIZED" });
-  }
-  console.log(ctx)
-
-  return next({
-    ctx: {
-      auth: ctx.auth,
-    },
-  });
-});
+/**
+ * Create a server-side caller.
+ *
+ * @see https://trpc.io/docs/server/server-side-calls
+ */
+export const createCallerFactory = t.createCallerFactory;
 
 /**
  * 3. ROUTER & PROCEDURE (THE IMPORTANT BIT)
@@ -80,7 +61,16 @@ export const createTRPCRouter = t.router;
  */
 export const publicProcedure = t.procedure;
 
+/** Reusable middleware that enforces users are logged in before running the procedure. */
+const enforceUserIsAuthed = t.middleware(({ ctx, next }) => {
+  if (!ctx.userId) {
+    throw new TRPCError({ code: "UNAUTHORIZED" });
+  }
+  // Make ctx.userId non-nullable in protected procedures
+  return next({ ctx: { userId: ctx.userId } });
+});
+
 /**
  * Authenticated procedure
  */
-export const protectedProcedure = t.procedure.use(isAuthed);
+export const protectedProcedure = t.procedure.use(enforceUserIsAuthed);
