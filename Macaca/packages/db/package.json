@@ -1,0 +1,40 @@
+{
+    "name": "@munk/db",
+    "version": "2.0.0",
+    "license": "MIT",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "build": "tsc",
+        "dev": "tsc",
+        "setup": "yarn with-dev-env prisma db seed",
+        "generate": "yarn with-dev-env prisma generate",
+        "start": "yarn with-dev-env ./start-database.sh",
+        "push": "yarn with-dev-env prisma db push && prisma generate",
+        "studio": "yarn with-dev-env prisma studio",
+        "clean": "rm -rf .turbo dist node_modules",
+        "format": "prettier --check . --ignore-path ../../.gitignore",
+        "lint": "eslint",
+        "typecheck": "tsc --noEmit --emitDeclarationOnly false",
+        "with-dev-env": "dotenv -e .env.dev --"
+    },
+    "devDependencies": {
+        "@munk/eslint-config": "workspace:*",
+        "@munk/prettier-config": "workspace:*",
+        "@munk/tsconfig": "workspace:*",
+        "eslint": "catalog:",
+        "prettier": "catalog:",
+        "typescript": "catalog:",
+      "typescript": "^5.3.3",
+      "prisma": "^5.16.2"
+    },
+    "dependencies": {
+        "@prisma/client": "^5.16.2",
+        "zod": "catalog:"
+      },
+    "prisma": {
+        "schema": "prisma/schema.prisma",
+        "seed": "yarn with-dev-env tsx prisma/seed_problems.ts"
+      }
+  }
+  

@@ -1,3 +1,7 @@
+# dependencies
+node_modules
+.pnp
+.pnp.js
 **/node_modules
 .yarn/*
 !.yarn/patches
@@ -6,9 +10,15 @@
 !.yarn/sdks
 !.yarn/versions
 
+# testing
+coverage
+
 # expo
-**/.expo/*
-**/expo-env.d.ts
+.expo/
+expo-env.d.ts
+apps/expo/.gitignore
+apps/expo/ios
+apps/expo/android
 
 # next.js
 **/.next/*
@@ -35,6 +45,7 @@ yarn-error.log*
 
 # typescript
 *.tsbuildinfo
+dist/
 
 # os
 .DS_Store
@@ -68,3 +79,7 @@ apps/expo/android/**
 **/workbox-*.js
 **/fallback-*.js
 **/service-worker.js
+
+# turbo
+.turbo
+

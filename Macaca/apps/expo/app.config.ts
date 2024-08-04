@@ -1,25 +1,42 @@
-import { ConfigContext, ExpoConfig } from '@expo/config'
+import type { ConfigContext, ExpoConfig } from "expo/config";
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
-  extra: {
-    eas: {
-      projectId: process.env.EXPO_PUBLIC_EAS_PROJECT_ID,
+  name: "expo",
+  slug: "expo",
+  scheme: "expo",
+  version: "0.1.0",
+  orientation: "portrait",
+  icon: "./assets/icon.png",
+  userInterfaceStyle: "automatic",
+  splash: {
+    image: "./assets/icon.png",
+    resizeMode: "contain",
+    backgroundColor: "#1F104A",
+  },
+  updates: {
+    fallbackToCacheTimeout: 0,
+  },
+  assetBundlePatterns: ["**/*"],
+  ios: {
+    bundleIdentifier: "your.bundle.identifier",
+    supportsTablet: true,
+  },
+  android: {
+    package: "your.bundle.identifier",
+    adaptiveIcon: {
+      foregroundImage: "./assets/icon.png",
+      backgroundColor: "#1F104A",
     },
   },
-  owner: process.env.EXPO_PUBLIC_EAS_OWNER,
-  plugins: ['expo-router'],
+  // extra: {
+  //   eas: {
+  //     projectId: "your-eas-project-id",
+  //   },
+  // },
   experiments: {
     tsconfigPaths: true,
     typedRoutes: true,
   },
-  platforms: ['ios', 'android'],
-  name: 'T4 App',
-  slug: 't4-app',
-  updates: {
-    url: 'https://u.expo.dev/85fc6ccd-0ce1-4e4d-804c-b15df989f97e',
-  },
-  runtimeVersion: {
-    policy: 'sdkVersion',
-  },
-})
+  plugins: ["expo-router"],
+});

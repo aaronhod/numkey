@@ -4,8 +4,8 @@
     "noUncheckedIndexedAccess": true,
     "paths": {
       "app/*": ["./packages/app/*"],
-      "@mg/api/*": ["./packages/api/*"],
-      "@mg/ui/*": ["./packages/ui/*"]
+      "@munk/api/*": ["./packages/api/*"],
+      "@munk/ui/*": ["./packages/ui/*"]
     },
     "plugins": [
     ]

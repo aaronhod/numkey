@@ -1,49 +1,35 @@
 {
-  "name": "t4-app-monorepo",
+  "name": "macaca-monorepo",
   "private": true,
   "license": "MIT",
-  "version": "3.0.0",
-  "scripts": {
-    "dev": "run-p api web",
-    "ios": "cd apps/expo && bun ios",
-    "android": "cd apps/expo && bun android",
-    "web": "cd apps/next && bun dev",
-    "api": "cd packages/api && bun dev",
-    "generate": "cd packages/api && bun generate",
-    "migrate:local": "cd packages/api && bun migrate:local",
-    "seed:local": "cd packages/api && bun seed:local",
-    "migrate": "cd packages/api && bun migrate",
-    "seed": "cd packages/api && bun seed",
-    "native": "cd apps/expo && bun dev",
-    "studio": "cd packages/api && bun studio",
-    "native:prod": "cd apps/expo && bun dev:prod",
-    "build": "cd packages/ui",
-    "build:web": "cd apps/next && bun run build",
-    "build:ios": "cd apps/expo && bun build:ios",
-    "build:android": "cd apps/expo && bun build:android",
-    "build:ios:preview": "cd apps/expo && bun build:ios:preview",
-    "build:android:preview": "cd apps/expo && bun build:android:preview",
-    "submit:android": "cd apps/expo && eas submit --platform android --path ./app-release.aab",
-    "check-deps": "check-dependency-version-consistency .",
-    "check-types": "tsc --noEmit",
-    "format": "bun x @biomejs/biome format --write ./packages ./apps",
-    "lint": "bun x @biomejs/biome lint ./packages ./apps",
-    "fix": "bun x @biomejs/biome check --apply-unsafe ./packages ./apps",
-    "deps:fix": "manypkg fix",
-    "deps:update": "bun x npm-check-updates -ui -ws",
-    "postinstall": "bun run build && bun ./.github/scripts/env.ts",
-    "clean": "git clean -xdf node_modules && rm -f bun.lockb && rm -rf ./apps/next/.next && rm -rf ./apps/next/node_modules && rm -rf ./packages/ui/dist"
+  "version": "2.0.0",
+  "engines": {
+    "node": ">=20.15.0"
   },
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ],
-  "dependencies": {
-    "@babel/runtime": "^7.23.2",
-    "@manypkg/cli": "^0.21.0",
-    "@supabase/supabase-js": "^2.38.4",
-    "npm-run-all": "^4.1.5",
-    "react-native-url-polyfill": "^2.0.0",
-    "typescript": "^5.3.3"
-  }
+  "packageManager": "pnpm@9.6.0",
+  "scripts": {
+    "build": "turbo run build",
+    "clean": "git clean -xdf node_modules",
+    "clean:workspaces": "turbo run clean",
+    "db:push": "turbo -F @munk/db push",
+    "db:studio": "turbo -F @munk/db studio",
+    "dev": "turbo watch dev",
+    "dev:next": "turbo watch dev -F @munk/nextjs...",
+    "format": "turbo run format --continue -- --cache --cache-location node_modules/.cache/.prettiercache",
+    "format:fix": "turbo run format --continue -- --write --cache --cache-location node_modules/.cache/.prettiercache",
+    "lint": "turbo run lint --continue -- --cache --cache-location node_modules/.cache/.eslintcache",
+    "lint:fix": "turbo run lint --continue -- --fix --cache --cache-location node_modules/.cache/.eslintcache",
+    "lint:ws": "pnpm dlx sherif@latest",
+    "postinstall": "pnpm lint:ws",
+    "typecheck": "turbo run typecheck",
+    "ui-add": "turbo run ui-add"
+  },
+  "devDependencies": {
+    "@munk/prettier-config": "workspace:*",
+    "@turbo/gen": "^2.0.8",
+    "prettier": "catalog:",
+    "turbo": "^2.0.8",
+    "typescript": "catalog:"
+  },
+  "prettier": "@munk/prettier-config"
 }

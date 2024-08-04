@@ -1,4 +1,4 @@
-import type { AppRouter } from '@mg/api/src/router'
+import type { AppRouter } from '@munk/api/src/router'
 import { createTRPCReact } from '@trpc/react-query'
 
 /**

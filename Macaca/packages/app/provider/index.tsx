@@ -1,5 +1,5 @@
 import { Session } from '@supabase/supabase-js'
-import { CustomToast, ToastProvider } from '@mg/ui'
+import { CustomToast, ToastProvider } from '@munk/ui'
 import { AuthProvider } from './auth'
 import { SafeAreaProvider } from './safe-area'
 import { SolitoImageProvider } from './solito-image'

@@ -1,25 +1,24 @@
 {
   "name": "expo-app",
   "version": "2.0.0",
-  "main": "index.js",
+  "main": "index.ts",
   "private": true,
   "scripts": {
-    "ios": "expo run:ios",
+    "clean": "git clean -xdf .expo .turbo node_modules",
+    "dev": "expo start",
+    "dev:android": "expo start --android",
+    "dev:ios": "expo start --ios",
     "android": "expo run:android",
-    "dev": "expo start --dev-client",
-    "dev:prod": "expo start --no-dev --minify",
-    "prebuild": "expo prebuild",
-    "build:ios:preview": "eas build --platform ios --profile preview --local",
-    "build:android:preview": "eas build --platform android --profile preview --local",
-    "build:ios": "eas build --platform ios --profile production --local",
-    "build:android": "eas build --platform android --profile production --local",
-    "clean": "git clean -xdf .expo node_modules ios android"
+    "ios": "expo run:ios",
+    "format": "prettier --check . --ignore-path ../../.gitignore",
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@babel/runtime": "^7.23.2",
     "@shopify/flash-list": "^1.6.3",
-    "@mg/ui": "workspace:*",
-    "app": "workspace:*",
+    "@munk/ui": "workspace:*",
+    "@munk/app": "workspace:*",
     "babel-plugin-module-resolver": "^5.0.0",
     "burnt": "^0.12.1",
     "expo": "^51.0.14",
@@ -37,8 +36,8 @@
     "expo-system-ui": "^2.6.0",
     "expo-updates": "^0.18.17",
     "expo-web-browser": "~12.5.0",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
+    "react": "catalog:react18",
+    "react-dom": "catalog:react18",
     "react-native": "0.74.2",
     "react-native-gesture-handler": "~2.13.4",
     "react-native-mmkv": "^2.10.2",
@@ -47,9 +46,22 @@
     "react-native-svg": "15.2.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.23.2",
     "@expo/metro-config": "^0.10.7",
     "metro-minify-terser": "^0.80.0",
-    "typescript": "^5.3.3"
-  }
+    "@munk/api": "workspace:*",
+    "@munk/eslint-config": "workspace:*",
+    "@munk/prettier-config": "workspace:*",
+    "@munk/tailwind-config": "workspace:*",
+    "@munk/tsconfig": "workspace:*",
+    "@babel/core": "^7.24.7",
+    "@babel/preset-env": "^7.24.7",
+    "@babel/runtime": "^7.24.7",
+    "@types/babel__core": "^7.20.5",
+    "@types/react": "catalog:react18",
+    "eslint": "catalog:",
+    "prettier": "catalog:",
+    "tailwindcss": "^3.4.4",
+    "typescript": "catalog:"
+  },
+  "prettier": "@munk/prettier-config"
 }

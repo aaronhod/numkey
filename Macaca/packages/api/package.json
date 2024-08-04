@@ -1,31 +1,38 @@
 {
-  "name": "@mg/api",
+  "name": "@munk/api",
   "version": "2.0.0",
-  "main": "src/index.ts",
+  "private": true,
   "license": "MIT",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
   "scripts": {
-    "dev": "wrangler dev",
-    "generate": "drizzle-kit generate:sqlite --schema=./src/db/schema.ts --out=./migrations",
-    "migrate": "wrangler d1 migrations apply production",
-    "migrate:local": "wrangler d1 migrations apply production --local",
-    "seed": "wrangler d1 execute production --file=./seed/seed.sql",
-    "seed:local": "wrangler d1 execute production --local --file=./seed/seed.sql",
-    "studio": "drizzle-kit studio",
-    "deploy": "wrangler deploy --minify src/worker.ts",
-    "clean": "rm -rf .turbo node_modules"
+    "build": "tsc",
+    "clean": "rm -rf .turbo dist node_modules",
+    "dev": "tsc",
+    "format": "prettier --check . --ignore-path ../../.gitignore",
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit --emitDeclarationOnly false"
   },
   "dependencies": {
+    "@munk/auth": "workspace:*",
+    "@munk/db": "workspace:*",
+    "@munk/domain": "workspace:*",
     "@hono/trpc-server": "^0.1.0",
     "@trpc/server": "^10.43.2",
-    "drizzle-orm": "^0.29.0",
-    "drizzle-valibot": "beta",
     "hono": "^3.9.2",
-    "miniflare": "3.20231025.1",
-    "superjson": "1.13.3",
-    "valibot": "^0.20.1"
+    "superjson": "^2.2.1"
   },
   "devDependencies": {
-    "drizzle-kit": "^0.20.1",
-    "typescript": "^5.3.3"
-  }
+    "@munk/eslint-config": "workspace:*",
+    "@munk/prettier-config": "workspace:*",
+    "@munk/tsconfig": "workspace:*",
+    "eslint": "catalog:",
+    "prettier": "catalog:",
+    "typescript": "catalog:"
+  },
+  "prettier": "@munk/prettier-config"
 }
