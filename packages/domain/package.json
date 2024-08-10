@@ -1,24 +1,44 @@
 {
-    "name": "@munk/domain",
-    "version": "2.0.0",
-    "license": "MIT",
-    "private": true,
-    "type": "module",
-    "scripts": {
-        "build": "tsc",
-        "clean": "rm -rf .turbo dist node_modules",
-        "dev": "tsc",
-        "format": "prettier --check . --ignore-path ../../.gitignore",
-        "lint": "eslint",
-        "typecheck": "tsc --noEmit --emitDeclarationOnly false"
+  "name": "@munk/domain",
+  "version": "2.0.0",
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/src/index.d.ts",
+      "default": "./src/index.ts"
     },
-    "dependencies": {
-        "xxhash-wasm": "^1.0.2",
-        "dayjs": "^1.11.11"
-
-    },
-    "devDependencies": {
-      "typescript": "^5.3.3"
+    "./*": {
+      "types": "./dist/src/*.d.ts",
+      "default": "./src/*.tsx"
     }
+  },
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf .turbo dist node_modules",
+    "dev": "tsc",
+    "format": "prettier --check . --ignore-path ../../.gitignore",
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit --emitDeclarationOnly false"
+  },
+  "dependencies": {
+    "xxhash-wasm": "^1.0.2",
+    "dayjs": "^1.11.11",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@munk/eslint-config": "workspace:*",
+    "@munk/prettier-config": "workspace:*",
+    "@munk/tailwind-config": "workspace:*",
+    "@munk/tsconfig": "workspace:*",
+    "typescript": "catalog:",
+    "eslint": "catalog:",
+    "prettier": "catalog:"
+  },
+  "peerDependencies": {
+    "react": "catalog:react18",
+    "zod": "catalog:"
+  },
+  "prettier": "@munk/prettier-config"
 }
-  

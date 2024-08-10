@@ -1,10 +1,11 @@
-import React, { useCallback, useEffect, useReducer } from "react";
-
-import type { Problem } from "@/game/problem";
-import dayjs from "dayjs";
 import type { RouterError } from "@/utils/api";
-import { api } from "@/utils/api";
+import type {
+  GameCategory,
+  GameSettings,
+} from "Macaca/packages/ui/src/components/views/GameSettings";
+import React, { useCallback, useEffect, useReducer } from "react";
 import { useRouter } from "next/router";
+import { api } from "@/utils/api";
 import { AlertDialogTitle } from "@radix-ui/react-alert-dialog";
 import {
   AlertDialog,
@@ -13,14 +14,8 @@ import {
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
-} from "@/app/_components/shad-ui/alert-dialog";
-import { Loader2 } from "lucide-react";
-import {
-  gameReducer,
-  initialGameState,
-} from "Macaca/packages/ui/src/components/views/gameReducer";
-import { LoaderOverlay } from "Macaca/packages/ui/src/components/LoaderOverlay";
-import { Button } from "@/app/_components/shad-ui/button";
+} from "@shad/alert-dialog";
+import { Button } from "@shad/button";
 import {
   Dialog,
   DialogContent,
@@ -28,23 +23,27 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/app/_components/shad-ui/dialog";
-
+} from "@shad/dialog";
+import dayjs from "dayjs";
 // add duration plugin for dayjs
 import duration from "dayjs/plugin/duration";
-import { getFinishedGame, isAnswerCorrect } from "@/game/gameInstance";
-import {
-  DEFAULT_GAME_SETTINGS,
-  type GameCategory,
-  type GameSettings,
-} from "Macaca/packages/ui/src/components/views/GameSettings";
+import { Loader2 } from "lucide-react";
 import { GameRoute } from "Macaca/packages/app/constants/routes";
+import { LoaderOverlay } from "Macaca/packages/ui/src/components/LoaderOverlay";
 import {
   Display,
   DisplayContent,
   DisplayHeader,
 } from "Macaca/packages/ui/src/components/views/Display";
+import {
+  gameReducer,
+  initialGameState,
+} from "Macaca/packages/ui/src/components/views/gameReducer";
+import { DEFAULT_GAME_SETTINGS } from "Macaca/packages/ui/src/components/views/GameSettings";
 import Numpad from "Macaca/packages/ui/src/components/views/Numpad";
+
+import type { Problem } from "@munk/domain/problem";
+import { getFinishedGame, isAnswerCorrect } from "@munk/domain/gameInstance";
 
 dayjs.extend(duration);
 
@@ -71,7 +70,7 @@ const ErrorDialog = ({
     <AlertDialog open={Boolean(error)}>
       <AlertDialogContent className="max-w-2xl translate-y-[-100%]">
         <AlertDialogHeader>
-          <AlertDialogTitle className="text-3xl ">
+          <AlertDialogTitle className="text-3xl">
             Error saving your game
           </AlertDialogTitle>
           <AlertDialogDescription>

@@ -27,12 +27,17 @@
     "superjson": "^2.2.1"
   },
   "devDependencies": {
+    "@types/bun": "^1.1.6",
     "@munk/eslint-config": "workspace:*",
     "@munk/prettier-config": "workspace:*",
     "@munk/tsconfig": "workspace:*",
     "eslint": "catalog:",
     "prettier": "catalog:",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "zod": "catalog:"
+  },
+  "peerDependencies": {
+    "zod": "catalog:"
   },
   "prettier": "@munk/prettier-config"
 }

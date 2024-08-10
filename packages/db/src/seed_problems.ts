@@ -1,6 +1,8 @@
 import { PrismaClient } from "@prisma/client";
-import { generateProblems, type Operator } from "@/game/problem";
-import { hashProblemDef } from "Macaca/packages/domain/src/hash";
+
+import type { Operator } from "@munk/domain/game/problem";
+import { generateProblems } from "@munk/domain/game/problem";
+import { hashProblemDef } from "@munk/domain/hash";
 
 const NUMBERS: number[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
 const OPERATORS: Operator[] = ["ADD", "SUBTRACT", "MULTIPLY", "DIVIDE"];

@@ -1,7 +1,8 @@
 "use client";
 
-import { api } from "@/utils/api";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
+import { Button } from "@shad/button";
 import {
   Table,
   TableBody,
@@ -9,31 +10,33 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/app/_components/shad-ui/table";
-import { Button } from "@/app/_components/shad-ui/button";
+} from "@shad/table";
 import { CheckCircle2, CircleSlash } from "lucide-react";
 import { LoaderOverlay } from "Macaca/packages/ui/src/components/LoaderOverlay";
-import type { Operator } from "@/game/problem";
-import { getOperatorChar } from "@/game/problem";
-import { useEffect, useState } from "react";
-import { useUser } from "@clerk/nextjs";
 
-const FinishedGameReview = () => {
-  const { user, isLoaded } = useUser();
+import type { Operator } from "@munk/domain/problem";
+import { getOperatorChar } from "@munk/domain/problem";
+
+interface User {}
+
+interface FinishedGameSummary {}
+
+const FinishedGameReview = (user: User, game: FinishedGameSummary) => {
+  // const { user, isLoaded } = useUser();
   const router = useRouter();
-  const [gameId, setGameId] = useState<number>();
+  // const [gameId, setGameId] = useState<number>();
 
-  const { data: game, error } = api.game.getById.useQuery(gameId!, {
-    enabled: gameId !== undefined,
-  });
+  // const { data: game, error } = api.game.getById.useQuery(gameId!, {
+  //   enabled: gameId !== undefined,
+  // });
 
-  useEffect(() => {
-    if (!isLoaded || !router.isReady) {
-      return;
-    }
-    const { gameId: queryGameId } = router.query;
-    setGameId(Number(queryGameId));
-  }, [isLoaded, router.isReady]);
+  // useEffect(() => {
+  //   if (!isLoaded || !router.isReady) {
+  //     return;
+  //   }
+  //   const { gameId: queryGameId } = router.query;
+  //   setGameId(Number(queryGameId));
+  // }, [isLoaded, router.isReady]);
 
   function newGame() {
     router.push("/game").catch((err) => console.error(err));

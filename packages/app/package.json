@@ -16,7 +16,6 @@
     "with-env": "dotenv -e ../../.env --"
   },
   "dependencies": {
-    "@clerk/nextjs": "^5.2.3",
     "@shopify/flash-list": "^1.6.3",
     "@munk/ui": "workspace:*",
     "@trpc/client": "^10.43.2",
@@ -65,8 +64,5 @@
     "prettier": "catalog:",
     "typescript": "catalog:"
   },
-  "prettier": "@munk/prettier-config",
-  "trustedDependencies": [
-    "@clerk/shared"
-  ]
+  "prettier": "@munk/prettier-config"
 }

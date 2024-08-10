@@ -1,11 +1,47 @@
-import { type Problem, type ProblemDefinition } from "@/game/problem";
-import { type FinishedGame } from "@/server/api/routers/games";
+import type { FinishedGame, Problem, ProblemDefinition } from "@/game/problem";
 import dayjs from "dayjs";
-import {
-  DEFAULT_GAME_SETTINGS,
-  type GameCategory,
-  type GameSettings,
-} from "Macaca/packages/ui/src/components/views/GameSettings";
+
+export interface GameModifiers {
+  random: {
+    enabled: boolean;
+  };
+  shuffled: {
+    enabled: boolean;
+  };
+  timed: {
+    enabled: boolean;
+    durationSeconds: number;
+  };
+}
+
+export type GameModifierName = keyof GameModifiers;
+export type GameMode = "normal" | "endless" | "lives" | "stack";
+export type GameCategory = "CUSTOM" | "SMART" | "VERSUS" | "PRACTICE";
+
+export interface GameSettings {
+  gameMode: GameMode;
+  gameModifiers: GameModifiers;
+  nextOnFail?: boolean;
+}
+
+const DEFAULT_GAME_MODIFIERS: GameModifiers = {
+  random: {
+    enabled: false,
+  },
+  shuffled: {
+    enabled: false,
+  },
+  timed: {
+    enabled: false,
+    durationSeconds: 10,
+  },
+};
+
+export const DEFAULT_GAME_SETTINGS: GameSettings = {
+  gameMode: "normal",
+  gameModifiers: DEFAULT_GAME_MODIFIERS,
+  nextOnFail: undefined,
+};
 
 interface ProblemAttempt {
   attempt: number | null;

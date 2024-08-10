@@ -1,9 +1,9 @@
+import type { Action } from "Macaca/packages/ui/src/components/views/gameReducer";
 import type { ReactElement } from "react";
 import React, { memo, useCallback } from "react";
-import { Button } from "@/app/_components/shad-ui/button";
-import { CornerDownRight, Delete, Dot, Minus } from "lucide-react";
 import { cn } from "@/utils/shad";
-import type { Action } from "Macaca/packages/ui/src/components/views/gameReducer";
+import { Button } from "@shad/button";
+import { CornerDownRight, Delete, Dot, Minus } from "lucide-react";
 
 interface NumpadProps {
   dispatch: React.Dispatch<Action>;
@@ -97,7 +97,7 @@ const Numpad: React.FC<NumpadProps> = memo(
             dispatch={dispatch}
             value="-"
             icon={<Minus className="ml-auto mr-auto h-10 w-10" />}
-            className={cn(" w-full", {
+            className={cn("w-full", {
               "bg-secondary/50": negativeMode,
             })}
           />

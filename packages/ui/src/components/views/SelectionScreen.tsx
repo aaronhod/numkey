@@ -1,10 +1,19 @@
-import { useRouter } from "next/router";
+import type { VariantProps } from "class-variance-authority";
+import type {
+  GameMode,
+  GameModifierName,
+} from "Macaca/packages/ui/src/components/views/GameSettings";
 import type { ReactNode } from "react";
 import React, { useState } from "react";
-import { getGameRouteCustom } from "Macaca/packages/app/constants/routes";
-import type { Operator } from "@/game/problem";
-import { Button } from "@/app/_components/shad-ui/button";
+import { useRouter } from "next/router";
 import { cn } from "@/utils/shad";
+import { Button } from "@shad/button";
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@shad/hover-card";
+import { cva } from "class-variance-authority";
 import {
   Activity,
   Calculator,
@@ -18,17 +27,9 @@ import {
   Timer,
   X,
 } from "lucide-react";
-import {
-  HoverCard,
-  HoverCardContent,
-  HoverCardTrigger,
-} from "@/app/_components/shad-ui/hover-card";
-import type { VariantProps } from "class-variance-authority";
-import { cva } from "class-variance-authority";
-import type {
-  GameMode,
-  GameModifierName,
-} from "Macaca/packages/ui/src/components/views/GameSettings";
+import { getGameRouteCustom } from "Macaca/packages/app/constants/routes";
+
+import type { Operator } from "@munk/domain/problem";
 
 function SelectionHeader({ children }: { children?: ReactNode }) {
   return (

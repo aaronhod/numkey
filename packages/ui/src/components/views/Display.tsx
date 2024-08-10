@@ -1,7 +1,20 @@
-import type { ProblemDefinition } from "@/game/problem";
-import { getOperatorChar } from "@/game/problem";
-import { cn } from "@/utils/shad";
+import type {
+  GameMode,
+  GameModifierName,
+  GameSettings,
+} from "Macaca/packages/ui/src/components/views/GameSettings";
 import React, { useEffect } from "react";
+import { cn } from "@/utils/shad";
+import { Separator } from "@shad/separator";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@shad/tooltip";
+import dayjs from "dayjs";
+import duration from "dayjs/plugin/duration";
+import relativeTime from "dayjs/plugin/relativeTime";
 import {
   Clock,
   Heart,
@@ -9,24 +22,14 @@ import {
   Tally5,
   Timer as TimerIcon,
 } from "lucide-react";
-import { Separator } from "@/app/_components/shad-ui/separator";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/app/_components/shad-ui/tooltip";
-
-import duration from "dayjs/plugin/duration";
-import relativeTime from "dayjs/plugin/relativeTime";
-import dayjs from "dayjs";
 import { useInterval } from "Macaca/packages/app/utils/hooks/useInterval";
-import type {
-  GameMode,
-  GameModifierName,
-  GameSettings,
+import {
+  ModeIcon,
+  ModifierIcon,
 } from "Macaca/packages/ui/src/components/views/GameSettings";
-import { ModeIcon, ModifierIcon } from "Macaca/packages/ui/src/components/views/GameSettings";
+
+import type { ProblemDefinition } from "@munk/domain/problem";
+import { getOperatorChar } from "@munk/domain/problem";
 
 // add duration plugin for dayjs
 dayjs.extend(duration);
@@ -203,7 +206,7 @@ export const DisplayHeader = (props: {
   remainingMs: number | null;
 }) => {
   return (
-    <h3 className="flex justify-between px-5 pt-3 text-foreground/50 ">
+    <h3 className="flex justify-between px-5 pt-3 text-foreground/50">
       <RoundTally
         completed={props.completed}
         total={props.total}

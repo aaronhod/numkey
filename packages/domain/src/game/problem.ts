@@ -4,6 +4,9 @@ export const OPERATOR_CHARS = ["+", "-", "×", "÷"] as const;
 export type Operator = (typeof OPERATORS)[number];
 export type OperatorChar = (typeof OPERATOR_CHARS)[number];
 
+// TODO
+export interface FinishedGame {}
+
 export const OPERATOR_CHAR_MAP: Record<Operator, OperatorChar> = {
   ADD: "+",
   SUBTRACT: "-",

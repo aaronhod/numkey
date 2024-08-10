@@ -1,12 +1,12 @@
 "use client";
 
+import type { Theme } from "@/app/layout";
+import type { UseThemeProps } from "next-themes/dist/types";
 import React from "react";
-import { Button } from "@/app/_components/shad-ui/button";
+import Link from "next/link";
+import { Button } from "@shad/button";
 import { Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
-import type { UseThemeProps } from "next-themes/dist/types";
-import Link from "next/link";
-import type { Theme } from "@/app/layout";
 
 interface ThemeProps extends UseThemeProps {
   theme: Theme;
@@ -48,9 +48,7 @@ const Header = () => (
       <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
         <nav className="flex items-center gap-1">
           <SwitchThemeButton />
-          <div>
-            {/*<UserButton afterSignOutUrl="/" />*/}
-          </div>
+          <div>{/*<UserButton afterSignOutUrl="/" />*/}</div>
         </nav>
       </div>
     </div>

@@ -1,18 +1,20 @@
 "use client";
 
-import Game from "Macaca/packages/ui/src/components/views/Game";
-import { generateProblems, type Operator } from "@/game/problem";
 import type {
   GameMode,
   GameModifierName,
   GameSettings,
 } from "Macaca/packages/ui/src/components/views/GameSettings";
-import { redirect, useParams } from "next/navigation";
-import { hashProblemDefs } from "Macaca/packages/domain/src/hash";
-import { GAME_SMART_ROUTE } from "Macaca/packages/app/constants/routes";
 import { useEffect, useState } from "react";
-import { api } from "@/utils/api";
 import { type Params } from "next/dist/shared/lib/router/utils/route-matcher";
+import { redirect, useParams } from "next/navigation";
+import { api } from "@/utils/api";
+import { GAME_SMART_ROUTE } from "Macaca/packages/app/constants/routes";
+import { hashProblemDefs } from "Macaca/packages/domain/src/hash";
+import Game from "Macaca/packages/ui/src/components/views/Game";
+
+import type { Operator } from "@munk/domain/problem";
+import { generateProblems } from "@munk/domain/problem";
 
 interface QueryParams extends Params {
   gameMode: GameMode;

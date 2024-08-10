@@ -2,11 +2,10 @@ import {
   type GameCategory,
   type GameSettings,
 } from "Macaca/packages/ui/src/components/views/GameSettings";
-import newGameInstance, {
-  addAttempt,
-  type GameInstance,
-} from "@/game/gameInstance";
-import { type Problem } from "@/game/problem";
+
+import type { GameInstance } from "@munk/domain/gameInstance";
+import newGameInstance, { addAttempt } from "@munk/domain/gameInstance";
+import { type Problem } from "@munk/domain/problem";
 
 export type Action =
   | {

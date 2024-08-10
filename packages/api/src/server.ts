@@ -1,29 +1,27 @@
-import { trpcServer } from '@hono/trpc-server'
-import { createContext } from '@munk/api/src/context'
-import { appRouter } from '@munk/api/src/router'
-import { Hono } from 'hono'
-import { cors } from 'hono/cors'
+import { Hono } from "hono";
+import { cors } from "hono/cors";
 
 type Bindings = {
-  APP_URL: string
-}
+  APP_URL: string;
+};
 
-const app = new Hono<{ Bindings: Bindings }>()
+const app = new Hono<{ Bindings: Bindings }>();
 
 // Setup CORS for the frontend
-app.use('/trpc/*', async (c, next) => {
+app.use("/trpc/*", async (c, next) => {
   if (c.env.APP_URL === undefined) {
     console.log(
-      'APP_URL is not set. CORS errors may occur. Make sure the .dev.vars file is present at /packages/api/.dev.vars'
-    )
+      "APP_URL is not set. CORS errors may occur. Make sure the .dev.vars file is present at /packages/api/.dev.vars",
+    );
   }
   return await cors({
-    origin: (origin) => (origin.endsWith(new URL(c.env.APP_URL).host) ? origin : c.env.APP_URL),
+    origin: (origin) =>
+      origin.endsWith(new URL(c.env.APP_URL).host) ? origin : c.env.APP_URL,
     credentials: true,
-    allowMethods: ['GET', 'POST', 'OPTIONS', 'PUT', 'DELETE'],
+    allowMethods: ["GET", "POST", "OPTIONS", "PUT", "DELETE"],
     // https://hono.dev/middleware/builtin/cors#options
-  })(c, next)
-})
+  })(c, next);
+});
 
 // Setup TRPC server with context
 // app.use('/trpc/*', async (c, next) => {
@@ -35,4 +33,4 @@ app.use('/trpc/*', async (c, next) => {
 //   })(c, next)
 // })
 
-export default app
+export default app;

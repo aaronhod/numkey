@@ -11,6 +11,7 @@
     "build": "turbo run build",
     "clean": "git clean -xdf node_modules",
     "clean:workspaces": "turbo run clean",
+    "db:start": "turbo -F @munk/db start",
     "db:push": "turbo -F @munk/db push",
     "db:studio": "turbo -F @munk/db studio",
     "dev": "turbo watch dev",
