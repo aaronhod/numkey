@@ -26,7 +26,7 @@ const MyApp: AppType = ({ Component, pageProps }: AppPropsWithLayout) => {
   const getLayout = Component.getLayout ?? ((page) => page);
 
   return (
-    <ClerkProvider {...pageProps}>
+    <ClerkProvider {...pageProps} afterSignOutUrl="/">
       <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
         {getLayout(<Component {...pageProps} />)}
       </ThemeProvider>

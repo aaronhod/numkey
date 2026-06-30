@@ -36,7 +36,9 @@ interface QueryParams extends Query {
 
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
   const { userId } = getAuth(ctx.req);
-  const user = userId ? await clerkClient.users.getUser(userId) : undefined;
+  const user = userId
+    ? await (await clerkClient()).users.getUser(userId)
+    : undefined;
 
   if (!user || !userId) {
     redirect("/");
@@ -119,6 +121,7 @@ export default function RunningGame({
     <Game
       userId={userId}
       category="SMART"
+      route="game-smart"
       initialProblems={problems}
       settings={settings}
     />

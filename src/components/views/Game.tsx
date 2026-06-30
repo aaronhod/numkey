@@ -40,15 +40,13 @@ import {
   type GameCategory,
   type GameSettings,
 } from "@/components/views/GameSettings";
-import {GameRoute} from '@/constants/routes';
-
 dayjs.extend(duration);
 
 interface GameProps {
   initialProblems: Problem[];
   userId: string;
   category: GameCategory;
-  route: GameRoute;
+  route: string;
   settings?: GameSettings;
 }
 

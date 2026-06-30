@@ -26,7 +26,9 @@ import {
 
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
   const { userId } = getAuth(ctx.req);
-  const user = userId ? await clerkClient.users.getUser(userId) : undefined;
+  const user = userId
+    ? await (await clerkClient()).users.getUser(userId)
+    : undefined;
 
   if (!user || !userId) {
     redirect("/");

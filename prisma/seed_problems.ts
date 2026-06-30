@@ -1,11 +1,14 @@
 import { PrismaClient } from "@prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
 import { generateProblems, type Operator } from "@/game/problem";
 import { hashProblemDef } from "@/utils/hash";
 
 const NUMBERS: number[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
 const OPERATORS: Operator[] = ["ADD", "SUBTRACT", "MULTIPLY", "DIVIDE"];
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({
+  adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL }),
+});
 
 try {
   const problemsWithHashes = await Promise.all(

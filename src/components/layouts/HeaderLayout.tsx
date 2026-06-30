@@ -1,8 +1,7 @@
 import React from "react";
 import { Button } from "@/components/shad-ui/button";
 import { Moon, Sun } from "lucide-react";
-import { useTheme } from "next-themes";
-import type { UseThemeProps } from "next-themes/dist/types";
+import { useTheme, type UseThemeProps } from "next-themes";
 import Link from "next/link";
 import type { Theme } from "@/pages/_app";
 import { UserButton } from "@clerk/nextjs";
@@ -48,7 +47,7 @@ const Header = () => (
         <nav className="flex items-center gap-1">
           <SwitchThemeButton />
           <div>
-            <UserButton afterSignOutUrl="/" />
+            <UserButton />
           </div>
         </nav>
       </div>
