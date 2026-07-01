@@ -4,13 +4,17 @@ import { defineConfig, devices } from "@playwright/test";
 
 const PORT = 3210;
 const baseURL = `http://127.0.0.1:${PORT}`;
+const isCI = !!process.env.CI;
 
 /**
- * This environment ships a preinstalled Chromium under PLAYWRIGHT_BROWSERS_PATH
- * (downloads are disabled), which may not match the version @playwright/test
- * would otherwise fetch. Resolve the preinstalled binary and launch that.
+ * Some local sandboxes ship a preinstalled Chromium under
+ * PLAYWRIGHT_BROWSERS_PATH (with downloads disabled) that may not match the
+ * version @playwright/test would fetch. Outside CI we resolve and launch that
+ * binary (with --no-sandbox, since those sandboxes run as root). On CI we use
+ * Playwright's own installed browser with default options.
  */
 function resolveChromium(): string | undefined {
+  if (isCI) return undefined;
   const root = process.env.PLAYWRIGHT_BROWSERS_PATH ?? "/opt/pw-browsers";
   try {
     const dir = fs
@@ -29,17 +33,14 @@ function resolveChromium(): string | undefined {
 const chromiumPath = resolveChromium();
 
 /**
- * Playwright e2e config. The webServer builds/starts the production Next.js
- * server; tests exercise the public practice screens (no auth required).
- *
- * Chromium is preinstalled in this environment (PLAYWRIGHT_BROWSERS_PATH),
- * so no `playwright install` step is needed.
+ * Playwright e2e config. The webServer starts the production Next.js server;
+ * tests exercise the public practice screens (no auth required).
  */
 export default defineConfig({
   testDir: "./e2e",
   fullyParallel: true,
-  forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 1 : 0,
+  forbidOnly: isCI,
+  retries: isCI ? 1 : 0,
   reporter: "list",
   use: {
     baseURL,
@@ -50,20 +51,21 @@ export default defineConfig({
       name: "chromium",
       use: {
         ...devices["Desktop Chrome"],
-        // Disable the Chromium sandbox for containerized CI. (Note: do NOT add
-        // --no-proxy-server here — it makes Chromium fail to reach 127.0.0.1
-        // with ERR_NAME_NOT_RESOLVED on the CI runners.)
-        launchOptions: {
-          args: ["--no-sandbox"],
-          ...(chromiumPath ? { executablePath: chromiumPath } : {}),
-        },
+        ...(chromiumPath
+          ? {
+              launchOptions: {
+                executablePath: chromiumPath,
+                args: ["--no-sandbox"],
+              },
+            }
+          : {}),
       },
     },
   ],
   webServer: {
     command: `SKIP_ENV_VALIDATION=1 ./node_modules/.bin/next start -p ${PORT}`,
     url: `${baseURL}/sign-in`,
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: !isCI,
     timeout: 120_000,
   },
 });
