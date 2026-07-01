@@ -20,6 +20,7 @@ const FlashCard = ({ problem }: FlashCardProps) => {
 
   return (
     <Card
+      data-testid="flashcard"
       className="w-32 cursor-pointer select-none p-4 text-right"
       onClick={setFlipped}
     >
@@ -33,7 +34,9 @@ const FlashCard = ({ problem }: FlashCardProps) => {
         </div>
         <Separator />
         <div className="flex min-h-10 flex-col">
-          <p className="mt-auto leading-5">{flipped ? problem.answer : " "}</p>
+          <p data-testid="flashcard-answer" className="mt-auto leading-5">
+            {flipped ? problem.answer : " "}
+          </p>
         </div>
       </div>
     </Card>
