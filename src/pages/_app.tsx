@@ -4,6 +4,7 @@ import { api } from "@/utils/api";
 
 import "@/styles/style.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { CapacitorInit } from "@/components/CapacitorInit";
 import { ClerkProvider } from "@clerk/nextjs";
 import { type NextPage } from "next/types";
 import { type ReactElement, type ReactNode } from "react";
@@ -28,6 +29,7 @@ const MyApp: AppType = ({ Component, pageProps }: AppPropsWithLayout) => {
   return (
     <ClerkProvider {...pageProps} afterSignOutUrl="/">
       <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
+        <CapacitorInit />
         {getLayout(<Component {...pageProps} />)}
       </ThemeProvider>
     </ClerkProvider>

@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="viewport-fit=cover, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>Mental Math</title>
+    <style>
+      :root {
+        color-scheme: dark;
+      }
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        background: #0a0a0a;
+        color: #fafafa;
+        font-family:
+          system-ui,
+          -apple-system,
+          sans-serif;
+      }
+      .wrap {
+        display: flex;
+        height: 100%;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+        text-align: center;
+        padding: 1.5rem;
+      }
+      h1 {
+        font-size: 2rem;
+        margin: 0;
+      }
+      p {
+        margin: 0;
+        opacity: 0.7;
+        max-width: 28rem;
+        line-height: 1.5;
+      }
+      code {
+        background: #1a1a1a;
+        padding: 0.15rem 0.4rem;
+        border-radius: 0.3rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <h1>Mental Math</h1>
+      <p>
+        This native shell loads the hosted web app. Set
+        <code>CAP_SERVER_URL</code> to your deployed (or local dev) URL and run
+        <code>bun run cap:sync</code> to point the app at it.
+      </p>
+    </div>
+  </body>
+</html>
