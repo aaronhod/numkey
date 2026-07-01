@@ -8,5 +8,5 @@ export const env = createEnv({
       .enum(["development", "test", "production"])
       .default("development"),
   },
-  runtimeEnv: import.meta.env,
+  runtimeEnv: process.env,
 });

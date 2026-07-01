@@ -4,16 +4,19 @@ packages:
   - tooling/*
 
 catalog:
-  "@tanstack/react-query": ^5.51.9
-  "@trpc/client": ^11.0.0-rc.466
-  "@trpc/react-query": ^11.0.0-rc.466
-  "@trpc/server": ^11.0.0-rc.466
-  eslint: ^9.7.0
-  prettier: ^3.3.3
-  typescript: ^5.5.3
-  zod: ^3.23.8
+  "@tanstack/react-query": ^5.101.2
+  "@trpc/client": ^11.18.0
+  "@trpc/react-query": ^11.18.0
+  "@trpc/server": ^11.18.0
+  eslint: ^9.39.4
+  prettier: ^3.9.4
+  typescript: ^6.0.3
+  zod: ^4.4.3
 
 catalogs:
+  # React 18 is pinned here because the Expo app depends on React Native 0.74,
+  # which requires React 18. Moving the shared packages to React 19 (and Next 16)
+  # would require upgrading Expo/React Native in lockstep.
   react18:
     react: 18.3.1
     react-dom: 18.3.1

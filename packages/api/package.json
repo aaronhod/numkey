@@ -18,13 +18,13 @@
     "typecheck": "tsc --noEmit --emitDeclarationOnly false"
   },
   "dependencies": {
-    "@hono/trpc-server": "^0.1.0",
+    "@hono/trpc-server": "^0.4.2",
     "@munk/auth": "workspace:*",
     "@munk/db": "workspace:*",
     "@munk/domain": "workspace:*",
-    "@trpc/server": "^10.43.2",
-    "hono": "^3.9.2",
-    "superjson": "^2.2.1"
+    "@trpc/server": "catalog:",
+    "hono": "^4.12.27",
+    "superjson": "^2.2.6"
   },
   "devDependencies": {
     "@munk/eslint-config": "workspace:*",

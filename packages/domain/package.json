@@ -23,8 +23,8 @@
     "typecheck": "tsc --noEmit --emitDeclarationOnly false"
   },
   "dependencies": {
-    "dayjs": "^1.11.11",
-    "xxhash-wasm": "^1.0.2",
+    "dayjs": "^1.11.21",
+    "xxhash-wasm": "^1.1.0",
     "zod": "catalog:"
   },
   "devDependencies": {
