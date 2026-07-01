@@ -35,8 +35,8 @@
     "@types/bun": "^1.1.6",
     "eslint": "catalog:",
     "prettier": "catalog:",
-    "typescript": "catalog:",
-    "prisma": "^5.16.2"
+    "prisma": "^5.16.2",
+    "typescript": "catalog:"
   },
   "dependencies": {
     "@munk/domain": "workspace:*",

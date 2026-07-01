@@ -18,19 +18,19 @@
     "typecheck": "tsc --noEmit --emitDeclarationOnly false"
   },
   "dependencies": {
+    "@hono/trpc-server": "^0.1.0",
     "@munk/auth": "workspace:*",
     "@munk/db": "workspace:*",
     "@munk/domain": "workspace:*",
-    "@hono/trpc-server": "^0.1.0",
     "@trpc/server": "^10.43.2",
     "hono": "^3.9.2",
     "superjson": "^2.2.1"
   },
   "devDependencies": {
-    "@types/bun": "^1.1.6",
     "@munk/eslint-config": "workspace:*",
     "@munk/prettier-config": "workspace:*",
     "@munk/tsconfig": "workspace:*",
+    "@types/bun": "^1.1.6",
     "eslint": "catalog:",
     "prettier": "catalog:",
     "typescript": "catalog:",

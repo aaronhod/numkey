@@ -23,8 +23,8 @@
     "typecheck": "tsc --noEmit --emitDeclarationOnly false"
   },
   "dependencies": {
-    "xxhash-wasm": "^1.0.2",
     "dayjs": "^1.11.11",
+    "xxhash-wasm": "^1.0.2",
     "zod": "catalog:"
   },
   "devDependencies": {
@@ -32,9 +32,9 @@
     "@munk/prettier-config": "workspace:*",
     "@munk/tailwind-config": "workspace:*",
     "@munk/tsconfig": "workspace:*",
-    "typescript": "catalog:",
     "eslint": "catalog:",
-    "prettier": "catalog:"
+    "prettier": "catalog:",
+    "typescript": "catalog:"
   },
   "peerDependencies": {
     "react": "catalog:react18",
