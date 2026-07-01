@@ -50,10 +50,11 @@ export default defineConfig({
       name: "chromium",
       use: {
         ...devices["Desktop Chrome"],
-        // Tests only hit the local server; connect directly (no proxy) and
-        // disable the Chromium sandbox for containerized CI.
+        // Disable the Chromium sandbox for containerized CI. (Note: do NOT add
+        // --no-proxy-server here — it makes Chromium fail to reach 127.0.0.1
+        // with ERR_NAME_NOT_RESOLVED on the CI runners.)
         launchOptions: {
-          args: ["--no-sandbox", "--no-proxy-server"],
+          args: ["--no-sandbox"],
           ...(chromiumPath ? { executablePath: chromiumPath } : {}),
         },
       },
