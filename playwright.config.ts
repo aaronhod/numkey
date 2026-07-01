@@ -65,7 +65,10 @@ export default defineConfig({
   webServer: {
     command: `SKIP_ENV_VALIDATION=1 ./node_modules/.bin/next start -p ${PORT}`,
     url: `${baseURL}/sign-in`,
-    reuseExistingServer: !isCI,
+    // Reuse a server started by the CI step (so the server keeps proxy access
+    // for Clerk while the browser runs without a proxy). Falls back to starting
+    // its own server locally.
+    reuseExistingServer: true,
     timeout: 120_000,
   },
 });
