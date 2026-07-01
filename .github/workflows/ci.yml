@@ -11,6 +11,11 @@ env:
   NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: pk_test_Y2xlcmsuZXhhbXBsZS5jb20k
   CLERK_SECRET_KEY: sk_test_dummydummydummydummydummydummydummydummy
   SKIP_ENV_VALIDATION: "1"
+  # If the runner sets an HTTP(S) proxy, Chromium honors it (Node does not),
+  # so it routes even 127.0.0.1 through the proxy and fails with
+  # ERR_NAME_NOT_RESOLVED. Force loopback to bypass any proxy.
+  NO_PROXY: "localhost,127.0.0.1,::1"
+  no_proxy: "localhost,127.0.0.1,::1"
 
 jobs:
   unit:
@@ -71,5 +76,9 @@ jobs:
         run: bun run lint
       - name: Install Playwright browser
         run: bunx playwright install --with-deps chromium
+      - name: Debug proxy env
+        run: |
+          echo "proxy-related env vars:"
+          env | grep -iE 'proxy' || echo "(none set)"
       - name: Playwright e2e tests
         run: bun run test:e2e
