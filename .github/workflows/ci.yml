@@ -15,9 +15,10 @@ env:
   SKIP_ENV_VALIDATION: "1"
   # If the runner sets an HTTP(S) proxy, Chromium honors it (Node does not),
   # so it routes even 127.0.0.1 through the proxy and fails with
-  # ERR_NAME_NOT_RESOLVED. Force loopback to bypass any proxy.
+  # ERR_NAME_NOT_RESOLVED. Force loopback to bypass any proxy. NOTE: only one
+  # casing may be defined — GitHub Actions rejects env maps whose keys differ
+  # only by case, and the run fails instantly with no jobs.
   NO_PROXY: "localhost,127.0.0.1,::1"
-  no_proxy: "localhost,127.0.0.1,::1"
 
 jobs:
   unit:
