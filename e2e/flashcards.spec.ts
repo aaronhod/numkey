@@ -1,4 +1,12 @@
-import { expect, test } from "./fixtures";
+import { expect, test } from "@playwright/test";
+
+// On runners where the browser process cannot open network sockets (see
+// e2e/probe.mjs), browser-driven tests cannot reach the local server. The
+// request-level coverage in pages.spec.ts still runs there.
+test.skip(
+  process.env.PW_BROWSER_UNAVAILABLE === "1",
+  "browser cannot reach the local server on this runner",
+);
 
 test.describe("Flashcards practice", () => {
   test("loads a set and flips a card to reveal the answer", async ({

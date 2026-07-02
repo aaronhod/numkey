@@ -1,74 +1,27 @@
-import fs from "node:fs";
-import path from "node:path";
 import { defineConfig, devices } from "@playwright/test";
 
-const PORT = 3210;
-const baseURL = `http://127.0.0.1:${PORT}`;
-const isCI = !!process.env.CI;
-
 /**
- * Some local sandboxes ship a preinstalled Chromium under
- * PLAYWRIGHT_BROWSERS_PATH (with downloads disabled) that may not match the
- * version @playwright/test would fetch. Outside CI we resolve and launch that
- * binary (with --no-sandbox, since those sandboxes run as root). On CI we use
- * Playwright's own installed browser with default options.
- */
-function resolveChromium(): string | undefined {
-  if (isCI) return undefined;
-  const root = process.env.PLAYWRIGHT_BROWSERS_PATH ?? "/opt/pw-browsers";
-  try {
-    const dir = fs
-      .readdirSync(root)
-      .filter((d) => d.startsWith("chromium-"))
-      .sort()
-      .pop();
-    if (!dir) return undefined;
-    const bin = path.join(root, dir, "chrome-linux", "chrome");
-    return fs.existsSync(bin) ? bin : undefined;
-  } catch {
-    return undefined;
-  }
-}
-
-const chromiumPath = resolveChromium();
-
-/**
- * Playwright e2e config. The webServer starts the production Next.js server;
- * tests exercise the public practice screens (no auth required).
+ * Playwright e2e config, following the documented CI setup
+ * (https://playwright.dev/docs/ci#github-actions): the webServer starts the
+ * production Next.js server and tests run against it via baseURL.
  */
 export default defineConfig({
   testDir: "./e2e",
   fullyParallel: true,
-  forbidOnly: isCI,
-  retries: isCI ? 1 : 0,
-  reporter: "list",
+  forbidOnly: !!process.env.CI,
+  retries: process.env.CI ? 1 : 0,
+  reporter: process.env.CI
+    ? [["list"], ["html", { open: "never" }]]
+    : "list",
   use: {
-    baseURL,
+    baseURL: "http://localhost:3210",
     trace: "on-first-retry",
   },
-  projects: [
-    {
-      name: "chromium",
-      use: {
-        ...devices["Desktop Chrome"],
-        ...(chromiumPath
-          ? {
-              launchOptions: {
-                executablePath: chromiumPath,
-                args: ["--no-sandbox"],
-              },
-            }
-          : {}),
-      },
-    },
-  ],
+  projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
   webServer: {
-    command: `SKIP_ENV_VALIDATION=1 ./node_modules/.bin/next start -p ${PORT}`,
-    url: `${baseURL}/sign-in`,
-    // Reuse a server started by the CI step (so the server keeps proxy access
-    // for Clerk while the browser runs without a proxy). Falls back to starting
-    // its own server locally.
-    reuseExistingServer: true,
+    command: "npx next start -p 3210",
+    url: "http://localhost:3210/sign-in",
+    reuseExistingServer: !process.env.CI,
     timeout: 120_000,
   },
 });
