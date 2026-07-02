@@ -11,25 +11,33 @@ import { test as base, expect } from "@playwright/test";
  * Redirects are not followed by the tunnel (maxRedirects: 0) so the browser
  * observes and follows them itself, preserving navigation semantics.
  */
+import type { Page, Route } from "@playwright/test";
+
+const tunnelHandler = async (route: Route) => {
+  const url = route.request().url();
+  try {
+    const response = await route.fetch({ maxRedirects: 0 });
+    await route.fulfill({ response });
+  } catch (err) {
+    console.log(
+      `[tunnel] fetch failed for ${url}: ${String(err).split("\n")[0]}`,
+    );
+    await route.abort();
+  }
+};
+
 export const test = base.extend({
   // (second fixture arg is Playwright's `use` callback, renamed so the
   // react-hooks lint rule doesn't mistake it for a React hook)
-  context: async ({ context }, provide) => {
+  page: async ({ page }: { page: Page }, provide: (p: Page) => Promise<void>) => {
     if (process.env.PW_TUNNEL === "1") {
       console.log("[tunnel] routing browser traffic through Node");
-      await context.route("**/*", async (route) => {
-        try {
-          const response = await route.fetch({ maxRedirects: 0 });
-          await route.fulfill({ response });
-        } catch (err) {
-          console.log(
-            `[tunnel] fetch failed for ${route.request().url()}: ${String(err).split("\n")[0]}`,
-          );
-          await route.abort();
-        }
-      });
+      // Register on both the page and its context — belt and braces while we
+      // pin down which registration the runner's navigation respects.
+      await page.route("**/*", tunnelHandler);
+      await page.context().route("**/*", tunnelHandler);
     }
-    await provide(context);
+    await provide(page);
   },
 });
 

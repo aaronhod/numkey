@@ -98,4 +98,6 @@ jobs:
           done
           curl -sS -o /dev/null -w "runner -> /practice: %{http_code}\n" http://127.0.0.1:3210/practice || true
           node e2e/probe.mjs
-          bun run test:e2e
+          # Run the suite explicitly under Node (not via bun's script runner)
+          # to keep the runtime identical to the working probe above.
+          npx --no-install playwright test
