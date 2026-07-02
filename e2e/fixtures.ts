@@ -16,11 +16,15 @@ export const test = base.extend({
   // react-hooks lint rule doesn't mistake it for a React hook)
   context: async ({ context }, provide) => {
     if (process.env.PW_TUNNEL === "1") {
+      console.log("[tunnel] routing browser traffic through Node");
       await context.route("**/*", async (route) => {
         try {
           const response = await route.fetch({ maxRedirects: 0 });
           await route.fulfill({ response });
-        } catch {
+        } catch (err) {
+          console.log(
+            `[tunnel] fetch failed for ${route.request().url()}: ${String(err).split("\n")[0]}`,
+          );
           await route.abort();
         }
       });

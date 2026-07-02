@@ -97,4 +97,5 @@ jobs:
             sleep 1
           done
           curl -sS -o /dev/null -w "runner -> /practice: %{http_code}\n" http://127.0.0.1:3210/practice || true
+          node e2e/probe.mjs
           bun run test:e2e
