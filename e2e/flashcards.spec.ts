@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 
 test.describe("Flashcards practice", () => {
   test("loads a set and flips a card to reveal the answer", async ({

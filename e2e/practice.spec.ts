@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 
 test.describe("Practice selection screen", () => {
   test("renders the practice options", async ({ page }) => {
