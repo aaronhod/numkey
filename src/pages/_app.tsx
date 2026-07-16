@@ -30,6 +30,12 @@ const MyApp: AppType = ({ Component, pageProps }: AppPropsWithLayout) => {
   const app = (
     <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
       <CapacitorInit />
+      {/* Full-viewport hairline frame — the design's "site inside a border" motif. */}
+      <div
+        aria-hidden
+        className="pointer-events-none fixed z-50 border border-foreground/35"
+        style={{ inset: "var(--frame-inset)" }}
+      />
       {getLayout(<Component {...pageProps} />)}
     </ThemeProvider>
   );

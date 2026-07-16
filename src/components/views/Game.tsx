@@ -19,7 +19,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
 } from "@/components/shad-ui/alert-dialog";
-import { Loader2 } from "lucide-react";
 import { gameReducer, initialGameState } from "@/components/views/gameReducer";
 import { LoaderOverlay } from "@/components/LoaderOverlay";
 import { Button } from "@/components/shad-ui/button";
@@ -87,8 +86,7 @@ const ErrorDialog = ({
           </AlertDialogAction>
           {isLoading ? (
             <AlertDialogAction disabled>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Resubmitting
+              Resubmitting <span className="ml-2 animate-pulse">█</span>
             </AlertDialogAction>
           ) : (
             <AlertDialogAction onClick={() => refetch()}>

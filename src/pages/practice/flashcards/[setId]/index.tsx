@@ -45,16 +45,21 @@ const FlashCard = ({ problem }: FlashCardProps) => {
 
 const FlashCardSetPage = ({ problems }: FlashCardSetPageProps) => {
   return (
-    <main className="flex h-max flex-col p-12">
-      <div className="flex">
-        <h1 className="mb-4 text-3xl font-bold leading-tight tracking-tighter">
-          Flash Cards
-        </h1>
-        <div className="ml-auto flex gap-2">
+    <main className="flex h-max flex-col px-5 pb-12 pt-10 sm:px-8">
+      <div className="mb-8 flex flex-wrap items-end gap-4">
+        <div className="flex flex-col gap-3">
+          <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">
+            02 Practice
+          </p>
+          <h1 className="text-4xl font-bold leading-[1.1] tracking-[-0.01em]">
+            Flash Cards
+          </h1>
+        </div>
+        <div className="ml-auto flex flex-wrap gap-2">
           <Button variant="secondary">Flip All</Button>
           <Button variant="secondary">Shuffle</Button>
           <Button variant="secondary">Sort</Button>
-          <Button variant="destructive">Reset</Button>
+          <Button variant="outline">Reset</Button>
         </div>
       </div>
 

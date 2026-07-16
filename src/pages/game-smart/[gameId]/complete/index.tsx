@@ -9,7 +9,6 @@ import {
   TableRow,
 } from "@/components/shad-ui/table";
 import { Button } from "@/components/shad-ui/button";
-import { CheckCircle2, CircleSlash } from "lucide-react";
 import { LoaderOverlay } from "@/components/LoaderOverlay";
 import type { Operator } from "@/game/problem";
 import { getOperatorChar } from "@/game/problem";
@@ -128,10 +127,15 @@ const FinishedGamePage = ({ game, error }: Props) => {
   return (
     <div className="container flex h-full flex-col items-center justify-center p-5">
       <div className="h-full w-full ">
-        <div className="flex w-full items-center">
-          <h1 className="py-3 text-4xl font-bold">Game Complete</h1>
+        <div className="flex w-full flex-col gap-3 py-3">
+          <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">
+            Results
+          </p>
+          <h1 className="text-4xl font-bold leading-[1.1] tracking-[-0.01em]">
+            Game Complete
+          </h1>
         </div>
-        <Table className="h-3/5 rounded-lg bg-secondary shadow-sm">
+        <Table className="h-3/5 border">
           <TableHeader>
             <TableRow>
               <TableHead>Problem</TableHead>
@@ -153,9 +157,9 @@ const FinishedGamePage = ({ game, error }: Props) => {
                 <TableCell>{round.problem.answer}</TableCell>
                 <TableCell>
                   {round.isCompleted ? (
-                    <CheckCircle2 className="text-primary" />
+                    <span>●</span>
                   ) : (
-                    <CircleSlash className="text-destructive" />
+                    <span className="text-muted-foreground">○</span>
                   )}
                 </TableCell>
                 <TableCell>
@@ -167,7 +171,11 @@ const FinishedGamePage = ({ game, error }: Props) => {
             ))}
           </TableBody>
         </Table>
-        {error && <p className="text-red-500">{error.message}</p>}
+        {error && (
+          <p className="uppercase tracking-[0.05em] text-muted-foreground">
+            Error — {error.message}
+          </p>
+        )}
         <div className="flex flex-row-reverse gap-3">
           <Button className="btn mt-5" onClick={() => void newGame()}>
             Play Again

@@ -21,7 +21,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ["var(--font-sans)", ...defaultTheme.fontFamily.sans],
+        sans: ["var(--font-sans)", ...defaultTheme.fontFamily.mono],
+        mono: ["var(--font-sans)", ...defaultTheme.fontFamily.mono],
       },
       colors: {
         border: "hsl(var(--border))",

@@ -3,21 +3,9 @@ import type { ReactNode } from "react";
 import React, { useState } from "react";
 import { getGameRouteCustom } from "@/constants/routes";
 import type { Operator } from "@/game/problem";
+import { getOperatorChar } from "@/game/problem";
 import { Button } from "@/components/shad-ui/button";
 import { cn } from "@/utils/shad";
-import {
-  Activity,
-  Calculator,
-  Dice6,
-  Divide,
-  Layers,
-  Minus,
-  Plus,
-  RefreshCw,
-  Shuffle,
-  Timer,
-  X,
-} from "lucide-react";
 import {
   HoverCard,
   HoverCardContent,
@@ -32,7 +20,7 @@ import type {
 
 function SelectionHeader({ children }: { children?: ReactNode }) {
   return (
-    <h2 className="text-lg font-semibold leading-tight text-foreground/70">
+    <h2 className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">
       {children}
     </h2>
   );
@@ -77,8 +65,9 @@ const SelectionScreen = () => {
     variants: {
       size: {
         large: "h-24 w-24",
-        default: "h-18 w-18 sm:h-20 sm:w-20",
-        small: "h-14 w-14",
+        default: "h-14 w-14 text-lg sm:h-16 sm:w-16",
+        label: "h-11 px-4",
+        small: "h-9 px-3 text-xs",
       },
     },
     defaultVariants: {
@@ -98,10 +87,10 @@ const SelectionScreen = () => {
     return (
       <Button
         ref={ref}
-        variant="secondary"
+        variant="outline"
         className={cn(selectButtonVariants({ size, className }), {
-          "bg-primary": isSelected,
-          "opacity-100": !isSelected,
+          "border-foreground bg-foreground text-background hover:bg-foreground":
+            isSelected,
         })}
         onClick={onClick}
         {...props}
@@ -130,8 +119,7 @@ const SelectionScreen = () => {
 
   const OperatorSelect: React.FC<{
     operator: Operator;
-    children: ReactNode;
-  }> = ({ operator, children }) => {
+  }> = ({ operator }) => {
     const isSelected = selectedOperators.includes(operator);
     return (
       <SelectButton
@@ -144,7 +132,7 @@ const SelectionScreen = () => {
         }
         isSelected={isSelected}
       >
-        {children}
+        {getOperatorChar(operator)}
       </SelectButton>
     );
   };
@@ -158,6 +146,7 @@ const SelectionScreen = () => {
     return (
       <SelectButton
         ref={ref}
+        size="label"
         onClick={() => setSelectedMode(mode)}
         isSelected={isSelected}
         {...props}
@@ -193,28 +182,26 @@ const SelectionScreen = () => {
   });
   ModifierSelect.displayName = "ModifierSelect";
 
-  /**
-   * TODO: Card mode select component. Improve layout of this component, determine what combinations are possible
-   * for mode types.
-   */
-
   return (
-    <div className="flex h-full flex-col items-center gap-4">
-      <div className="flex">
-        <h1 className="mt-5 text-5xl font-bold leading-tight tracking-tighter">
+    <div className="mx-auto flex h-full w-full max-w-2xl flex-col gap-8 px-5 pb-12 pt-10 sm:px-8">
+      <div className="flex flex-col gap-3">
+        <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">
+          03 Custom
+        </p>
+        <h1 className="text-4xl font-bold leading-[1.1] tracking-[-0.01em]">
           Start Game
         </h1>
       </div>
-      <div className="flex h-full flex-col items-center gap-1.5">
-        <SelectionHeader>Mode</SelectionHeader>
-        <div className="flex flex-row gap-2">
+      <div className="flex flex-col gap-3">
+        <SelectionHeader>01 Mode</SelectionHeader>
+        <div className="flex flex-row flex-wrap gap-2">
           <ModeSelect key="normal" mode="normal">
-            <Calculator />
+            Normal
           </ModeSelect>
           <HoverCard>
             <HoverCardTrigger asChild>
               <ModeSelect key="endless" mode="endless" data-state={"open"}>
-                <RefreshCw />
+                Endless
               </ModeSelect>
             </HoverCardTrigger>
             <HoverCardContent className="w-80">
@@ -222,33 +209,25 @@ const SelectionScreen = () => {
             </HoverCardContent>
           </HoverCard>
           <ModeSelect key="lives" mode="lives">
-            <Activity />
+            Lives
           </ModeSelect>
           <ModeSelect key="stack" mode="stack">
-            <Layers />
+            Stack
           </ModeSelect>
         </div>
       </div>
-      <div className="flex flex-col items-center gap-1.5">
-        <SelectionHeader>Operator</SelectionHeader>
-        <div className="flex flex-row flex-wrap justify-center gap-2 sm:gap-4">
-          <OperatorSelect key="add" operator="ADD">
-            <Plus />
-          </OperatorSelect>
-          <OperatorSelect key="subtract" operator="SUBTRACT">
-            <Minus />
-          </OperatorSelect>
-          <OperatorSelect key="multiply" operator="MULTIPLY">
-            <X />
-          </OperatorSelect>
-          <OperatorSelect key="divide" operator="DIVIDE">
-            <Divide />
-          </OperatorSelect>
+      <div className="flex flex-col gap-3">
+        <SelectionHeader>02 Operators</SelectionHeader>
+        <div className="flex flex-row flex-wrap gap-2">
+          <OperatorSelect key="add" operator="ADD" />
+          <OperatorSelect key="subtract" operator="SUBTRACT" />
+          <OperatorSelect key="multiply" operator="MULTIPLY" />
+          <OperatorSelect key="divide" operator="DIVIDE" />
         </div>
       </div>
-      <div className="flex flex-col items-center gap-1.5 px-10">
-        <SelectionHeader>Numbers</SelectionHeader>
-        <div className="flex flex-wrap content-start justify-center gap-1 sm:w-3/6 sm:gap-2">
+      <div className="flex flex-col gap-3">
+        <SelectionHeader>03 Numbers</SelectionHeader>
+        <div className="flex flex-wrap content-start gap-2">
           <NumberSelect key={2} number={2} />
           <NumberSelect key={3} number={3} />
           <NumberSelect key={4} number={4} />
@@ -263,32 +242,27 @@ const SelectionScreen = () => {
         </div>
       </div>
       <div className="flex flex-col gap-3">
-        <div className="flex h-full flex-col items-center gap-1.5">
-          <SelectionHeader>Modifiers</SelectionHeader>
-          <div className="flex flex-row gap-1">
-            <ModifierSelect key="random" modifier="random">
-              <Dice6 />
-            </ModifierSelect>
-            <ModifierSelect key="timed" modifier="timed">
-              <Timer />
-            </ModifierSelect>
-            <ModifierSelect key="shuffled" modifier="shuffled">
-              <Shuffle />
-            </ModifierSelect>
-          </div>
+        <SelectionHeader>04 Modifiers</SelectionHeader>
+        <div className="flex flex-row flex-wrap gap-2">
+          <ModifierSelect key="random" modifier="random">
+            Random
+          </ModifierSelect>
+          <ModifierSelect key="timed" modifier="timed">
+            Timed
+          </ModifierSelect>
+          <ModifierSelect key="shuffled" modifier="shuffled">
+            Shuffled
+          </ModifierSelect>
         </div>
       </div>
-      <div className="flex h-full w-full flex-col content-center items-center justify-center gap-4 py-8">
+      <div className="mt-auto flex w-full flex-col py-6">
         <Button
-          variant="secondary"
           size="lg"
           disabled={selectedNumbers.length < 1 && selectedOperators.length < 1}
           onClick={() => startGame()}
-          className={
-            "w-60 bg-primary text-lg disabled:bg-secondary disabled:opacity-40"
-          }
+          className="w-full sm:w-60"
         >
-          Start
+          Start →
         </Button>
       </div>
     </div>

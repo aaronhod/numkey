@@ -1,6 +1,4 @@
 import React from "react";
-import { Button } from "@/components/shad-ui/button";
-import { Moon, Sun } from "lucide-react";
 import { useTheme, type UseThemeProps } from "next-themes";
 import Link from "next/link";
 import type { Theme } from "@/pages/_app";
@@ -19,16 +17,14 @@ const SwitchThemeButton: React.FC = () => {
   };
 
   return (
-    <Button variant="ghost" size="icon" onClick={() => toggleTheme()}>
-      <Sun
-        size={30}
-        className="rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0"
-      />
-      <Moon
-        size={30}
-        className="absolute rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100"
-      />
-    </Button>
+    <button
+      onClick={() => toggleTheme()}
+      className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground transition-colors hover:text-foreground"
+    >
+      {/* Rendered via CSS so SSR output matches the client before hydration. */}
+      <span className="dark:hidden">Light ●</span>
+      <span className="hidden dark:inline">Dark ●</span>
+    </button>
   );
 };
 
@@ -37,23 +33,22 @@ interface Props {
 }
 
 const Header = () => (
-  <header className="top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-    <div className="container flex h-14 items-center">
-      <div className="mr-4 hidden md:flex">
-        <Link href="/" className="mr-6 flex items-center space-x-2">
-          <span className="hidden font-bold sm:inline-block">MathGame</span>
-        </Link>
-      </div>
-      <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
-        <nav className="flex items-center gap-1">
-          <SwitchThemeButton />
-          {!authDisabled && (
-            <div>
-              <UserButton />
-            </div>
-          )}
-        </nav>
-      </div>
+  <header className="top-0 z-40 w-full border-b bg-background">
+    <div className="flex h-14 items-center px-5 sm:px-8">
+      <Link
+        href="/"
+        className="text-[13px] font-semibold uppercase tracking-[0.08em]"
+      >
+        MathGame
+      </Link>
+      <nav className="ml-auto flex items-center gap-5">
+        <SwitchThemeButton />
+        {!authDisabled && (
+          <div>
+            <UserButton />
+          </div>
+        )}
+      </nav>
     </div>
   </header>
 );
