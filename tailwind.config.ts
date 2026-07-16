@@ -1,21 +1,10 @@
 import { type Config } from "tailwindcss";
-import { fontFamily } from "tailwindcss/defaultTheme";
+import defaultTheme from "tailwindcss/defaultTheme";
 import plugin from "tailwindcss/plugin";
+import tailwindcssAnimate from "tailwindcss-animate";
 
 export default {
-  content: ["./src/**/*.tsx"],
-  theme: {
-    extend: {
-      fontFamily: {
-        sans: ["var(--font-sans)", ...fontFamily.sans],
-      },
-    },
-  },
-  plugins: [],
-} satisfies Config;
-
-module.exports = {
-  darkMode: ["class"],
+  darkMode: "class",
   content: [
     "./pages/**/*.{ts,tsx}",
     "./components/**/*.{ts,tsx}",
@@ -31,6 +20,9 @@ module.exports = {
       },
     },
     extend: {
+      fontFamily: {
+        sans: ["var(--font-sans)", ...defaultTheme.fontFamily.sans],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -73,12 +65,12 @@ module.exports = {
       },
       keyframes: {
         "accordion-down": {
-          from: { height: 0 },
+          from: { height: "0" },
           to: { height: "var(--radix-accordion-content-height)" },
         },
         "accordion-up": {
           from: { height: "var(--radix-accordion-content-height)" },
-          to: { height: 0 },
+          to: { height: "0" },
         },
       },
       animation: {
@@ -89,21 +81,21 @@ module.exports = {
     },
   },
   plugins: [
-    require("tailwindcss-animate"),
+    tailwindcssAnimate,
     plugin(function ({ matchUtilities, theme }) {
       matchUtilities(
         {
-          "grid-cols-fill": (value) => ({
+          "grid-cols-fill": (value: string) => ({
             gridTemplateColumns: `repeat(auto-fill, minmax(min(${value}, 100%), 1fr))`,
           }),
-          "grid-cols-fit": (value) => ({
+          "grid-cols-fit": (value: string) => ({
             gridTemplateColumns: `repeat(auto-fit, minmax(min(${value}, 100%), 1fr))`,
           }),
         },
         {
-          values: theme("spacing", {}),
+          values: theme("spacing"),
         },
       );
     }),
   ],
-};
+} satisfies Config;

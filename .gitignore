@@ -45,3 +45,9 @@ yarn-error.log*
 /.env*
 /.vscode/
 /.npmrc
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/.cache/

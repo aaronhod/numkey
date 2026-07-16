@@ -1,6 +1,11 @@
 import type { ParsedUrlQuery } from "querystring";
 import Game from "src/components/views/Game";
-import { generateProblems, type Operator, type Problem } from "@/game/problem";
+import {
+  generateProblems,
+  OPERATORS,
+  type Operator,
+  type Problem,
+} from "@/game/problem";
 import type {
   GameMode,
   GameModifierName,
@@ -11,9 +16,11 @@ import {
   type GetServerSideProps,
   type InferGetServerSidePropsType,
 } from "next";
-import { buildClerkProps, clerkClient, getAuth } from "@clerk/nextjs/server";
+import { buildClerkProps, clerkClient } from "@clerk/nextjs/server";
 import { hashProblemDefs } from "@/utils/hash";
 import { ssgHelper } from "@/server/ssgHelper";
+import { getAuthOrDev } from "@/server/devAuth";
+import { authDisabled } from "@/utils/authDisabled";
 
 interface Query {
   gameId: string;
@@ -35,16 +42,26 @@ interface QueryParams extends Query {
 }
 
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
-  const { userId } = getAuth(ctx.req);
-  const user = userId ? await clerkClient.users.getUser(userId) : undefined;
-
-  if (!user || !userId) {
+  const { userId } = getAuthOrDev(ctx.req);
+  if (!userId) {
     redirect("/");
+  }
+  if (!authDisabled) {
+    const user = await (await clerkClient()).users.getUser(userId);
+    if (!user) {
+      redirect("/");
+    }
+  }
+
+  const parsedQuery = parseQueryParams(ctx.query);
+  if (!parsedQuery) {
+    // Missing or invalid game settings — send the user to the setup screen.
+    return {
+      redirect: { destination: "/game-custom", permanent: false },
+    };
   }
 
   const helpers = await ssgHelper(ctx);
-
-  const parsedQuery: QueryParams = parseQueryParams(ctx.query);
   const problemHashes = await hashProblemDefs(
     generateProblems(parsedQuery.numbers, parsedQuery.operators),
   );
@@ -69,7 +86,7 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
   // Load any data your application needs for the page using the userId
   return {
     props: {
-      ...buildClerkProps(ctx.req),
+      ...(authDisabled ? {} : buildClerkProps(ctx.req)),
       userId: userId,
       problems: problems,
       settings: gameSettings,
@@ -78,21 +95,32 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
   };
 };
 
-function parseQueryParams(query: ParsedUrlQuery): QueryParams {
+// Query values arrive either as repeated params (string[]) or as a single
+// comma-joined string (how getGameRouteCustom serializes arrays).
+function toArray(value: string[] | string | undefined): string[] {
+  const values = Array.isArray(value) ? value : (value ?? "").split(",");
+  return values.filter(Boolean);
+}
+
+function parseQueryParams(query: ParsedUrlQuery): QueryParams | null {
   const parsedQuery = query as ParsedQueryParams;
-  const numbers = Array.isArray(parsedQuery.numbers)
-    ? parsedQuery.numbers.map((num) => Number(num))
-    : [Number(parsedQuery.numbers)];
-  const operators: Operator[] = (
-    Array.isArray(parsedQuery.operators)
-      ? parsedQuery.operators
-      : [parsedQuery.operators]
+  const numbers = toArray(parsedQuery.numbers)
+    .map((num) => Number(num))
+    .filter((num) => !Number.isNaN(num));
+  const operators = toArray(parsedQuery.operators).filter((op) =>
+    OPERATORS.includes(op as Operator),
   ) as Operator[];
+
+  if (numbers.length === 0 || operators.length === 0) {
+    return null;
+  }
+
   const nextOnFail = parsedQuery.nextOnFail === "true";
-  const modifiers = parsedQuery.modifiers.split(",") as GameModifierName[];
+  const modifiers = toArray(parsedQuery.modifiers) as GameModifierName[];
 
   return {
     ...parsedQuery,
+    gameMode: parsedQuery.gameMode ?? "normal",
     operators,
     numbers,
     nextOnFail,
@@ -119,6 +147,7 @@ export default function RunningGame({
     <Game
       userId={userId}
       category="SMART"
+      route="game-smart"
       initialProblems={problems}
       settings={settings}
     />

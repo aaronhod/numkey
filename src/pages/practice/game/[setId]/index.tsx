@@ -27,7 +27,14 @@ const getServerSideProps: GetServerSideProps = async (ctx) => {
 };
 
 const Page = ({ problems }: PageProps) => {
-  return <Game category="PRACTICE" userId="TEMP" initialProblems={problems} />;
+  return (
+    <Game
+      category="PRACTICE"
+      route="practice/game"
+      userId="TEMP"
+      initialProblems={problems}
+    />
+  );
 };
 
 export { Page as default, getServerSideProps };

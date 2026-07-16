@@ -18,23 +18,29 @@ import { createContextInner } from "@/server/api/trpc";
 import { createServerSideHelpers } from "@trpc/react-query/server";
 import { redirect } from "next/navigation";
 import superjson from "superjson";
-import { clerkClient, getAuth } from "@clerk/nextjs/server";
+import { clerkClient } from "@clerk/nextjs/server";
+import { getAuthOrDev } from "@/server/devAuth";
+import { authDisabled } from "@/utils/authDisabled";
 import {
   type GetServerSideProps,
   type InferGetServerSidePropsType,
 } from "next";
 
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
-  const { userId } = getAuth(ctx.req);
-  const user = userId ? await clerkClient.users.getUser(userId) : undefined;
+  const { userId } = getAuthOrDev(ctx.req);
+  if (!authDisabled) {
+    const user = userId
+      ? await (await clerkClient()).users.getUser(userId)
+      : undefined;
 
-  if (!user || !userId) {
-    redirect("/");
+    if (!user || !userId) {
+      redirect("/");
+    }
   }
 
   const helpers = createServerSideHelpers({
     router: appRouter,
-    ctx: await createContextInner({ auth: getAuth(ctx.req) }),
+    ctx: await createContextInner({ auth: getAuthOrDev(ctx.req) }),
     transformer: superjson,
   });
 
