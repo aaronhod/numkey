@@ -1,4 +1,6 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+import { NextResponse } from "next/server";
+import { authDisabled } from "@/utils/authDisabled";
 
 // This example protects all routes including api/trpc routes
 // Please edit this to allow other routes to be public as needed.
@@ -10,11 +12,14 @@ const isPublicRoute = createRouteMatcher([
   // and don't require an authenticated user.
   "/practice(.*)",
 ]);
-export default clerkMiddleware(async (auth, request) => {
-  if (!isPublicRoute(request)) {
-    await auth.protect();
-  }
-});
+
+export default authDisabled
+  ? () => NextResponse.next()
+  : clerkMiddleware(async (auth, request) => {
+      if (!isPublicRoute(request)) {
+        await auth.protect();
+      }
+    });
 
 export const config = {
   // The following matcher runs middleware on all routes

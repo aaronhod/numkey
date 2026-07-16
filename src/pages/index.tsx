@@ -11,6 +11,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { useRouter } from "next/router";
+import { getGameRouteQuickPlay } from "@/constants/routes";
 
 interface SelectIconProps {
   onClick: () => void;
@@ -38,7 +39,7 @@ const QuadrantMenu = () => {
         title="Practice"
       />
       <SelectIcon
-        onClick={() => router.push("/game-smart")}
+        onClick={() => router.push(`/${getGameRouteQuickPlay()}`)}
         Icon={Gamepad2}
         title="QuickPlay"
       />

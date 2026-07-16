@@ -5,6 +5,7 @@ import { useTheme, type UseThemeProps } from "next-themes";
 import Link from "next/link";
 import type { Theme } from "@/pages/_app";
 import { UserButton } from "@clerk/nextjs";
+import { authDisabled } from "@/utils/authDisabled";
 
 interface ThemeProps extends UseThemeProps {
   theme: Theme;
@@ -46,9 +47,11 @@ const Header = () => (
       <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
         <nav className="flex items-center gap-1">
           <SwitchThemeButton />
-          <div>
-            <UserButton />
-          </div>
+          {!authDisabled && (
+            <div>
+              <UserButton />
+            </div>
+          )}
         </nav>
       </div>
     </div>

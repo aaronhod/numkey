@@ -5,6 +5,7 @@ import { ZodError } from "zod";
 
 import { db } from "@/server/db";
 import { getAuth } from "@clerk/nextjs/server";
+import { getAuthOrDev } from "@/server/devAuth";
 
 type AuthObject = ReturnType<typeof getAuth>;
 type AuthContextProps = {
@@ -26,7 +27,7 @@ export const createContextInner = async ({ auth }: AuthContextProps) => {
  */
 export const createTRPCContext = async (opts: CreateNextContextOptions) => {
   const contextInner = await createContextInner({
-    auth: getAuth(opts.req),
+    auth: getAuthOrDev(opts.req),
   });
 
   return {
