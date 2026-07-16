@@ -6,9 +6,8 @@ import type {
 
 export const GAME_SMART_ROUTE = "game-smart";
 export const GAME_CUSTOM_ROUTE = "game-custom";
-export const GAME_BATTLE_ROUTE = "game-battle";
 
-export const GAME_ROUTES = [GAME_SMART_ROUTE, GAME_CUSTOM_ROUTE, GAME_BATTLE_ROUTE] as const;
+export const GAME_ROUTES = [GAME_SMART_ROUTE, GAME_CUSTOM_ROUTE] as const;
 export type GameRoute = typeof GAME_ROUTES[number];
 
 interface GameQuery {

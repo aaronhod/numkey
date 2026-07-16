@@ -1,4 +1,4 @@
-import { type Problem, type ProblemDefinition } from "@/game/problem";
+import { type Problem } from "@/game/problem";
 import { type FinishedGame } from "@/server/api/routers/games";
 import dayjs from "dayjs";
 import {
@@ -118,7 +118,8 @@ const addAttempt = (
   game.currentProblem.attempts.push({
     attempt: answer ?? null,
     msElapsed: currentAttemptDuration,
-    type: answer ? "EXPLICIT" : "SKIPPED",
+    // Explicit check: an answer of 0 is still an explicit attempt.
+    type: answer !== undefined ? "EXPLICIT" : "SKIPPED",
   });
 
   // correct answer
@@ -201,17 +202,5 @@ const getFinishedGame = (game: GameInstance): FinishedGame => {
   } satisfies FinishedGame;
 };
 
-const isAnswerCorrect = (
-  problem: ProblemDefinition,
-  answer: number,
-): boolean => {
-  return problem.answer === answer;
-};
-
 export type { GameInstance, ActiveProblem, ProblemAttempt };
-export {
-  newGameInstance as default,
-  addAttempt,
-  getFinishedGame,
-  isAnswerCorrect,
-};
+export { newGameInstance as default, addAttempt, getFinishedGame };

@@ -69,12 +69,6 @@ const MainMenu = () => {
           description="Configure mode, operators, numbers, and modifiers."
           onClick={() => void router.push("/game-custom")}
         />
-        <MenuRow
-          index="04"
-          title="Battle"
-          description="Head to head against another player."
-          onClick={() => void router.push("/game-battle")}
-        />
       </div>
     </main>
   );

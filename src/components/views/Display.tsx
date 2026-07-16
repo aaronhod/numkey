@@ -215,9 +215,16 @@ export const DisplayContent = (props: {
   problem: ProblemDefinition | null;
   negativeMode: boolean;
   userValue: string | null;
+  /** Brief full-area flash after an attempt: wrong inverts, correct tints. */
+  flash?: "correct" | "wrong" | null;
 }) => {
   return (
-    <h2 className="my-auto flex w-full p-5 text-3xl sm:text-5xl">
+    <h2
+      className={cn("my-auto flex w-full p-5 text-3xl sm:text-5xl", {
+        "bg-foreground text-background": props.flash === "wrong",
+        "bg-foreground/10": props.flash === "correct",
+      })}
+    >
       {props.problem && (
         <div className="text-inherit/75 flex w-full min-w-fit gap-0.5 self-center align-text-bottom sm:gap-4">
           <p>{props.problem?.leftValue}</p>
