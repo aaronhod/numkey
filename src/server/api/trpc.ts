@@ -53,8 +53,9 @@ const isAuthed = t.middleware(({ next, ctx }) => {
   }
 
   return next({
+    // Narrow userId to a non-null string for downstream resolvers.
     ctx: {
-      auth: ctx.auth,
+      auth: { userId: ctx.auth.userId },
     },
   });
 });

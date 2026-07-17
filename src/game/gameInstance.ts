@@ -184,7 +184,7 @@ const addAttempt = (
 
 const getFinishedGame = (game: GameInstance): FinishedGame => {
   return {
-    userId: game.playerId,
+    // userId is assigned server-side from the session; omitted here.
     category: game.category,
     settings: game.settings,
     startedAt: game.startedAt,

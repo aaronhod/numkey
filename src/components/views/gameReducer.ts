@@ -8,6 +8,26 @@ import newGameInstance, {
 } from "@/game/gameInstance";
 import { type Problem } from "@/game/problem";
 
+/**
+ * Shallow clone covering exactly the paths addAttempt mutates (top-level
+ * fields, the pause object, both problem queues, and the current problem's
+ * attempts). Completed-problem entries are shared by reference since they're
+ * never mutated after completion — this avoids structuredClone deep-copying
+ * the entire (growing) history on every keystroke, which was O(n²) over a
+ * long game and caused late-game input lag.
+ */
+function cloneGameForAttempt(game: GameInstance): GameInstance {
+  return {
+    ...game,
+    pause: { ...game.pause },
+    remainingProblems: [...game.remainingProblems],
+    completedProblems: [...game.completedProblems],
+    currentProblem: game.currentProblem
+      ? { ...game.currentProblem, attempts: [...game.currentProblem.attempts] }
+      : undefined,
+  };
+}
+
 export type Action =
   | {
       type: "input-insert";
@@ -245,14 +265,15 @@ function addRoundAttempt(
 
   const isCorrect =
     ans !== undefined && state.game.currentProblem.answer === ans;
-  const game = addAttempt(structuredClone(state.game), ans);
 
   // The input always clears after an attempt: a correct answer advances to
   // the next problem, a wrong one restarts the same problem from scratch.
+  const nextGame = addAttempt(cloneGameForAttempt(state.game), ans);
+
   return {
     ...state,
-    game,
-    inputValue: game.state === "finished" && isCorrect ? "Done!" : null,
+    game: nextGame,
+    inputValue: nextGame.state === "finished" && isCorrect ? "Done!" : null,
     negativeMode: false,
     feedback: {
       outcome: isCorrect ? "correct" : "wrong",

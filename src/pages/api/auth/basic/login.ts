@@ -1,7 +1,11 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { serializeCookieHeader } from "@supabase/ssr";
 import { isSupabaseAuth } from "@/utils/authProvider";
-import { BASIC_AUTH_COOKIE, basicAuthCredentials } from "@/server/auth";
+import {
+  BASIC_AUTH_COOKIE,
+  basicAuthCredentials,
+  signBasicCookie,
+} from "@/server/auth";
 
 const THIRTY_DAYS_S = 30 * 24 * 60 * 60;
 
@@ -29,7 +33,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
 
   res.setHeader(
     "Set-Cookie",
-    serializeCookieHeader(BASIC_AUTH_COOKIE, username, {
+    serializeCookieHeader(BASIC_AUTH_COOKIE, signBasicCookie(username), {
       httpOnly: true,
       sameSite: "lax",
       path: "/",

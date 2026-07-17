@@ -1,3 +1,4 @@
+import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 
 import { createTRPCRouter, protectedProcedure, publicProcedure } from "../trpc";
@@ -16,7 +17,8 @@ const FinishedRoundRequest = z.object({
 });
 
 const FinishedGameRequest = z.object({
-  userId: z.string(),
+  // The owner is taken from the authenticated session, never the client.
+  userId: z.string().optional(),
   category: z.enum(["CUSTOM", "SMART", "VERSUS", "PRACTICE"]),
   settings: z
     .object({
@@ -51,7 +53,8 @@ export const gameRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       return ctx.db.finishedGame.create({
         data: {
-          userId: input.userId,
+          // Attribute the game to the caller, ignoring any client-sent userId.
+          userId: ctx.auth.userId,
           category: input.category,
           settings: input.settings,
           startedAt: input.startedAt,
@@ -73,22 +76,19 @@ export const gameRouter = createTRPCRouter({
         },
       });
     }),
-  getAll: protectedProcedure.query(({ ctx }) => {
-    return ctx.db.finishedGame.findMany();
+  // Games belonging to the caller. (Scoped to the session — never accepts a
+  // userId from the client, which would expose other players' games.)
+  getMine: protectedProcedure.query(({ ctx }) => {
+    return ctx.db.finishedGame.findMany({
+      where: {
+        userId: ctx.auth.userId,
+      },
+    });
   }),
-  getAllByUserId: protectedProcedure
-    .input(z.string())
-    .query(({ ctx, input }) => {
-      return ctx.db.finishedGame.findMany({
-        where: {
-          userId: input,
-        },
-      });
-    }),
   getById: protectedProcedure
     .input(z.number().int())
-    .query(({ ctx, input }) => {
-      return ctx.db.finishedGame.findUnique({
+    .query(async ({ ctx, input }) => {
+      const game = await ctx.db.finishedGame.findUnique({
         where: {
           id: input,
         },
@@ -101,6 +101,13 @@ export const gameRouter = createTRPCRouter({
           },
         },
       });
+
+      // Don't leak other users' games via a guessable numeric id.
+      if (game && game.userId !== ctx.auth.userId) {
+        throw new TRPCError({ code: "NOT_FOUND" });
+      }
+
+      return game;
     }),
   findProblemsByHash: publicProcedure
     .input(z.array(z.string().min(1)).min(1))

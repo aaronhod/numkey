@@ -3,6 +3,7 @@ import React, {
   useEffect,
   useMemo,
   useReducer,
+  useRef,
   useState,
 } from "react";
 import Numpad from "src/components/views/Numpad";
@@ -268,19 +269,22 @@ const Game = ({
     }
   }, [game.state]);
 
-  // submit game when game is finished
+  // submit game when game is finished (once)
+  const submittedRef = useRef(false);
   useEffect(() => {
-    if (game.state !== "finished") {
+    if (game.state !== "finished" || submittedRef.current) {
       return;
     }
 
     if (persistence === "local") {
+      submittedRef.current = true;
       const saved = saveGuestGame(game);
       void router.push(`/${route}/complete?game=${saved.id}`);
       return;
     }
 
     if (addGameMutation.isIdle) {
+      submittedRef.current = true;
       submitGame();
     }
   }, [addGameMutation.isIdle, game, persistence, route, router, submitGame]);
