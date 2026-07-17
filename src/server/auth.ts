@@ -51,12 +51,26 @@ export function createSupabaseServerClient(
   });
 }
 
+// Protected pages resolve auth twice per request (getServerSideProps, then
+// again inside ssgHelper's tRPC context). In Supabase mode each resolution is
+// a network round-trip to validate the JWT, so memoize the result on the
+// request object for the duration of the request.
+const AUTH_CACHE = Symbol.for("mathgame.serverAuth");
+
 /**
  * Resolve the signed-in user for a request, regardless of provider.
  * Supabase: validates the session JWT against the auth server.
  * Basic (dev): reads and verifies the signed cookie set at login.
  */
 export async function getServerAuth(
+  req: AuthRequest,
+  res: ServerResponse,
+): Promise<ServerAuth> {
+  const cache = req as AuthRequest & { [AUTH_CACHE]?: Promise<ServerAuth> };
+  return (cache[AUTH_CACHE] ??= resolveServerAuth(req, res));
+}
+
+async function resolveServerAuth(
   req: AuthRequest,
   res: ServerResponse,
 ): Promise<ServerAuth> {
