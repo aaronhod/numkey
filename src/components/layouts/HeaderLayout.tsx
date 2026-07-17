@@ -2,8 +2,7 @@ import React from "react";
 import { useTheme, type UseThemeProps } from "next-themes";
 import Link from "next/link";
 import type { Theme } from "@/pages/_app";
-import { UserButton } from "@clerk/nextjs";
-import { authDisabled } from "@/utils/authDisabled";
+import { useAuthUser } from "@/hooks/useAuthUser";
 
 interface ThemeProps extends UseThemeProps {
   theme: Theme;
@@ -32,6 +31,23 @@ interface Props {
   children: React.ReactNode;
 }
 
+const SignOutButton = () => {
+  const { userId, loading, signOut } = useAuthUser();
+
+  if (loading || !userId) {
+    return null;
+  }
+
+  return (
+    <button
+      onClick={() => void signOut()}
+      className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground transition-colors hover:text-foreground"
+    >
+      Sign out
+    </button>
+  );
+};
+
 const Header = () => (
   <header className="top-0 z-40 w-full border-b bg-background">
     <div className="flex h-14 items-center px-5 sm:px-8">
@@ -43,11 +59,7 @@ const Header = () => (
       </Link>
       <nav className="ml-auto flex items-center gap-5">
         <SwitchThemeButton />
-        {!authDisabled && (
-          <div>
-            <UserButton />
-          </div>
-        )}
+        <SignOutButton />
       </nav>
     </div>
   </header>

@@ -17,6 +17,9 @@ export const env = createEnv({
     NODE_ENV: z
       .enum(["development", "test", "production"])
       .default("development"),
+    // Credentials for the dev-only "basic" auth provider (default dev/dev).
+    BASIC_AUTH_USERNAME: z.string().optional(),
+    BASIC_AUTH_PASSWORD: z.string().optional(),
   },
 
   /**
@@ -25,7 +28,11 @@ export const env = createEnv({
    * `NEXT_PUBLIC_`.
    */
   client: {
-    // NEXT_PUBLIC_CLIENTVAR: z.string(),
+    // "supabase" (production default) or "basic" (development default).
+    NEXT_PUBLIC_AUTH_PROVIDER: z.enum(["supabase", "basic"]).optional(),
+    // Required when the supabase auth provider is active.
+    NEXT_PUBLIC_SUPABASE_URL: z.string().url().optional(),
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().optional(),
   },
 
   /**
@@ -35,7 +42,11 @@ export const env = createEnv({
   runtimeEnv: {
     DATABASE_URL: process.env.DATABASE_URL,
     NODE_ENV: process.env.NODE_ENV,
-    // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
+    BASIC_AUTH_USERNAME: process.env.BASIC_AUTH_USERNAME,
+    BASIC_AUTH_PASSWORD: process.env.BASIC_AUTH_PASSWORD,
+    NEXT_PUBLIC_AUTH_PROVIDER: process.env.NEXT_PUBLIC_AUTH_PROVIDER,
+    NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

@@ -25,15 +25,33 @@ test.describe("server responses", () => {
     expect(html).toContain('data-testid="flashcard-answer"');
   });
 
-  test("sign-in page serves", async ({ request }) => {
-    const res = await request.get("/sign-in");
+  test("login page serves", async ({ request }) => {
+    const res = await request.get("/login");
+    expect(res.status()).toBe(200);
+    const html = await res.text();
+    expect(html).toContain("Sign in");
+  });
+
+  test("home is public and offers login and guest modes", async ({
+    request,
+  }) => {
+    const res = await request.get("/");
+    expect(res.status()).toBe(200);
+    const html = await res.text();
+    expect(html).toContain("Login");
+    expect(html).toContain("Guest");
+  });
+
+  test("guest quickplay page serves", async ({ request }) => {
+    const res = await request.get("/play");
     expect(res.status()).toBe(200);
   });
 
-  test("home is gated for anonymous users", async ({ request }) => {
-    const res = await request.get("/", { maxRedirects: 0 });
-    // Clerk's middleware protects the route: signed-out users get a redirect
-    // to sign-in or (with test keys) a protect-rewrite 404 — never a 200.
-    expect([302, 307, 404]).toContain(res.status());
+  test("custom game setup redirects anonymous users to login", async ({
+    request,
+  }) => {
+    const res = await request.get("/game-custom", { maxRedirects: 0 });
+    expect(res.status()).toBe(307);
+    expect(res.headers().location).toBe("/login");
   });
 });
