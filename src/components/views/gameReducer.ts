@@ -21,10 +21,6 @@ export type Action =
       value: ToggleChar;
     }
   | {
-      type: "add-attempt";
-      value?: number;
-    }
-  | {
       type: "update-timer";
       value: number;
     }
@@ -35,11 +31,25 @@ export type Action =
 
 type ToggleChar = "+" | "-";
 
+export type AttemptOutcome = "correct" | "wrong";
+
+export interface AttemptFeedback {
+  outcome: AttemptOutcome;
+  /** Increments on every attempt so consumers can react to repeats. */
+  seq: number;
+}
+
+export const MAX_INPUT_LENGTH = 10;
+
 export interface GameReducerState {
   game: GameInstance;
   inputValue: string | null;
-  prevInputValue: string;
   negativeMode: boolean;
+  /**
+   * Set whenever an attempt is submitted (auto-submitted on the keystroke
+   * that completes the input, or by timer expiry).
+   */
+  feedback: AttemptFeedback | null;
   /**
    * The time in milliseconds that the game has been running for
    */
@@ -68,8 +78,8 @@ export const initialGameState = (
   return {
     game: gameInstance,
     inputValue: null,
-    prevInputValue: "",
     negativeMode: false,
+    feedback: null,
     gameStopWatchMs: 0,
     problemTimerMs: settings.gameModifiers.timed.enabled
       ? settings.gameModifiers.timed.durationSeconds * 1000
@@ -87,8 +97,6 @@ export const gameReducer =
         return removeCharacter(state);
       case "input-toggle-negative":
         return toggleNegativeInput(state, action.value);
-      case "add-attempt":
-        return addRoundAttempt(state, action.value);
       case "update-timer":
         return updateRunningSeconds(state, action.value, settings);
       case "pause-game":
@@ -119,35 +127,87 @@ function togglePausedGame(
   };
 }
 
+type CandidateOutcome = "correct" | "wrong" | "incomplete";
+
+/**
+ * Judge a typed value against the answer. An attempt is complete once the
+ * input has as many characters as the answer (ignoring the sign, which is
+ * entered via negative mode): "4" answers 1-digit problems, "123" answers
+ * 3-digit problems, "1.5" answers "1.5"-shaped problems.
+ *
+ * A correct value is accepted as soon as it matches numerically, even below
+ * the full length (e.g. ".875" for 0.875).
+ */
+export function evaluateCandidate(
+  answer: number,
+  candidate: string,
+  negativeMode: boolean,
+): CandidateOutcome {
+  const value = Number(candidate) * (negativeMode ? -1 : 1);
+  if (Number.isNaN(value)) {
+    // A lone "." — not a number yet.
+    return "incomplete";
+  }
+  if (value === answer) {
+    return "correct";
+  }
+
+  const answerChars = Math.abs(answer).toString();
+  if (answerChars.length > MAX_INPUT_LENGTH) {
+    // Non-terminating decimals (e.g. 2 ÷ 3) can never be typed exactly, so
+    // accept the first MAX_INPUT_LENGTH characters of the answer instead.
+    const signMatches = negativeMode === answer < 0;
+    if (signMatches && answerChars.startsWith(candidate)) {
+      return candidate.length === MAX_INPUT_LENGTH ? "correct" : "incomplete";
+    }
+    return candidate.length >= MAX_INPUT_LENGTH ? "wrong" : "incomplete";
+  }
+
+  return candidate.length >= answerChars.length ? "wrong" : "incomplete";
+}
+
 function insertCharacter(
   state: GameReducerState,
-  newValue: string,
+  newChar: string,
 ): GameReducerState {
-  const asNumber = Number(newValue);
-  const validValue =
-    (Number.isFinite(asNumber) && asNumber >= 0 && asNumber <= 9) ||
-    newValue === ".";
-
-  if ((state.inputValue?.length ?? 0) + 1 > 10) {
+  const isDigit = newChar.length === 1 && newChar >= "0" && newChar <= "9";
+  const isDot = newChar === "." && !(state.inputValue ?? "").includes(".");
+  if (!isDigit && !isDot) {
     return state;
   }
 
-  if (validValue) {
-    return {
-      ...state,
-      inputValue: [state.inputValue, newValue].join(""),
-      prevInputValue: [state.prevInputValue, state.inputValue ?? ""].join(""),
-    };
+  const candidate = (state.inputValue ?? "") + newChar;
+  if (candidate.length > MAX_INPUT_LENGTH) {
+    return state;
   }
 
-  return state;
+  const problem = state.game.currentProblem;
+  if (problem && state.game.state === "running" && !state.game.pause.isPaused) {
+    const outcome = evaluateCandidate(
+      problem.answer,
+      candidate,
+      state.negativeMode,
+    );
+    if (outcome === "correct") {
+      // Pass the unsigned answer: addRoundAttempt applies negative mode.
+      return addRoundAttempt(state, Math.abs(problem.answer));
+    }
+    if (outcome === "wrong") {
+      return addRoundAttempt(state, Number(candidate));
+    }
+  }
+
+  return {
+    ...state,
+    inputValue: candidate,
+  };
 }
 
 function removeCharacter(state: GameReducerState): GameReducerState {
+  const trimmed = state.inputValue?.slice(0, -1) ?? null;
   return {
     ...state,
-    inputValue: state.inputValue?.slice(0, -1) ?? null,
-    prevInputValue: state.prevInputValue?.slice(0, -1) ?? "",
+    inputValue: trimmed === "" ? null : trimmed,
   };
 }
 
@@ -179,26 +239,25 @@ function addRoundAttempt(
   }
 
   let ans = answer;
-  if (ans && state.negativeMode) {
+  if (ans !== undefined && state.negativeMode) {
     ans = -ans;
   }
 
-  let newInputValue = state.inputValue;
-  let prevInputValue = state.prevInputValue;
-  if (ans && state.game.currentProblem.answer === ans) {
-    if (state.game.state === "finished") {
-      newInputValue = "Done!";
-    } else {
-      newInputValue = null;
-    }
-    prevInputValue = "";
-  }
+  const isCorrect =
+    ans !== undefined && state.game.currentProblem.answer === ans;
+  const game = addAttempt(structuredClone(state.game), ans);
 
+  // The input always clears after an attempt: a correct answer advances to
+  // the next problem, a wrong one restarts the same problem from scratch.
   return {
     ...state,
-    game: addAttempt(structuredClone(state.game), ans),
-    inputValue: newInputValue,
-    prevInputValue: prevInputValue,
+    game,
+    inputValue: game.state === "finished" && isCorrect ? "Done!" : null,
+    negativeMode: false,
+    feedback: {
+      outcome: isCorrect ? "correct" : "wrong",
+      seq: (state.feedback?.seq ?? 0) + 1,
+    },
   };
 }
 
@@ -234,7 +293,11 @@ function updateRunningSeconds(
   } as GameReducerState;
 
   if (timerIsExpired) {
-    return addRoundAttempt(updatedTimeState, Number(state.inputValue));
+    // No input when the timer runs out counts as a skip, not a 0 answer.
+    return addRoundAttempt(
+      updatedTimeState,
+      state.inputValue === null ? undefined : Number(state.inputValue),
+    );
   }
 
   return updatedTimeState;

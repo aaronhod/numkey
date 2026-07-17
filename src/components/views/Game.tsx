@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useReducer } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useReducer,
+  useState,
+} from "react";
 import Numpad from "src/components/views/Numpad";
 import {
   Display,
@@ -19,7 +25,11 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
 } from "@/components/shad-ui/alert-dialog";
-import { gameReducer, initialGameState } from "@/components/views/gameReducer";
+import {
+  gameReducer,
+  initialGameState,
+  type AttemptOutcome,
+} from "@/components/views/gameReducer";
 import { LoaderOverlay } from "@/components/LoaderOverlay";
 import { Button } from "@/components/shad-ui/button";
 import {
@@ -30,10 +40,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/shad-ui/dialog";
+import { useLocalStorage } from "@/hooks/useLocalStorage";
+import { setSoundEnabled, sound } from "@/utils/sound";
 
 // add duration plugin for dayjs
 import duration from "dayjs/plugin/duration";
-import { getFinishedGame, isAnswerCorrect } from "@/game/gameInstance";
+import { getFinishedGame } from "@/game/gameInstance";
 import {
   DEFAULT_GAME_SETTINGS,
   type GameCategory,
@@ -102,9 +114,13 @@ const ErrorDialog = ({
 const PauseMenu = ({
   isOpen,
   setIsOpen,
+  soundOn,
+  toggleSound,
 }: {
   isOpen: boolean;
   setIsOpen: (open: boolean) => void;
+  soundOn: boolean;
+  toggleSound: () => void;
 }) => {
   const router = useRouter();
 
@@ -122,12 +138,11 @@ const PauseMenu = ({
             Exit to the main menu or resume.
           </DialogDescription>
         </DialogHeader>
-        <DialogFooter>
-          <Button
-            variant="destructive"
-            className="mr-auto"
-            onClick={() => void router.push("/")}
-          >
+        <DialogFooter className="gap-2">
+          <Button variant="ghost" className="sm:mr-auto" onClick={toggleSound}>
+            Sound {soundOn ? "On ●" : "Off ○"}
+          </Button>
+          <Button variant="destructive" onClick={() => void router.push("/")}>
             Exit Game
           </Button>
           <Button variant="secondary" onClick={() => setIsOpen(false)}>
@@ -150,19 +165,27 @@ const Game = ({
   const addGameMutation = api.game.addFinishedGame.useMutation();
 
   const [
-    {
-      game,
-      inputValue,
-      prevInputValue,
-      negativeMode,
-      gameStopWatchMs,
-      problemTimerMs,
-    },
+    { game, inputValue, negativeMode, feedback, gameStopWatchMs, problemTimerMs },
     dispatch,
   ] = useReducer(
     gameReducer(settings),
     initialGameState(userId, initialProblems, category, settings),
   );
+
+  // Only offer the sign/decimal keys when the problem set can need them.
+  const showNegative = useMemo(
+    () => initialProblems.some((problem) => problem.answer < 0),
+    [initialProblems],
+  );
+  const showDecimal = useMemo(
+    () => initialProblems.some((problem) => !Number.isInteger(problem.answer)),
+    [initialProblems],
+  );
+
+  const [soundOn, setSoundOn] = useLocalStorage("soundEnabled", true);
+  useEffect(() => {
+    setSoundEnabled(soundOn);
+  }, [soundOn]);
 
   const pauseGame = useCallback((newPauseState?: boolean) => {
     dispatch({ type: "pause-game", value: newPauseState });
@@ -176,83 +199,67 @@ const Game = ({
     addGameMutation.mutate(getFinishedGame(game));
   }, [addGameMutation, game]);
 
+  // The reducer evaluates every keystroke: correct answers auto-submit and
+  // wrong full-length answers auto-clear, so the handler only routes keys.
+  // It has stable deps, so the listener is attached exactly once.
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
-      function addImplicitAttempt() {
-        if (
-          !game.currentProblem ||
-          (inputValue === null && prevInputValue === "")
-        ) {
-          return;
-        }
+      const key = event.key;
 
-        const userIsTyping =
-          game.currentProblem &&
-          prevInputValue.length < game.currentProblem.answer.toString().length;
-
-        if (!userIsTyping && settings?.gameMode !== "lives") {
-          dispatch({
-            type: "add-attempt",
-            value: Number(inputValue),
-          });
-        }
+      if (key === "Escape") {
+        event.preventDefault();
+        return pauseGame();
       }
-
-      event.preventDefault();
-      switch (event.key.toLowerCase()) {
-        // Menu Input
-        case "escape":
-          return pauseGame();
-        // Main Game Input
-        case "enter":
-          return dispatch({ type: "add-attempt" });
-        case "backspace":
-          if (inputValue === null) {
-            return;
-          }
-
-          if (inputValue.length === 1) {
-            addImplicitAttempt();
-          }
-
-          dispatch({ type: "input-remove" });
-          return;
-        case "-":
-          return dispatch({ type: "input-toggle-negative", value: "-" });
-        // on small keyboards, + and = are the same key. = isn't used, so we do this for now.
-        case "+":
-        case "=":
-          return dispatch({ type: "input-toggle-negative", value: "+" });
-        // Number Input
-        default: {
-          const keyNumber = Number(event.key);
-          if (Number.isNaN(keyNumber) || !game.currentProblem) {
-            return;
-          }
-
-          const fullAnswer = Number(inputValue + event.key);
-          if (isAnswerCorrect(game.currentProblem, fullAnswer)) {
-            return dispatch({
-              type: "add-attempt",
-              value: fullAnswer,
-            });
-          }
-
-          return dispatch({
-            type: "input-insert",
-            value: keyNumber.toString(),
-          });
-        }
+      if (key === "Backspace") {
+        event.preventDefault();
+        return dispatch({ type: "input-remove" });
+      }
+      if (key === "-") {
+        event.preventDefault();
+        sound.tap();
+        return dispatch({ type: "input-toggle-negative", value: "-" });
+      }
+      // on small keyboards, + and = are the same key. = isn't used, so we do
+      // this for now.
+      if (key === "+" || key === "=") {
+        event.preventDefault();
+        sound.tap();
+        return dispatch({ type: "input-toggle-negative", value: "+" });
+      }
+      if ((key >= "0" && key <= "9") || key === ".") {
+        event.preventDefault();
+        sound.tap();
+        return dispatch({ type: "input-insert", value: key });
       }
     },
-    [
-      game.currentProblem,
-      inputValue,
-      pauseGame,
-      prevInputValue,
-      settings?.gameMode,
-    ],
+    [pauseGame],
   );
+
+  // Attempt feedback: flash the display and play a sound. The flash is
+  // derived from the latest attempt and expires via the timeout below.
+  const [flashExpiredSeq, setFlashExpiredSeq] = useState(0);
+  const flash: AttemptOutcome | null =
+    feedback && feedback.seq !== flashExpiredSeq ? feedback.outcome : null;
+  useEffect(() => {
+    if (!feedback) {
+      return;
+    }
+
+    if (feedback.outcome === "correct") {
+      sound.correct();
+    } else {
+      sound.wrong();
+    }
+
+    const timeout = setTimeout(() => setFlashExpiredSeq(feedback.seq), 160);
+    return () => clearTimeout(timeout);
+  }, [feedback]);
+
+  useEffect(() => {
+    if (game.state === "finished") {
+      sound.finish();
+    }
+  }, [game.state]);
 
   // submit game when game is finished
   useEffect(() => {
@@ -272,7 +279,12 @@ const Game = ({
 
   return (
     <>
-      <PauseMenu isOpen={game.pause.isPaused} setIsOpen={pauseGame} />
+      <PauseMenu
+        isOpen={game.pause.isPaused}
+        setIsOpen={pauseGame}
+        soundOn={soundOn}
+        toggleSound={() => setSoundOn(!soundOn)}
+      />
       <ErrorDialog
         error={addGameMutation.error}
         refetch={submitGame}
@@ -299,9 +311,15 @@ const Game = ({
             problem={game.currentProblem ?? null}
             negativeMode={negativeMode}
             userValue={inputValue}
+            flash={flash}
           />
         </Display>
-        <Numpad dispatch={dispatch} negativeMode={negativeMode} />
+        <Numpad
+          dispatch={dispatch}
+          negativeMode={negativeMode}
+          showDecimal={showDecimal}
+          showNegative={showNegative}
+        />
       </div>
     </>
   );

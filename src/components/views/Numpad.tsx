@@ -1,80 +1,66 @@
-import type { ReactElement } from "react";
 import React, { memo, useCallback } from "react";
-import { Button } from "@/components/shad-ui/button";
 import { cn } from "@/utils/shad";
 import type { Action } from "@/components/views/gameReducer";
+import { sound } from "@/utils/sound";
 
 interface NumpadProps {
   dispatch: React.Dispatch<Action>;
   negativeMode: boolean;
+  /** Show the decimal key (the problem set contains non-integer answers). */
+  showDecimal: boolean;
+  /** Show the negative key (the problem set contains negative answers). */
+  showNegative: boolean;
   className?: string;
 }
+
+// Answers auto-submit once the input reaches the answer's length, and wrong
+// attempts auto-clear — so there are no delete/submit keys, only input keys.
+const KEY_CLASSES =
+  "flex h-full select-none touch-manipulation items-center justify-center bg-background text-2xl font-medium tabular-nums transition-none active:bg-foreground/25";
 
 const NumpadBtn: React.FC<{
   value: string;
   dispatch: React.Dispatch<Action>;
-  icon?: ReactElement;
   className?: string;
-}> = ({ value, icon, dispatch, className }) => {
-  const buttonClick = useCallback(
-    (e: React.MouseEvent<HTMLButtonElement>) => {
-      // currentTarget: clicks may land on the glyph <span> inside the button.
-      const newValue = e.currentTarget.value;
+}> = ({ value, dispatch, className }) => {
+  // pointerdown (not click) so keys respond the instant a finger lands.
+  const press = useCallback(
+    (e: React.PointerEvent<HTMLButtonElement>) => {
+      e.preventDefault();
+      sound.tap();
 
-      if (!newValue) {
+      if (value === "-") {
+        dispatch({ type: "input-toggle-negative", value: "-" });
         return;
       }
 
-      if (newValue === "<") {
-        return dispatch({ type: "input-remove" });
-      }
-
-      if (newValue === "-") {
-        return dispatch({ type: "input-toggle-negative", value: "-" });
-      }
-
-      if (newValue == "submit") {
-        return dispatch({ type: "add-attempt" });
-      }
-
-      dispatch({ type: "input-insert", value: newValue });
+      dispatch({ type: "input-insert", value });
     },
-    [dispatch],
+    [dispatch, value],
   );
 
   return (
-    <Button
-      variant="outline"
-      className={cn(
-        // Opaque background so the grid's 1px gaps read as hairlines.
-        "h-full border-transparent bg-background text-center text-2xl font-medium tabular-nums tracking-normal hover:border-transparent hover:bg-accent active:bg-foreground/25",
-        className,
-      )}
-      value={value}
-      onClick={buttonClick}
-    >
-      {icon ?? value}
-    </Button>
+    <button className={cn(KEY_CLASSES, className)} onPointerDown={press}>
+      {value === "-" ? "−" : value}
+    </button>
   );
 };
 NumpadBtn.displayName = "Numpad Button";
 
 const Numpad: React.FC<NumpadProps> = memo(
-  ({ dispatch, negativeMode, className }) => {
-    const MemoBtn = useCallback(
-      (props: { value: string; icon?: ReactElement; className?: string }) => (
+  ({ dispatch, negativeMode, showDecimal, showNegative, className }) => {
+    const Btn = useCallback(
+      (props: { value: string; className?: string }) => (
         <NumpadBtn
           dispatch={dispatch}
           value={props.value}
-          icon={props.icon}
           className={props.className}
         />
       ),
       [dispatch],
     );
 
-    // Text glyphs only — no icon set. 1px gaps over the border color draw the
-    // hairline grid between keys.
+    // 1px gaps over the border color draw the hairline grid between keys.
     return (
       <div
         className={cn(
@@ -82,45 +68,37 @@ const Numpad: React.FC<NumpadProps> = memo(
           className,
         )}
       >
-        <MemoBtn value="7" />
-        <MemoBtn value="8" />
-        <MemoBtn value="9" />
+        <Btn value="7" />
+        <Btn value="8" />
+        <Btn value="9" />
 
-        <MemoBtn value="4" />
-        <MemoBtn value="5" />
-        <MemoBtn value="6" />
+        <Btn value="4" />
+        <Btn value="5" />
+        <Btn value="6" />
 
-        <MemoBtn value="1" />
-        <MemoBtn value="2" />
-        <MemoBtn value="3" />
+        <Btn value="1" />
+        <Btn value="2" />
+        <Btn value="3" />
 
-        <div className="grid grid-cols-2 gap-px">
-          <MemoBtn
-            value="<"
-            className="w-full text-sm uppercase tracking-[0.05em]"
-            icon={<span className="pointer-events-none">Del</span>}
-          />
-          <NumpadBtn
-            dispatch={dispatch}
+        {showDecimal ? (
+          <Btn value="." />
+        ) : (
+          <div aria-hidden className="bg-background" />
+        )}
+
+        <Btn value="0" />
+
+        {showNegative ? (
+          <Btn
             value="-"
-            className={cn("w-full", {
-              "border-foreground bg-foreground text-background hover:bg-foreground":
+            className={cn({
+              "bg-foreground text-background active:bg-foreground":
                 negativeMode,
             })}
-            icon={<span className="pointer-events-none">−</span>}
           />
-        </div>
-
-        <MemoBtn value="0" />
-
-        <div className="grid grid-cols-2 gap-px">
-          <MemoBtn value="." className="w-full" />
-          <MemoBtn
-            value="submit"
-            className="w-full"
-            icon={<span className="pointer-events-none">→</span>}
-          />
-        </div>
+        ) : (
+          <div aria-hidden className="bg-background" />
+        )}
       </div>
     );
   },
