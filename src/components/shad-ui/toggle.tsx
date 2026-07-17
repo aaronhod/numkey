@@ -6,14 +6,15 @@ import { cva, type VariantProps } from "class-variance-authority";
 
 import { cn } from "@/utils/shad";
 
+// Selected state is an inverted fill (foreground on background) — the only
+// "fill" in the design; everything else stays outline-only.
 const toggleVariants = cva(
-  "inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors hover:bg-muted hover:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=on]:bg-accent data-[state=on]:text-accent-foreground",
+  "inline-flex items-center justify-center border border-foreground/30 bg-transparent text-sm font-medium uppercase tracking-[0.05em] transition-colors hover:border-foreground/60 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 data-[state=on]:border-foreground data-[state=on]:bg-foreground data-[state=on]:text-background",
   {
     variants: {
       variant: {
-        default: "bg-transparent",
-        outline:
-          "border border-input bg-transparent hover:bg-accent hover:text-accent-foreground",
+        default: "",
+        outline: "",
       },
       size: {
         default: "h-10 px-3",

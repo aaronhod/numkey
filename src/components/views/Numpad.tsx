@@ -1,7 +1,6 @@
 import type { ReactElement } from "react";
 import React, { memo, useCallback } from "react";
 import { Button } from "@/components/shad-ui/button";
-import { CornerDownRight, Delete, Dot, Minus } from "lucide-react";
 import { cn } from "@/utils/shad";
 import type { Action } from "@/components/views/gameReducer";
 
@@ -19,8 +18,8 @@ const NumpadBtn: React.FC<{
 }> = ({ value, icon, dispatch, className }) => {
   const buttonClick = useCallback(
     (e: React.MouseEvent<HTMLButtonElement>) => {
-      const target = e.target as HTMLButtonElement;
-      const newValue = target.value;
+      // currentTarget: clicks may land on the glyph <span> inside the button.
+      const newValue = e.currentTarget.value;
 
       if (!newValue) {
         return;
@@ -47,7 +46,8 @@ const NumpadBtn: React.FC<{
     <Button
       variant="outline"
       className={cn(
-        "sm:text-4 h-full rounded-none border-2 text-center text-2xl font-bold hover:bg-primary",
+        // Opaque background so the grid's 1px gaps read as hairlines.
+        "h-full border-transparent bg-background text-center text-2xl font-medium tabular-nums tracking-normal hover:border-transparent hover:bg-accent active:bg-foreground/25",
         className,
       )}
       value={value}
@@ -73,8 +73,15 @@ const Numpad: React.FC<NumpadProps> = memo(
       [dispatch],
     );
 
+    // Text glyphs only — no icon set. 1px gaps over the border color draw the
+    // hairline grid between keys.
     return (
-      <div className={cn("grid h-full grid-cols-3", className)}>
+      <div
+        className={cn(
+          "grid h-full grid-cols-3 gap-px border-t bg-border",
+          className,
+        )}
+      >
         <MemoBtn value="7" />
         <MemoBtn value="8" />
         <MemoBtn value="9" />
@@ -87,34 +94,31 @@ const Numpad: React.FC<NumpadProps> = memo(
         <MemoBtn value="2" />
         <MemoBtn value="3" />
 
-        <div className="flex border-2 border-accent">
+        <div className="grid grid-cols-2 gap-px">
           <MemoBtn
             value="<"
-            icon={<Delete className="ml-auto mr-auto h-10 w-10" />}
-            className="w-full bg-destructive/30"
+            className="w-full text-sm uppercase tracking-[0.05em]"
+            icon={<span className="pointer-events-none">Del</span>}
           />
           <NumpadBtn
             dispatch={dispatch}
             value="-"
-            icon={<Minus className="ml-auto mr-auto h-10 w-10" />}
-            className={cn(" w-full", {
-              "bg-secondary/50": negativeMode,
+            className={cn("w-full", {
+              "border-foreground bg-foreground text-background hover:bg-foreground":
+                negativeMode,
             })}
+            icon={<span className="pointer-events-none">−</span>}
           />
         </div>
 
         <MemoBtn value="0" />
 
-        <div className="flex border-2 border-accent">
-          <MemoBtn
-            value="."
-            className="w-full"
-            icon={<Dot className="ml-auto mr-auto h-10 w-10" />}
-          />
+        <div className="grid grid-cols-2 gap-px">
+          <MemoBtn value="." className="w-full" />
           <MemoBtn
             value="submit"
-            className="w-full bg-primary/20"
-            icon={<CornerDownRight className="ml-auto mr-auto h-10 w-10" />}
+            className="w-full"
+            icon={<span className="pointer-events-none">→</span>}
           />
         </div>
       </div>

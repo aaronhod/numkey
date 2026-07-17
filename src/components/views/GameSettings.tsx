@@ -1,14 +1,5 @@
-import type { LucideProps } from "lucide-react";
-import {
-  Activity,
-  Calculator,
-  Clock,
-  Dice6,
-  Layers,
-  RefreshCw,
-  Shuffle,
-} from "lucide-react";
 import React from "react";
+import { cn } from "@/utils/shad";
 
 export type GameModifiers = {
   random: {
@@ -52,44 +43,24 @@ export const DEFAULT_GAME_SETTINGS: GameSettings = {
   nextOnFail: undefined,
 };
 
-interface IconProps extends LucideProps {
+interface TagProps {
   className?: string;
 }
 
+// The design uses no icons — modes and modifiers are plain uppercase tags.
 export const ModifierIcon = ({
   modifier,
-  ...props
-}: { modifier: GameModifierName } & IconProps) => {
-  return getModifierIcon(modifier, props);
+  className,
+}: { modifier: GameModifierName } & TagProps) => {
+  return (
+    <span className={cn("uppercase tracking-[0.08em]", className)}>
+      {modifier}
+    </span>
+  );
 };
 
-export const ModeIcon = ({
-  mode,
-  ...props
-}: { mode: GameMode } & IconProps) => {
-  return getModeIcon(mode, props);
-};
-
-const getModifierIcon = (modifier: GameModifierName, props: IconProps) => {
-  switch (modifier) {
-    case "random":
-      return <Dice6 {...props} />;
-    case "timed":
-      return <Clock {...props} />;
-    case "shuffled":
-      return <Shuffle {...props} />;
-  }
-};
-
-const getModeIcon = (mode: GameMode, props: IconProps) => {
-  switch (mode) {
-    case "normal":
-      return <Calculator {...props} />;
-    case "endless":
-      return <RefreshCw {...props} />;
-    case "lives":
-      return <Activity {...props} />;
-    case "stack":
-      return <Layers {...props} />;
-  }
+export const ModeIcon = ({ mode, className }: { mode: GameMode } & TagProps) => {
+  return (
+    <span className={cn("uppercase tracking-[0.08em]", className)}>{mode}</span>
+  );
 };

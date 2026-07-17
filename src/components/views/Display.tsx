@@ -2,13 +2,6 @@ import type { ProblemDefinition } from "@/game/problem";
 import { getOperatorChar } from "@/game/problem";
 import { cn } from "@/utils/shad";
 import React, { useEffect } from "react";
-import {
-  Clock,
-  Heart,
-  LucideInfinity,
-  Tally5,
-  Timer as TimerIcon,
-} from "lucide-react";
 import { Separator } from "@/components/shad-ui/separator";
 import {
   Tooltip,
@@ -54,9 +47,11 @@ const StopWatch = ({ runningMs, setRunningMs, isPaused }: TimerProps) => {
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <div className="flex items-center gap-2">
-          <Clock />
-          <p>{timeElapsed.format("mm:ss")}</p>
+        <div className="flex items-baseline gap-2">
+          <span>Time</span>
+          <p className="tabular-nums text-foreground">
+            {timeElapsed.format("mm:ss")}
+          </p>
         </div>
       </TooltipTrigger>
       <TooltipContent>
@@ -70,9 +65,11 @@ const Timer = ({ remainingMs }: { remainingMs: number }) => {
   const timeRemaining = dayjs.duration(remainingMs, "milliseconds");
 
   return (
-    <div className="flex items-center gap-2">
-      <TimerIcon />
-      <p>{timeRemaining.asSeconds().toString().padStart(2, "0")}</p>
+    <div className="flex items-baseline gap-2">
+      <span>Left</span>
+      <p className="tabular-nums text-foreground">
+        {timeRemaining.asSeconds().toString().padStart(2, "0")}
+      </p>
     </div>
   );
 };
@@ -100,15 +97,10 @@ const RoundTally = ({
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <div className="flex items-center gap-2">
-          <Tally5 />
-          <div className="flex">
-            <div>{paddedCompleted}/</div>
-            {gameMode === "endless" ? (
-              <LucideInfinity height="full" />
-            ) : (
-              <>{denominator}</>
-            )}
+        <div className="flex items-baseline gap-2">
+          <span>Rnd</span>
+          <div className="flex tabular-nums text-foreground">
+            {tallyString}
           </div>
         </div>
       </TooltipTrigger>
@@ -121,19 +113,13 @@ const RoundTally = ({
 
 const SettingsDisplay = ({ settings }: { settings: GameSettings }) => {
   const { gameMode, gameModifiers } = settings;
-  const GameModeIcon = <ModeIcon mode={gameMode} className="h-5 w-5" />;
+  const GameModeIcon = <ModeIcon mode={gameMode} />;
   const ModifierIcons = Object.entries(gameModifiers)
     .map(([name, val]) => {
       if (!val.enabled) {
         return null;
       }
-      return (
-        <ModifierIcon
-          key={name}
-          modifier={name as GameModifierName}
-          className="h-5 w-5"
-        />
-      );
+      return <ModifierIcon key={name} modifier={name as GameModifierName} />;
     })
     .filter((icon) => icon !== null);
 
@@ -164,10 +150,12 @@ const LivesDisplay = ({
     const hearts = [];
     for (let i = 0; i < TOTAL_LIVES; i++) {
       hearts.push(
-        <Heart
+        <span
           key={`heart-${i}`}
-          className={i < livesRemaining ? "fill-white" : ""}
-        />,
+          className={i < livesRemaining ? "text-foreground" : "opacity-30"}
+        >
+          ●
+        </span>,
       );
     }
     return hearts.reverse();
@@ -176,7 +164,7 @@ const LivesDisplay = ({
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <div className="flex">{renderHearts()}</div>
+        <div className="flex gap-1.5">{renderHearts()}</div>
       </TooltipTrigger>
       <TooltipContent>
         <p>{`${livesRemaining}/${TOTAL_LIVES}`} lives remaining</p>
@@ -203,7 +191,7 @@ export const DisplayHeader = (props: {
   remainingMs: number | null;
 }) => {
   return (
-    <h3 className="flex justify-between px-5 pt-3 text-foreground/50 ">
+    <h3 className="flex items-baseline justify-between gap-4 border-b px-5 py-3 text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
       <RoundTally
         completed={props.completed}
         total={props.total}
