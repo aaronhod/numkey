@@ -55,7 +55,7 @@ export function createSupabaseServerClient(
 // again inside ssgHelper's tRPC context). In Supabase mode each resolution is
 // a network round-trip to validate the JWT, so memoize the result on the
 // request object for the duration of the request.
-const AUTH_CACHE = Symbol.for("mathgame.serverAuth");
+const AUTH_CACHE = Symbol.for("numkey.serverAuth");
 
 /**
  * Resolve the signed-in user for a request, regardless of provider.

@@ -1,7 +1,7 @@
-# Math Game
+# numkey
 
-Mental-arithmetic game. Next.js (pages router) + tRPC + Prisma, styled as a
-black/white monospace design system.
+Fast mental-arithmetic game (number + monkey). Next.js (pages router) + tRPC +
+Prisma, styled as a black/white monospace design system.
 
 ## Architecture
 
@@ -35,7 +35,8 @@ Sign in with `dev` / `dev` (override with `BASIC_AUTH_USERNAME` /
 
 ## Production (Supabase)
 
-The production project is `mathgame` (`czqdhcxbdajdodefumfe`, us-east-1).
+The production project is `czqdhcxbdajdodefumfe` (us-east-1); its dashboard
+display name can be renamed to `numkey` in Project Settings.
 The schema was applied as the `init_mathgame_schema` migration and the 528
 problem definitions are seeded. All tables have RLS enabled with no policies:
 the app reaches Postgres exclusively through Prisma's direct connection, so

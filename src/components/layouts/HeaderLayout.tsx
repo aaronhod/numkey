@@ -55,7 +55,7 @@ const Header = () => (
         href="/"
         className="text-[13px] font-semibold uppercase tracking-[0.08em]"
       >
-        MathGame
+        numkey
       </Link>
       <nav className="ml-auto flex items-center gap-5">
         <SwitchThemeButton />

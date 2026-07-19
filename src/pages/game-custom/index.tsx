@@ -20,7 +20,7 @@ const Page: NextPageWithLayout = () => {
   return (
     <>
       <Head>
-        <title>Math Game</title>
+        <title>numkey</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <SelectionScreen />

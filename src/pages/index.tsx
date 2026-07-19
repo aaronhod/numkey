@@ -93,15 +93,15 @@ const Page: NextPageWithLayout<{ signedIn: boolean }> = ({ signedIn }) => {
   return (
     <>
       <Head>
-        <title>Math Game</title>
+        <title>numkey</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className="mx-auto flex w-full max-w-2xl flex-col px-5 pb-16 pt-12 sm:px-8 sm:pt-20">
         <p className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">
           01 Home
         </p>
-        <h1 className="mt-3 text-[clamp(34px,7vw,52px)] font-bold leading-[1.1] tracking-[-0.01em]">
-          Math Game
+        <h1 className="mt-3 text-[clamp(34px,7vw,52px)] font-bold lowercase leading-[1.1] tracking-[-0.01em]">
+          numkey
         </h1>
         <p className="mt-4 max-w-md text-[13.5px] leading-relaxed text-muted-foreground">
           Mental arithmetic, timed and scored.
