@@ -1,47 +1,26 @@
 import { type RouterOutputs } from "@/utils/api";
 import { useRouter } from "next/router";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/shad-ui/table";
 import { Button } from "@/components/shad-ui/button";
 import { LoaderOverlay } from "@/components/LoaderOverlay";
+import { GameResults } from "@/components/views/GameResults";
 import type { Operator } from "@/game/problem";
-import { getOperatorChar } from "@/game/problem";
-import { appRouter } from "@/server/api/root";
-import { createContextInner } from "@/server/api/trpc";
-import { createServerSideHelpers } from "@trpc/react-query/server";
-import { redirect } from "next/navigation";
-import superjson from "superjson";
-import { clerkClient } from "@clerk/nextjs/server";
-import { getAuthOrDev } from "@/server/devAuth";
-import { authDisabled } from "@/utils/authDisabled";
+import { getGameRouteQuickPlay } from "@/constants/routes";
+import { ssgHelper } from "@/server/ssgHelper";
+import { getServerAuth } from "@/server/auth";
 import {
   type GetServerSideProps,
   type InferGetServerSidePropsType,
 } from "next";
 
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
-  const { userId } = getAuthOrDev(ctx.req);
-  if (!authDisabled) {
-    const user = userId
-      ? await (await clerkClient()).users.getUser(userId)
-      : undefined;
-
-    if (!user || !userId) {
-      redirect("/");
-    }
+  const { userId } = await getServerAuth(ctx.req, ctx.res);
+  if (!userId) {
+    return {
+      redirect: { destination: "/login", permanent: false },
+    };
   }
 
-  const helpers = createServerSideHelpers({
-    router: appRouter,
-    ctx: await createContextInner({ auth: getAuthOrDev(ctx.req) }),
-    transformer: superjson,
-  });
+  const helpers = await ssgHelper(ctx);
 
   const gameId = Number(ctx.query.gameId);
   if (Number.isNaN(gameId)) {
@@ -78,47 +57,12 @@ const FinishedGamePage = ({ game, error }: Props) => {
   const router = useRouter();
 
   function newGame() {
-    router.push("/game").catch((err) => console.error(err));
+    router.push(`/${getGameRouteQuickPlay()}`).catch((err) => console.error(err));
   }
 
   function mainMenu() {
     router.push("/").catch((err) => console.error(err));
   }
-
-  const Time = ({ milliSeconds }: { milliSeconds: number }) => {
-    const seconds = Math.floor(milliSeconds / 1000);
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    const remainingMilliseconds = milliSeconds % 1000;
-
-    const values = () => {
-      if (minutes > 0) {
-        return {
-          value: `${minutes}:${remainingSeconds}`,
-          unit: "m",
-        };
-      }
-
-      if (seconds > 0) {
-        return {
-          value: `${seconds}.${remainingMilliseconds}`,
-          unit: "s",
-        };
-      }
-
-      return {
-        value: milliSeconds.toString(),
-        unit: "ms",
-      };
-    };
-
-    return (
-      <div className="flex">
-        <p className="">{values().value}</p>
-        <p className="font-extralight">{values().unit}</p>
-      </div>
-    );
-  };
 
   if (!game) {
     return <LoaderOverlay isLoading={true} />;
@@ -135,42 +79,19 @@ const FinishedGamePage = ({ game, error }: Props) => {
             Game Complete
           </h1>
         </div>
-        <Table className="h-3/5 border">
-          <TableHeader>
-            <TableRow>
-              <TableHead>Problem</TableHead>
-              <TableHead>Answer</TableHead>
-              <TableHead>Solved</TableHead>
-              <TableHead>Time</TableHead>
-              <TableHead>Attempts</TableHead>
-              <TableHead>Average Time</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {game.rounds.map((round, index) => (
-              <TableRow key={index}>
-                <TableCell>
-                  {round.problem.leftValue}{" "}
-                  {getOperatorChar(round.problem.operator as Operator)}{" "}
-                  {round.problem.rightValue}
-                </TableCell>
-                <TableCell>{round.problem.answer}</TableCell>
-                <TableCell>
-                  {round.isCompleted ? (
-                    <span>●</span>
-                  ) : (
-                    <span className="text-muted-foreground">○</span>
-                  )}
-                </TableCell>
-                <TableCell>
-                  <Time milliSeconds={Number(round.durationMs)} />
-                </TableCell>
-                <TableCell>{round.attempts.length}</TableCell>
-                {/*<TableCell>todo for each problem find the users average solve time</TableCell>*/}
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+        <GameResults
+          rounds={game.rounds.map((round) => ({
+            problem: {
+              leftValue: round.problem.leftValue,
+              rightValue: round.problem.rightValue,
+              operator: round.problem.operator as Operator,
+              answer: round.problem.answer,
+            },
+            isCompleted: round.isCompleted,
+            durationMs: Number(round.durationMs),
+            attemptCount: round.attempts.length,
+          }))}
+        />
         {error && (
           <p className="uppercase tracking-[0.05em] text-muted-foreground">
             Error — {error.message}

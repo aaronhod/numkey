@@ -107,7 +107,7 @@ const Page: NextPageWithLayout<FlashCardSetPageProps> = (props) => {
   return (
     <>
       <Head>
-        <title>Math Game</title>
+        <title>numkey</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <FlashCardSetPage {...props} />

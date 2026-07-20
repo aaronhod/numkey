@@ -1,29 +1,79 @@
-# Create T3 App
+# numkey
 
-This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3-app`.
+Fast mental-arithmetic game (number + monkey). Next.js (pages router) + tRPC +
+Prisma, styled as a black/white monospace design system.
 
-## What's next? How do I make an app with this?
+## Architecture
 
-We try to keep this project as simple as possible, so you can start with just the scaffolding we set up for you, and add additional things later when they become necessary.
+| Concern    | Development                          | Production                        |
+| ---------- | ------------------------------------ | --------------------------------- |
+| Auth       | Basic username/password (`dev`/`dev`) | Supabase Auth (GitHub + Google)   |
+| Database   | Local Postgres (`start-database.sh`)  | Supabase Postgres (via Prisma)    |
+| Guest mode | localStorage                          | localStorage                      |
 
-If you are not familiar with the different technologies used in this project, please refer to the respective docs. If you still are in the wind, please join our [Discord](https://t3.gg/discord) and ask for help.
+The auth provider is selected by `NEXT_PUBLIC_AUTH_PROVIDER` (`basic` |
+`supabase`); it defaults to `basic` in development and `supabase` in
+production builds.
 
-- [Next.js](https://nextjs.org)
-- [NextAuth.js](https://next-auth.js.org)
-- [Prisma](https://prisma.io)
-- [Drizzle](https://orm.drizzle.team)
-- [Tailwind CSS](https://tailwindcss.com)
-- [tRPC](https://trpc.io)
+Signed-out visitors get a landing page with two options: **Login** and
+**Guest**. Guest mode only offers QuickPlay (`/play`): problems are generated
+in the browser and finished games are saved to localStorage, never the
+database. Practice and Custom games require an account.
 
-## Learn More
+## Development
 
-To learn more about the [T3 Stack](https://create.t3.gg/), take a look at the following resources:
+```bash
+bun install
+bun run db:start     # local Postgres in Docker
+bun run db:push      # apply prisma/schema.prisma
+bun run db:setup     # seed problem definitions
+bun run dev
+```
 
-- [Documentation](https://create.t3.gg/)
-- [Learn the T3 Stack](https://create.t3.gg/en/faq#what-learning-resources-are-currently-available) — Check out these awesome tutorials
+Sign in with `dev` / `dev` (override with `BASIC_AUTH_USERNAME` /
+`BASIC_AUTH_PASSWORD` in `.env.dev`).
 
-You can check out the [create-t3-app GitHub repository](https://github.com/t3-oss/create-t3-app) — your feedback and contributions are welcome!
+## Production (Supabase)
 
-## How do I deploy this?
+The production project is `czqdhcxbdajdodefumfe` (us-east-1); its dashboard
+display name can be renamed to `numkey` in Project Settings.
+The schema was applied as the `init_mathgame_schema` migration and the 528
+problem definitions are seeded. All tables have RLS enabled with no policies:
+the app reaches Postgres exclusively through Prisma's direct connection, so
+the PostgREST `anon`/`authenticated` roles can't touch game data.
 
-Follow our deployment guides for [Vercel](https://create.t3.gg/en/deployment/vercel), [Netlify](https://create.t3.gg/en/deployment/netlify) and [Docker](https://create.t3.gg/en/deployment/docker) for more information.
+Environment variables for the production deployment:
+
+```bash
+NEXT_PUBLIC_SUPABASE_URL="https://czqdhcxbdajdodefumfe.supabase.co"
+NEXT_PUBLIC_SUPABASE_ANON_KEY="sb_publishable_..."   # Dashboard → Settings → API keys
+DATABASE_URL="postgresql://..."                       # Dashboard → Connect → Transaction pooler
+# NEXT_PUBLIC_AUTH_PROVIDER defaults to "supabase" in production builds
+```
+
+Use the **transaction pooler** connection string (port 6543) for serverless
+deployments and append `?pgbouncer=true` for Prisma.
+
+### One-time OAuth provider setup (dashboard)
+
+Supabase's Management API can't configure OAuth providers, so these steps are
+manual, in [Auth → Sign In / Up → Providers](https://supabase.com/dashboard/project/czqdhcxbdajdodefumfe/auth/providers):
+
+1. **GitHub**: create a GitHub OAuth app (Settings → Developer settings) with
+   callback URL `https://czqdhcxbdajdodefumfe.supabase.co/auth/v1/callback`,
+   then paste its client ID/secret into the GitHub provider and enable it.
+2. **Google**: create an OAuth client in Google Cloud Console (Web
+   application) with the same callback URL, then paste its client ID/secret
+   into the Google provider and enable it.
+3. In [Auth → URL Configuration](https://supabase.com/dashboard/project/czqdhcxbdajdodefumfe/auth/url-configuration),
+   set **Site URL** to the production domain and add
+   `https://<production-domain>/api/auth/callback` to the redirect allow list.
+
+## Testing
+
+```bash
+bun run test        # vitest unit tests
+bun run typecheck
+bun run lint
+bun run test:e2e    # Playwright (needs a running database; see .github/workflows/ci.yml)
+```

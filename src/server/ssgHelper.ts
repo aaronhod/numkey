@@ -1,6 +1,6 @@
 import { appRouter } from "@/server/api/root";
 import { createContextInner } from "@/server/api/trpc";
-import { getAuthOrDev } from "@/server/devAuth";
+import { getServerAuth } from "@/server/auth";
 import { createServerSideHelpers } from "@trpc/react-query/server";
 import { type GetServerSidePropsContext } from "next/types";
 import superjson from "superjson";
@@ -8,7 +8,9 @@ import superjson from "superjson";
 export const ssgHelper = async (ctx: GetServerSidePropsContext) =>
   createServerSideHelpers({
     router: appRouter,
-    ctx: await createContextInner({ auth: getAuthOrDev(ctx.req) }),
+    ctx: await createContextInner({
+      auth: await getServerAuth(ctx.req, ctx.res),
+    }),
     transformer: superjson,
   });
 

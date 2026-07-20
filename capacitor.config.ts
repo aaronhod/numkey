@@ -4,10 +4,11 @@ import type { CapacitorConfig } from "@capacitor/cli";
  * Capacitor wraps the existing Next.js web app in a native iOS/Android shell.
  *
  * Because this app is server-rendered (getServerSideProps, tRPC API routes,
- * Clerk middleware, Prisma) it cannot be statically exported, so the native
- * shell loads the hosted Next.js server rather than bundling static files.
+ * Supabase auth middleware, Prisma) it cannot be statically exported, so the
+ * native shell loads the hosted Next.js server rather than bundling static
+ * files.
  *
- *   - Production: set CAP_SERVER_URL to your deployed URL (e.g. https://mathgame.example.com)
+ *   - Production: set CAP_SERVER_URL to your deployed URL (e.g. https://numkey.example.com)
  *   - Local device testing: set CAP_SERVER_URL to your dev machine's LAN address
  *     (e.g. http://192.168.1.20:3000) and run `next dev`.
  *
@@ -17,8 +18,8 @@ import type { CapacitorConfig } from "@capacitor/cli";
 const serverUrl = process.env.CAP_SERVER_URL;
 
 const config: CapacitorConfig = {
-  appId: "com.mathgame.app",
-  appName: "Mental Math",
+  appId: "app.numkey",
+  appName: "numkey",
   webDir: "www",
   server: serverUrl
     ? {

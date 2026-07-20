@@ -43,6 +43,7 @@ yarn-error.log*
 /.idea/checkstyle-idea.xml
 /.idea/
 /.env*
+!/.env.example
 /.vscode/
 /.npmrc
 

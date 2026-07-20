@@ -11,16 +11,13 @@ import type {
   GameModifierName,
   GameSettings,
 } from "@/components/views/GameSettings";
-import { redirect } from "next/navigation";
 import {
   type GetServerSideProps,
   type InferGetServerSidePropsType,
 } from "next";
-import { buildClerkProps, clerkClient } from "@clerk/nextjs/server";
 import { hashProblemDefs } from "@/utils/hash";
 import { ssgHelper } from "@/server/ssgHelper";
-import { getAuthOrDev } from "@/server/devAuth";
-import { authDisabled } from "@/utils/authDisabled";
+import { getServerAuth } from "@/server/auth";
 
 interface Query {
   gameId: string;
@@ -42,15 +39,12 @@ interface QueryParams extends Query {
 }
 
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
-  const { userId } = getAuthOrDev(ctx.req);
+  const { userId } = await getServerAuth(ctx.req, ctx.res);
   if (!userId) {
-    redirect("/");
-  }
-  if (!authDisabled) {
-    const user = await (await clerkClient()).users.getUser(userId);
-    if (!user) {
-      redirect("/");
-    }
+    // Signed-out users play as guests at /play instead.
+    return {
+      redirect: { destination: "/login", permanent: false },
+    };
   }
 
   const parsedQuery = parseQueryParams(ctx.query);
@@ -86,7 +80,6 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
   // Load any data your application needs for the page using the userId
   return {
     props: {
-      ...(authDisabled ? {} : buildClerkProps(ctx.req)),
       userId: userId,
       problems: problems,
       settings: gameSettings,

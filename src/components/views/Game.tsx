@@ -3,6 +3,7 @@ import React, {
   useEffect,
   useMemo,
   useReducer,
+  useRef,
   useState,
 } from "react";
 import Numpad from "src/components/views/Numpad";
@@ -42,6 +43,7 @@ import {
 } from "@/components/shad-ui/dialog";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { setSoundEnabled, sound } from "@/utils/sound";
+import { saveGuestGame } from "@/utils/guestStorage";
 
 // add duration plugin for dayjs
 import duration from "dayjs/plugin/duration";
@@ -59,6 +61,11 @@ interface GameProps {
   category: GameCategory;
   route: string;
   settings?: GameSettings;
+  /**
+   * Where finished games go: "server" saves via tRPC to the database,
+   * "local" (guest mode) saves to localStorage.
+   */
+  persistence?: "server" | "local";
 }
 
 const ErrorDialog = ({
@@ -160,6 +167,7 @@ const Game = ({
   category,
   route,
   settings = DEFAULT_GAME_SETTINGS,
+  persistence = "server",
 }: GameProps) => {
   const router = useRouter();
   const addGameMutation = api.game.addFinishedGame.useMutation();
@@ -261,14 +269,25 @@ const Game = ({
     }
   }, [game.state]);
 
-  // submit game when game is finished
+  // submit game when game is finished (once)
+  const submittedRef = useRef(false);
   useEffect(() => {
-    if (game.state !== "finished" || !addGameMutation.isIdle) {
+    if (game.state !== "finished" || submittedRef.current) {
       return;
     }
 
-    submitGame();
-  }, [addGameMutation.isIdle, game.state, submitGame]);
+    if (persistence === "local") {
+      submittedRef.current = true;
+      const saved = saveGuestGame(game);
+      void router.push(`/${route}/complete?game=${saved.id}`);
+      return;
+    }
+
+    if (addGameMutation.isIdle) {
+      submittedRef.current = true;
+      submitGame();
+    }
+  }, [addGameMutation.isIdle, game, persistence, route, router, submitGame]);
 
   // redirect to complete page when game is submitted
   useEffect(() => {

@@ -5,8 +5,6 @@ import { api } from "@/utils/api";
 import "@/styles/style.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { CapacitorInit } from "@/components/CapacitorInit";
-import { ClerkProvider } from "@clerk/nextjs";
-import { authDisabled } from "@/utils/authDisabled";
 import { type NextPage } from "next/types";
 import { type ReactElement, type ReactNode } from "react";
 
@@ -27,7 +25,7 @@ type AppPropsWithLayout = AppProps & {
 const MyApp: AppType = ({ Component, pageProps }: AppPropsWithLayout) => {
   const getLayout = Component.getLayout ?? ((page) => page);
 
-  const app = (
+  return (
     <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
       <CapacitorInit />
       {/* Full-viewport hairline frame — the design's "site inside a border" motif. */}
@@ -38,16 +36,6 @@ const MyApp: AppType = ({ Component, pageProps }: AppPropsWithLayout) => {
       />
       {getLayout(<Component {...pageProps} />)}
     </ThemeProvider>
-  );
-
-  if (authDisabled) {
-    return app;
-  }
-
-  return (
-    <ClerkProvider {...pageProps} afterSignOutUrl="/">
-      {app}
-    </ClerkProvider>
   );
 };
 

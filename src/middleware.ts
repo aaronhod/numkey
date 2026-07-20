@@ -1,25 +1,46 @@
-import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
-import { NextResponse } from "next/server";
-import { authDisabled } from "@/utils/authDisabled";
+import { createServerClient } from "@supabase/ssr";
+import { NextResponse, type NextRequest } from "next/server";
+import { isSupabaseAuth } from "@/utils/authProvider";
 
-// This example protects all routes including api/trpc routes
-// Please edit this to allow other routes to be public as needed.
-// See https://clerk.com/docs/references/nextjs/auth-middleware for more information about configuring your Middleware
-const isPublicRoute = createRouteMatcher([
-  "/sign-in(.*)",
-  "/sign-up(.*)",
-  // Practice screens (flashcards, etc.) are self-contained client-side drills
-  // and don't require an authenticated user.
-  "/practice(.*)",
-]);
+/**
+ * With Supabase auth, the middleware's job is to refresh expiring session
+ * tokens on every request so server-side code always sees a valid session.
+ * Route protection happens in getServerSideProps / tRPC, not here.
+ */
+export async function middleware(request: NextRequest) {
+  if (!isSupabaseAuth) {
+    return NextResponse.next();
+  }
 
-export default authDisabled
-  ? () => NextResponse.next()
-  : clerkMiddleware(async (auth, request) => {
-      if (!isPublicRoute(request)) {
-        await auth.protect();
-      }
-    });
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !key) {
+    return NextResponse.next();
+  }
+
+  let response = NextResponse.next({ request });
+  const supabase = createServerClient(url, key, {
+    cookies: {
+      getAll() {
+        return request.cookies.getAll();
+      },
+      setAll(cookiesToSet) {
+        cookiesToSet.forEach(({ name, value }) =>
+          request.cookies.set(name, value),
+        );
+        response = NextResponse.next({ request });
+        cookiesToSet.forEach(({ name, value, options }) =>
+          response.cookies.set(name, value, options),
+        );
+      },
+    },
+  });
+
+  // Triggers a token refresh when the access token has expired.
+  await supabase.auth.getUser();
+
+  return response;
+}
 
 export const config = {
   // The following matcher runs middleware on all routes

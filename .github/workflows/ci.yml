@@ -8,10 +8,10 @@ on:
   pull_request:
   workflow_dispatch:
 
-# Dummy Clerk keys (valid format, not real) so the app boots for build/e2e.
+# CI runs with the dev-style "basic" auth provider against the job-local
+# Postgres — no Supabase project is needed to build or test.
 env:
-  NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: pk_test_Y2xlcmsuZXhhbXBsZS5jb20k
-  CLERK_SECRET_KEY: sk_test_dummydummydummydummydummydummydummydummy
+  NEXT_PUBLIC_AUTH_PROVIDER: basic
   SKIP_ENV_VALIDATION: "1"
 
 jobs:

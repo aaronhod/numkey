@@ -24,12 +24,15 @@ export function getGameRouteCustom(options: GameQuery): string {
 }
 
 // Defaults for the home-screen QuickPlay tile: jump straight into a
-// mixed game without going through the custom settings screen.
+// mixed game without going through the custom settings screen. Guest
+// QuickPlay (/play) uses the same defaults client-side.
+export const QUICKPLAY_QUERY: GameQuery = {
+  numbers: [2, 3, 4, 5, 6, 7, 8, 9],
+  operators: ["ADD", "SUBTRACT", "MULTIPLY"],
+  gameMode: "normal",
+  modifiers: ["shuffled"],
+};
+
 export function getGameRouteQuickPlay(): string {
-  return getGameRouteCustom({
-    numbers: [2, 3, 4, 5, 6, 7, 8, 9],
-    operators: ["ADD", "SUBTRACT", "MULTIPLY"],
-    gameMode: "normal",
-    modifiers: ["shuffled"],
-  });
+  return getGameRouteCustom(QUICKPLAY_QUERY);
 }
