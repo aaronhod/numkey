@@ -1,0 +1,48 @@
+name: Deploy to Cloudflare
+
+# Builds the Next.js app with the OpenNext Cloudflare adapter and deploys it to
+# the `mathgame` Worker. Runs on every push to main, or manually.
+#
+# Required GitHub repository secrets (Settings → Secrets and variables → Actions):
+#   CLOUDFLARE_API_TOKEN          - Cloudflare → My Profile → API Tokens →
+#                                   "Edit Cloudflare Workers" template
+#   CLOUDFLARE_ACCOUNT_ID         - Cloudflare dashboard (Workers & Pages → right sidebar)
+#   DATABASE_URL                  - Supabase transaction pooler string (port 6543, ?pgbouncer=true)
+#   NEXT_PUBLIC_SUPABASE_ANON_KEY - Supabase → Settings → API keys (publishable key)
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Build & deploy
+    runs-on: ubuntu-latest
+    env:
+      # Build-time vars. NEXT_PUBLIC_* must be present here so `next build` can
+      # inline them into the client bundle. DATABASE_URL must be reachable at
+      # build time because some pages are prerendered from Prisma.
+      NEXT_PUBLIC_AUTH_PROVIDER: supabase
+      NEXT_PUBLIC_SUPABASE_URL: https://czqdhcxbdajdodefumfe.supabase.co
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Install dependencies
+        run: bun install
+      - name: Build (OpenNext for Cloudflare)
+        run: bunx opennextjs-cloudflare build
+      - name: Deploy to Cloudflare Workers
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: deploy
+          # Upload runtime secrets to the Worker on each deploy (values come
+          # from the env above). The app reads these at request time.
+          secrets: |
+            DATABASE_URL
+            NEXT_PUBLIC_SUPABASE_ANON_KEY
