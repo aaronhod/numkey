@@ -20,7 +20,7 @@ export default defineConfig({
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
   webServer: {
     command: "npx next start -p 3210",
-    url: "http://localhost:3210/sign-in",
+    url: "http://localhost:3210/login",
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
   },
