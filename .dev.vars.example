@@ -1,0 +1,10 @@
+# Copy to `.dev.vars` for `bun run cf:preview` (Workers runtime, local).
+# `.dev.vars` is gitignored — never commit real secrets.
+#
+# Secret (set in prod with: npx wrangler secret put DATABASE_URL)
+DATABASE_URL="postgresql://postgres.czqdhcxbdajdodefumfe:<password>@aws-1-us-east-1.pooler.supabase.com:6543/postgres?pgbouncer=true"
+
+# Public values (also needed at BUILD time to inline into the client bundle)
+NEXT_PUBLIC_AUTH_PROVIDER="supabase"
+NEXT_PUBLIC_SUPABASE_URL="https://czqdhcxbdajdodefumfe.supabase.co"
+NEXT_PUBLIC_SUPABASE_ANON_KEY="sb_publishable_..."
