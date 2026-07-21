@@ -20,6 +20,18 @@ if (process.env.NODE_ENV === "development") {
 const config = {
   reactStrictMode: true,
 
+  // Keep these out of the webpack/esbuild server bundle so they run against
+  // the workerd runtime on Cloudflare. `pg-cloudflare` in particular ships a
+  // "workerd" export condition — listing it here makes the OpenNext adapter
+  // copy its real build into the bundle instead of the empty stub, fixing the
+  // `Could not resolve "pg-cloudflare"` esbuild error from node-postgres.
+  serverExternalPackages: [
+    "@prisma/client",
+    ".prisma/client",
+    "pg",
+    "pg-cloudflare",
+  ],
+
   /**
    * If you are using `appDir` then you must comment the below `i18n` config out.
    *
