@@ -5,6 +5,10 @@
   // OpenNext for Cloudflare requires nodejs_compat and a compat date >= 2024-09-23.
   "compatibility_date": "2026-07-21",
   "compatibility_flags": ["nodejs_compat"],
+  // Disable esbuild's keep-names. It otherwise injects a `__name` helper that
+  // leaks into script strings some libraries inline into the HTML (e.g.
+  // next-themes' theme script), causing "__name is not defined" in the browser.
+  "keep_names": false,
   "assets": {
     "directory": ".open-next/assets",
     "binding": "ASSETS"
