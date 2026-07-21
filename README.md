@@ -69,6 +69,51 @@ manual, in [Auth → Sign In / Up → Providers](https://supabase.com/dashboard/
    set **Site URL** to the production domain and add
    `https://<production-domain>/api/auth/callback` to the redirect allow list.
 
+### Deploy to Cloudflare Workers (OpenNext)
+
+The app deploys to Cloudflare Workers via the
+[`@opennextjs/cloudflare`](https://opennext.js.org/cloudflare) adapter
+(`wrangler.jsonc`, `open-next.config.ts`). The Worker is named `mathgame`.
+
+**Build-time env vars** (must be set when `opennextjs-cloudflare build` runs,
+so `next build` can inline `NEXT_PUBLIC_*` into the client bundle and prerender
+DB-backed pages):
+
+```bash
+NEXT_PUBLIC_AUTH_PROVIDER="supabase"
+NEXT_PUBLIC_SUPABASE_URL="https://czqdhcxbdajdodefumfe.supabase.co"
+NEXT_PUBLIC_SUPABASE_ANON_KEY="sb_publishable_..."   # Dashboard → Settings → API keys
+DATABASE_URL="postgresql://...:6543/postgres?pgbouncer=true"  # transaction pooler
+```
+
+The build statically prerenders some pages (e.g. `/practice/flashcards/[setId]`)
+that read Prisma, so `DATABASE_URL` must be reachable during the build — not
+just at runtime.
+
+**Runtime config** — `NODE_ENV`, `NEXT_PUBLIC_AUTH_PROVIDER`, and
+`NEXT_PUBLIC_SUPABASE_URL` are set as plain `vars` in `wrangler.jsonc`. Set the
+secrets separately:
+
+```bash
+npx wrangler secret put DATABASE_URL
+npx wrangler secret put NEXT_PUBLIC_SUPABASE_ANON_KEY   # if not a build var
+```
+
+**Deploy** from a machine/CI with the Cloudflare credentials and the build-time
+env vars above:
+
+```bash
+bun run cf:preview   # build + run locally in the workerd runtime
+bun run cf:deploy    # build + deploy to the mathgame Worker
+```
+
+Or connect the repo via **Workers Builds** (Cloudflare dashboard → the
+`mathgame` Worker → Settings → Build) and set the build vars/secrets there.
+
+After deploying, point a custom domain at the Worker (Worker → Settings →
+Domains & Routes) and make sure that hostname matches the Supabase **Site
+URL** / redirect allow list and the GitHub/Google OAuth app settings.
+
 ## Testing
 
 ```bash

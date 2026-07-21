@@ -4,6 +4,11 @@
  */
 await import("./src/env.js");
 
+// Lets `next dev` access Cloudflare bindings (env vars, etc.) locally via the
+// OpenNext adapter. No-op in production builds.
+import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
+initOpenNextCloudflareForDev();
+
 /** @type {import("next").NextConfig} */
 const config = {
   reactStrictMode: true,
