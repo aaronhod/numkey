@@ -69,7 +69,7 @@ body,
   }
 
   body {
-    @apply bg-background font-sans text-foreground;
+    @apply bg-background text-foreground font-sans;
     letter-spacing: 0.02em;
     padding: var(--frame-inset);
     scrollbar-gutter: stable;
@@ -77,5 +77,12 @@ body,
 
   ::selection {
     background: hsl(var(--foreground) / 0.25);
+  }
+
+  /* Tailwind v4's preflight switched buttons to `cursor: default`; restore
+     the pointer for anything clickable. */
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
   }
 }

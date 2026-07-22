@@ -4,6 +4,8 @@ import {
   generateProblems,
   getOperatorChar,
   OPERATORS,
+  shuffleProblemListNumbers,
+  shuffleProblemListOrder,
   type ProblemDefinition,
   toString,
 } from "@/game/problem";
@@ -64,5 +66,48 @@ describe("toString", () => {
       answer: 12,
     };
     expect(toString(problem)).toBe("3 × 4");
+  });
+});
+
+describe("shuffleProblemListOrder", () => {
+  it("returns a permutation of the input", () => {
+    const problems = generateProblems([2, 3], ["ADD"]);
+    const shuffled = shuffleProblemListOrder(problems);
+    expect(shuffled).toHaveLength(problems.length);
+    expect(new Set(shuffled)).toEqual(new Set(problems));
+  });
+
+  it("does not mutate the input list", () => {
+    const problems = generateProblems([2], ["ADD"]);
+    const copy = [...problems];
+    shuffleProblemListOrder(problems);
+    expect(problems).toEqual(copy);
+  });
+
+  it("actually reorders (first element varies across runs)", () => {
+    const problems = generateProblems([2, 3, 4], ["ADD"]);
+    const firsts = new Set<ProblemDefinition | undefined>();
+    for (let run = 0; run < 100; run++) {
+      firsts.add(shuffleProblemListOrder(problems)[0]);
+    }
+    // 100 shuffles of 33 problems landing on one first element is ~impossible.
+    expect(firsts.size).toBeGreaterThan(1);
+  });
+});
+
+describe("shuffleProblemListNumbers", () => {
+  it("keeps every answer valid for commutative operators", () => {
+    const problems = generateProblems([2, 3], ["ADD", "MULTIPLY"]);
+    for (const shuffledProblem of shuffleProblemListNumbers(problems)) {
+      const { leftValue, rightValue, operator, answer } = shuffledProblem;
+      expect(
+        operator === "ADD" ? leftValue + rightValue : leftValue * rightValue,
+      ).toBe(answer);
+    }
+  });
+
+  it("never swaps operands of non-commutative operators", () => {
+    const problems = generateProblems([2, 3], ["SUBTRACT", "DIVIDE"]);
+    expect(shuffleProblemListNumbers(problems)).toEqual(problems);
   });
 });

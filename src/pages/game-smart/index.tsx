@@ -3,6 +3,8 @@ import Game from "src/components/views/Game";
 import {
   generateProblems,
   OPERATORS,
+  shuffleProblemListNumbers,
+  shuffleProblemListOrder,
   type Operator,
   type Problem,
 } from "@/game/problem";
@@ -15,7 +17,7 @@ import {
   type GetServerSideProps,
   type InferGetServerSidePropsType,
 } from "next";
-import { hashProblemDefs } from "@/utils/hash";
+import { hashProblemDefs, sortByHashOrder } from "@/utils/hash";
 import { ssgHelper } from "@/server/ssgHelper";
 import { getServerAuth } from "@/server/auth";
 
@@ -59,7 +61,8 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
   const problemHashes = await hashProblemDefs(
     generateProblems(parsedQuery.numbers, parsedQuery.operators),
   );
-  const problems = await helpers.game.findProblemsByHash.fetch(problemHashes);
+  const fetched = await helpers.game.findProblemsByHash.fetch(problemHashes);
+  let problems = sortByHashOrder(fetched, problemHashes);
 
   const gameSettings = {
     gameMode: parsedQuery.gameMode,
@@ -76,6 +79,13 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
       },
     },
   };
+
+  if (gameSettings.gameModifiers.shuffled.enabled) {
+    problems = shuffleProblemListOrder(problems);
+  }
+  if (gameSettings.gameModifiers.random.enabled) {
+    problems = shuffleProblemListNumbers(problems);
+  }
 
   // Load any data your application needs for the page using the userId
   return {
