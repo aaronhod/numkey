@@ -1,10 +1,10 @@
 name: CI
 
-# Unit tests run on every push to the branch; the Playwright e2e job runs only
-# when a pull request exists for the branch (see the `if` on the e2e job).
+# Unit tests run on every push to main; the Playwright e2e job runs only
+# for pull requests (see the `if` on the e2e job).
 on:
   push:
-    branches: [claude/capacitor-app]
+    branches: [main]
   pull_request:
   workflow_dispatch:
 
