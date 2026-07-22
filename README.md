@@ -13,9 +13,15 @@ black-and-white monospace design system.
 
 ## Features
 
-- **Three ways to play** — Practice (drill one operator and number set),
-  QuickPlay (straight into a mixed game), and Custom (pick operators,
-  numbers, mode, and modifiers).
+- **Three ways to play** — QuickPlay (an adaptive mixed game), Practice
+  (drill one operator and number set), and Custom (pick operators, numbers,
+  mode, and modifiers).
+- **Adaptive QuickPlay** — QuickPlay works out which problems you have
+  trouble with (the ones you get wrong, retry, or answer slowly — e.g.
+  8 × 7) and weights each round list towards them, topped up with fresh
+  problems. Signed-in players are scored from their saved game history;
+  guests from games saved on the device. New players just get a random
+  mixed set. See `src/game/quickplay.ts`.
 - **Game modes and modifiers** — normal, endless, lives, and stack modes;
   shuffled order, randomized operands, and per-problem countdown modifiers.
 - **Guest mode** — play without an account; problems are generated in the

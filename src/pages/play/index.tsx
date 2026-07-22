@@ -4,11 +4,12 @@ import dynamic from "next/dynamic";
 import Game from "src/components/views/Game";
 import { LoaderOverlay } from "@/components/LoaderOverlay";
 import { QUICKPLAY_QUERY } from "@/constants/routes";
+import { generateProblems, type Problem } from "@/game/problem";
 import {
-  generateProblems,
-  shuffleProblemListOrder,
-  type Problem,
-} from "@/game/problem";
+  buildQuickPlaySet,
+  difficultyByProblem,
+} from "@/game/quickplay";
+import { getGuestGames } from "@/utils/guestStorage";
 import { type GameSettings } from "@/components/views/GameSettings";
 
 const GUEST_SETTINGS: GameSettings = {
@@ -22,11 +23,30 @@ const GUEST_SETTINGS: GameSettings = {
 
 const GuestGameInner = () => {
   // Client-only (ssr: false below), so the shuffle can't mismatch hydration.
-  const [problems] = useState<Problem[]>(() =>
-    shuffleProblemListOrder(
-      generateProblems(QUICKPLAY_QUERY.numbers, QUICKPLAY_QUERY.operators),
-    ).map((def, i) => ({ ...def, id: -(i + 1), hash: `guest-${i}` })),
-  );
+  const [problems] = useState<Problem[]>(() => {
+    // Weight the set towards problems the guest has struggled with, read from
+    // this device's saved games; new players just get a random mixed set.
+    const history = getGuestGames().flatMap((game) => game.rounds);
+    const weights = difficultyByProblem(
+      history.map((round) => ({
+        problem: round.problem,
+        isCompleted: round.isCompleted,
+        durationMs: round.durationMs,
+        attemptCount: round.attemptCount,
+      })),
+    );
+
+    const pool = [
+      ...generateProblems(QUICKPLAY_QUERY.numbers, QUICKPLAY_QUERY.operators),
+      ...history.map((round) => round.problem),
+    ];
+
+    return buildQuickPlaySet({ pool, weights }).map((def, i) => ({
+      ...def,
+      id: -(i + 1),
+      hash: `guest-${i}`,
+    }));
+  });
 
   return (
     <Game

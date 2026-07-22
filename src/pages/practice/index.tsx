@@ -10,7 +10,9 @@ import { cn } from "@/utils/shad";
 
 const LEARNING_MODES = ["flashcards", "game", "repetition"] as const;
 type LearningMode = (typeof LEARNING_MODES)[number];
-const NUMBER_OPTIONS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+// Problem sets are defined for 2–12 (see BASIC_MIN_NUM/BASIC_MAX_NUM); 1 has
+// no set and would 500 the game page, so it isn't offered.
+const NUMBER_OPTIONS = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
 
 interface ToggleButtonProps {
   children: React.ReactNode;
