@@ -31,9 +31,21 @@ const MyApp: AppType = ({ Component, pageProps }: AppPropsWithLayout) => {
       {/* Full-viewport hairline frame — the design's "site inside a border" motif. */}
       <div
         aria-hidden
-        className="pointer-events-none fixed z-50 border border-foreground/35"
+        className="pointer-events-none fixed z-[9999] border border-foreground/35"
         style={{ inset: "var(--frame-inset)" }}
       />
+      <a
+        href="https://aaronhodgins.com"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="fixed z-[9999] bg-background px-1.5 text-[9px] uppercase tracking-[0.08em] text-muted-foreground/40 transition-colors hover:text-muted-foreground/70"
+        style={{
+          bottom: "calc(var(--frame-inset) - 0.45em)",
+          right: "calc(var(--frame-inset) + 0.75rem)",
+        }}
+      >
+        aaronhodgins.com
+      </a>
       {getLayout(<Component {...pageProps} />)}
     </ThemeProvider>
   );
