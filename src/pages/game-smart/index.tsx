@@ -20,6 +20,8 @@ import {
 import { hashProblemDefs, sortByHashOrder } from "@/utils/hash";
 import { ssgHelper } from "@/server/ssgHelper";
 import { getServerAuth } from "@/server/auth";
+import { getDb } from "@/server/db";
+import { buildSmartQuickPlayProblems } from "@/server/quickplay";
 
 interface Query {
   gameId: string;
@@ -49,15 +51,38 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
     };
   }
 
+  const helpers = await ssgHelper(ctx);
   const parsedQuery = parseQueryParams(ctx.query);
+
+  // No settings query means QuickPlay: build an adaptive set from the
+  // player's history instead of running a fixed, configured game.
   if (!parsedQuery) {
-    // Missing or invalid game settings — send the user to the setup screen.
+    const problems = await buildSmartQuickPlayProblems(getDb(), userId);
+    if (problems.length === 0) {
+      // No seeded problems to draw from — fall back to the setup screen.
+      return {
+        redirect: { destination: "/game-custom", permanent: false },
+      };
+    }
+
     return {
-      redirect: { destination: "/game-custom", permanent: false },
+      props: {
+        userId,
+        problems,
+        // The builder already shuffles and mixes weak/fresh problems.
+        settings: {
+          gameMode: "normal",
+          gameModifiers: {
+            random: { enabled: false },
+            timed: { enabled: false, durationSeconds: 10 },
+            shuffled: { enabled: false },
+          },
+        },
+        trpcState: helpers.dehydrate(),
+      } satisfies Props,
     };
   }
 
-  const helpers = await ssgHelper(ctx);
   const problemHashes = await hashProblemDefs(
     generateProblems(parsedQuery.numbers, parsedQuery.operators),
   );

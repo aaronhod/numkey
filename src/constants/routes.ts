@@ -23,9 +23,9 @@ export function getGameRouteCustom(options: GameQuery): string {
   return `${GAME_SMART_ROUTE}?${searchParams.toString()}`;
 }
 
-// Defaults for the home-screen QuickPlay tile: jump straight into a
-// mixed game without going through the custom settings screen. Guest
-// QuickPlay (/play) uses the same defaults client-side.
+// The pool QuickPlay draws its "fresh" (non-weak) problems from. Guest
+// QuickPlay (/play) uses the same pool client-side; the signed-in server
+// builder uses it to top up the adaptive set.
 export const QUICKPLAY_QUERY: GameQuery = {
   numbers: [2, 3, 4, 5, 6, 7, 8, 9],
   operators: ["ADD", "SUBTRACT", "MULTIPLY"],
@@ -33,6 +33,9 @@ export const QUICKPLAY_QUERY: GameQuery = {
   modifiers: ["shuffled"],
 };
 
+// QuickPlay hits game-smart with no settings query. That signals the page to
+// build an adaptive set from the player's history (the problems they miss
+// most) rather than run a fixed, configured game.
 export function getGameRouteQuickPlay(): string {
-  return getGameRouteCustom(QUICKPLAY_QUERY);
+  return GAME_SMART_ROUTE;
 }

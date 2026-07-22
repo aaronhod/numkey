@@ -48,15 +48,15 @@ const SignedInMenu = () => {
     <div className="flex flex-col gap-px border bg-border">
       <MenuRow
         index="01"
-        title="Practice"
-        description="Drill a single operator and number set."
-        onClick={() => void router.push("/practice")}
+        title="QuickPlay"
+        description="An adaptive mixed game that targets the problems you miss most."
+        onClick={() => void router.push(`/${getGameRouteQuickPlay()}`)}
       />
       <MenuRow
         index="02"
-        title="QuickPlay"
-        description="Straight into a game with default settings."
-        onClick={() => void router.push(`/${getGameRouteQuickPlay()}`)}
+        title="Practice"
+        description="Drill a single operator and number set."
+        onClick={() => void router.push("/practice")}
       />
       <MenuRow
         index="03"
