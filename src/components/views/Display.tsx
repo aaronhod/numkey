@@ -229,23 +229,28 @@ export const DisplayContent = (props: {
   return (
     <h2
       className={cn(
-        "my-auto flex w-full p-5 text-3xl transition-colors duration-100 sm:text-5xl",
+        "my-auto flex w-full items-center p-5 text-3xl transition-colors duration-100 sm:text-5xl",
         {
           "bg-foreground/25": props.flash === "wrong",
           "bg-foreground/10": props.flash === "correct",
         },
       )}
     >
-      {props.problem && (
-        <div className="flex w-full min-w-fit gap-0.5 self-center align-text-bottom text-inherit/75 sm:gap-4">
-          <p>{props.problem?.leftValue}</p>
-          <p>{getOperatorChar(props.problem?.operator)}</p>
-          <p>{props.problem?.rightValue}</p>
+      {/* Cap the measure and center it so the problem and the input stay a
+          readable distance apart instead of hugging opposite edges on wide
+          screens; on small screens this is full width, as before. */}
+      <div className="mx-auto flex w-full max-w-xl items-center justify-between gap-4">
+        {props.problem && (
+          <div className="flex min-w-fit gap-0.5 align-text-bottom text-inherit/75 sm:gap-4">
+            <p>{props.problem?.leftValue}</p>
+            <p>{getOperatorChar(props.problem?.operator)}</p>
+            <p>{props.problem?.rightValue}</p>
+          </div>
+        )}
+        <div className="flex max-w-[80%] cursor-default gap-1 bg-inherit text-right caret-transparent focus:cursor-default focus:ring-0 focus:outline-none sm:gap-4">
+          <p>{props.negativeMode && "- "}</p>
+          <p>{props.userValue}</p>
         </div>
-      )}
-      <div className="flex max-w-[80%] cursor-default gap-1 self-center bg-inherit text-right caret-transparent focus:cursor-default focus:ring-0 focus:outline-none sm:gap-4">
-        <p>{props.negativeMode && "- "}</p>
-        <p>{props.userValue}</p>
       </div>
     </h2>
   );
