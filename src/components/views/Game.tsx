@@ -42,7 +42,12 @@ import {
   DialogTitle,
 } from "@/components/shad-ui/dialog";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
-import { setSoundEnabled, sound } from "@/utils/sound";
+import {
+  setSoundEnabled,
+  setSoundVolume,
+  sound,
+  VOLUME_LEVELS,
+} from "@/utils/sound";
 import { saveGuestGame } from "@/utils/guestStorage";
 
 // add duration plugin for dayjs
@@ -83,7 +88,7 @@ const ErrorDialog = ({
     <AlertDialog open={Boolean(error)}>
       <AlertDialogContent className="max-w-2xl translate-y-[-100%]">
         <AlertDialogHeader>
-          <AlertDialogTitle className="text-3xl ">
+          <AlertDialogTitle className="text-3xl">
             Error saving your game
           </AlertDialogTitle>
           <AlertDialogDescription>
@@ -118,18 +123,35 @@ const ErrorDialog = ({
   );
 };
 
+const SettingsRowLabel = ({ children }: { children: React.ReactNode }) => (
+  <span className="text-muted-foreground text-[11px] tracking-[0.08em] uppercase">
+    {children}
+  </span>
+);
+
 const PauseMenu = ({
   isOpen,
   setIsOpen,
   soundOn,
   toggleSound,
+  volume,
+  setVolume,
 }: {
   isOpen: boolean;
   setIsOpen: (open: boolean) => void;
   soundOn: boolean;
   toggleSound: () => void;
+  volume: number;
+  setVolume: (volume: number) => void;
 }) => {
   const router = useRouter();
+
+  const previewVolume = (value: number) => {
+    setVolume(value);
+    // Apply immediately so the preview blip plays at the new volume.
+    setSoundVolume(value);
+    sound.correct();
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -142,13 +164,34 @@ const PauseMenu = ({
         <DialogHeader>
           <DialogTitle>Game Paused</DialogTitle>
           <DialogDescription>
-            Exit to the main menu or resume.
+            Adjust settings, exit to the main menu, or resume.
           </DialogDescription>
         </DialogHeader>
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center justify-between">
+            <SettingsRowLabel>Sound</SettingsRowLabel>
+            <Button variant="ghost" size="sm" onClick={toggleSound}>
+              {soundOn ? "On ●" : "Off ○"}
+            </Button>
+          </div>
+          <div className="flex items-center justify-between">
+            <SettingsRowLabel>Volume</SettingsRowLabel>
+            <div className="flex gap-1">
+              {VOLUME_LEVELS.map(({ label, value }) => (
+                <Button
+                  key={label}
+                  variant={volume === value ? "outline" : "ghost"}
+                  size="sm"
+                  disabled={!soundOn}
+                  onClick={() => previewVolume(value)}
+                >
+                  {label}
+                </Button>
+              ))}
+            </div>
+          </div>
+        </div>
         <DialogFooter className="gap-2">
-          <Button variant="ghost" className="sm:mr-auto" onClick={toggleSound}>
-            Sound {soundOn ? "On ●" : "Off ○"}
-          </Button>
           <Button variant="destructive" onClick={() => void router.push("/")}>
             Exit Game
           </Button>
@@ -173,7 +216,14 @@ const Game = ({
   const addGameMutation = api.game.addFinishedGame.useMutation();
 
   const [
-    { game, inputValue, negativeMode, feedback, gameStopWatchMs, problemTimerMs },
+    {
+      game,
+      inputValue,
+      negativeMode,
+      feedback,
+      gameStopWatchMs,
+      problemTimerMs,
+    },
     dispatch,
   ] = useReducer(
     gameReducer(settings),
@@ -194,6 +244,14 @@ const Game = ({
   useEffect(() => {
     setSoundEnabled(soundOn);
   }, [soundOn]);
+
+  const [soundVolume, setSoundVolumeSetting] = useLocalStorage(
+    "soundVolume",
+    0.5,
+  );
+  useEffect(() => {
+    setSoundVolume(soundVolume);
+  }, [soundVolume]);
 
   const pauseGame = useCallback((newPauseState?: boolean) => {
     dispatch({ type: "pause-game", value: newPauseState });
@@ -303,6 +361,8 @@ const Game = ({
         setIsOpen={pauseGame}
         soundOn={soundOn}
         toggleSound={() => setSoundOn(!soundOn)}
+        volume={soundVolume}
+        setVolume={setSoundVolumeSetting}
       />
       <ErrorDialog
         error={addGameMutation.error}
@@ -325,6 +385,7 @@ const Game = ({
             lives={game.lives}
             settings={settings}
             remainingMs={problemTimerMs ?? null}
+            onOpenMenu={() => pauseGame(true)}
           />
           <DisplayContent
             problem={game.currentProblem ?? null}
