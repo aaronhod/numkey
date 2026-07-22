@@ -1,12 +1,9 @@
-import xxhash from "xxhash-wasm";
+import { h32ToString } from "@/utils/xxh32";
 import { type Problem, type ProblemDefinition } from "@/game/problem";
 import { type ssgHelper } from "@/server/ssgHelper";
 import { fromProblemSetId, type ProblemSetId } from "@/game/problemSet";
 
 const SEED = 21;
-
-//eslint-disable-next-line @typescript-eslint/unbound-method
-const { h32ToString } = await xxhash();
 
 export const hashProblem = async (problem: Problem) => {
   const problemDef = {

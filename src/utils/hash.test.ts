@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
+import xxhash from "xxhash-wasm";
 
 import { type ProblemDefinition } from "@/game/problem";
 import { hashProblemDef } from "@/utils/hash";
+import { h32ToString } from "@/utils/xxh32";
 
 const problem = (o: Partial<ProblemDefinition> = {}): ProblemDefinition => ({
   leftValue: 2,
@@ -30,5 +32,32 @@ describe("hashProblemDef", () => {
       problem({ operator: "MULTIPLY", answer: 6 }),
     );
     expect(add).not.toBe(mul);
+  });
+
+  // Hashes are persisted in ProblemDefinition.hash, so the implementation
+  // must never drift from the values the database was seeded with.
+  it("matches the historical xxhash-wasm value", async () => {
+    expect(await hashProblemDef(problem())).toBe("275d7462");
+  });
+});
+
+describe("xxh32", () => {
+  it("matches xxhash-wasm bit-for-bit", async () => {
+    const { h32ToString: wasmH32ToString } = await xxhash();
+
+    const inputs = ["", "a", "23ADD5", "2MULTIPLY36", "é☃𝄞"];
+    for (let len = 1; len <= 64; len++) {
+      let s = "";
+      for (let i = 0; i < len; i++) {
+        s += String.fromCharCode(32 + Math.floor(Math.random() * 95));
+      }
+      inputs.push(s);
+    }
+
+    for (const input of inputs) {
+      for (const seed of [0, 21, 0xdeadbeef, 4294967295]) {
+        expect(h32ToString(input, seed)).toBe(wasmH32ToString(input, seed));
+      }
+    }
   });
 });
