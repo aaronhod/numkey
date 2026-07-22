@@ -18,10 +18,8 @@ export const createContextInner = async ({ auth }: AuthContextProps) => {
 };
 
 /**
- * This is the actual context you will use in your router. It will be used to process every request
- * that goes through your tRPC endpoint.
- *
- * @see https://trpc.io/docs/context
+ * Per-request context for the tRPC endpoint (`/api/trpc`): resolves the
+ * caller's auth and hands out the request's database client.
  */
 export const createTRPCContext = async (opts: CreateNextContextOptions) => {
   const contextInner = await createContextInner({
@@ -60,26 +58,10 @@ const isAuthed = t.middleware(({ next, ctx }) => {
   });
 });
 
-/**
- * 3. ROUTER & PROCEDURE (THE IMPORTANT BIT)
- *
- * These are the pieces you use to build your tRPC API. You should import these a lot in the
- * "/src/server/api/routers" directory.
- */
-
-/**
- * This is how you create new routers and sub-routers in your tRPC API.
- *
- * @see https://trpc.io/docs/router
- */
 export const createTRPCRouter = t.router;
 
-/**
- * Public (unauthenticated) procedure
- */
+/** Procedure callable without a session. */
 export const publicProcedure = t.procedure;
 
-/**
- * Authenticated procedure
- */
+/** Procedure that rejects unauthenticated callers with UNAUTHORIZED. */
 export const protectedProcedure = t.procedure.use(isAuthed);
