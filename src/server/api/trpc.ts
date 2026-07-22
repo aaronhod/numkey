@@ -3,7 +3,7 @@ import { type CreateNextContextOptions } from "@trpc/server/adapters/next";
 import superjson from "superjson";
 import { ZodError } from "zod";
 
-import { db } from "@/server/db";
+import { getDb } from "@/server/db";
 import { getServerAuth, type ServerAuth } from "@/server/auth";
 
 type AuthContextProps = {
@@ -13,7 +13,7 @@ type AuthContextProps = {
 export const createContextInner = async ({ auth }: AuthContextProps) => {
   return {
     auth,
-    db,
+    db: getDb(),
   };
 };
 

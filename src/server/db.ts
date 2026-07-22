@@ -14,8 +14,20 @@ const globalForPrisma = globalThis as unknown as {
   prisma: ReturnType<typeof createPrismaClient> | undefined;
 };
 
-export const db = globalForPrisma.prisma ?? createPrismaClient();
+// On Cloudflare Workers a TCP socket belongs to the request that opened it,
+// so a client cached across requests reuses dead pooled connections and the
+// runtime cancels the request as hung ("Worker's code had hung"). Every
+// other DB request then 500s.
+const isCloudflareWorkers =
+  typeof navigator !== "undefined" &&
+  navigator.userAgent === "Cloudflare-Workers";
 
-if (env.NODE_ENV !== "production") {
-  globalForPrisma.prisma = db;
-}
+/**
+ * Prisma client for the current request. A fresh client per request on
+ * Cloudflare Workers (its connections are cancelled with the request);
+ * a process-wide cached client everywhere else.
+ */
+export const getDb = () =>
+  isCloudflareWorkers
+    ? createPrismaClient()
+    : (globalForPrisma.prisma ??= createPrismaClient());

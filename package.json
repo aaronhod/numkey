@@ -87,7 +87,6 @@
     "tailwindcss-animate": "^1.0.7",
     "ts-node": "^10.9.2",
     "tsx": "^4.22.4",
-    "xxhash-wasm": "^1.1.0",
     "zod": "^4.4.3"
   },
   "devDependencies": {
@@ -113,7 +112,8 @@
     "tailwindcss": "^4.3.2",
     "typescript": "^6.0.3",
     "vitest": "^4.1.9",
-    "wrangler": "^4.112.0"
+    "wrangler": "^4.112.0",
+    "xxhash-wasm": "^1.1.0"
   },
   "prisma": {
     "schema": "prisma/schema.prisma",
