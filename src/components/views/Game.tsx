@@ -370,7 +370,7 @@ const Game = ({
         isLoading={addGameMutation.isPending}
       />
       <LoaderOverlay isLoading={addGameMutation.isPending} />
-      <div className="flex h-full flex-col font-mono text-lg font-semibold">
+      <div className="flex h-full flex-col border font-mono text-lg font-semibold">
         <Display
           className="h-1/4"
           negativeMode={negativeMode}

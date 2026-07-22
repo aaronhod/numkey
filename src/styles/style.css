@@ -13,6 +13,11 @@ body,
     --font-sans: "JetBrains Mono", ui-monospace, "SF Mono", monospace;
 
     --frame-inset: clamp(8px, 3vw, 16px);
+    /* Breathing room between the hairline frame and page content, so the
+       frame never sits on top of buttons, text, or the game grid. The
+       overlap/cramping only shows up on wider screens, so this ramps from ~0
+       on phones (which are already tight) up to 20px on desktop. */
+    --content-gap: clamp(0px, calc(2.2vw - 8px), 20px);
 
     --background: 0 0% 100%;
     --foreground: 0 0% 0%;
@@ -71,7 +76,9 @@ body,
   body {
     @apply bg-background text-foreground font-sans;
     letter-spacing: 0.02em;
-    padding: var(--frame-inset);
+    /* Inset content past the frame (which sits at --frame-inset) so nothing
+       ever touches or overlaps the hairline border. */
+    padding: calc(var(--frame-inset) + var(--content-gap));
     scrollbar-gutter: stable;
   }
 
