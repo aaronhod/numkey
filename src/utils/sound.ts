@@ -9,9 +9,21 @@
 
 let audioCtx: AudioContext | null = null;
 let enabled = true;
+let volume = 0.5;
 
 export function setSoundEnabled(value: boolean) {
   enabled = value;
+}
+
+export const VOLUME_LEVELS = [
+  { label: "Low", value: 0.25 },
+  { label: "Mid", value: 0.5 },
+  { label: "High", value: 1 },
+] as const;
+
+/** Master volume multiplier applied to every effect (0–1). */
+export function setSoundVolume(value: number) {
+  volume = Math.min(Math.max(value, 0), 1);
 }
 
 function context(): AudioContext | null {
@@ -46,7 +58,13 @@ function play(tones: Tone[]) {
     return;
   }
 
-  for (const { freq, at = 0, duration, type = "square", peak = 0.04 } of tones) {
+  for (const {
+    freq,
+    at = 0,
+    duration,
+    type = "square",
+    peak = 0.04,
+  } of tones) {
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.type = type;
@@ -54,7 +72,7 @@ function play(tones: Tone[]) {
 
     const t0 = ctx.currentTime + at;
     gain.gain.setValueAtTime(0, t0);
-    gain.gain.linearRampToValueAtTime(peak, t0 + 0.005);
+    gain.gain.linearRampToValueAtTime(peak * volume, t0 + 0.005);
     gain.gain.exponentialRampToValueAtTime(0.0001, t0 + duration);
 
     osc.connect(gain);

@@ -85,32 +85,40 @@ export function generateProblems(
   return problems;
 }
 
-export function shuffleProblemListOrderAndNumbers(
-  problems: ProblemDefinition[],
-): ProblemDefinition[] {
+export function shuffleProblemListOrderAndNumbers<T extends ProblemDefinition>(
+  problems: T[],
+): T[] {
   return shuffleProblemListNumbers(shuffleProblemListOrder(problems));
 }
 
-export function shuffleProblemListOrder(
-  problems: ProblemDefinition[],
-): ProblemDefinition[] {
-  return problems
-    .map((value) => ({ value, sort: Math.random() }))
-    .sort((a, b) => a.sort - b.sort)
-    .map(({ value }) => value);
+// Fisher–Yates: uniform, unlike sorting by a random comparator, which is
+// biased and left lists close to their original (sequential) order.
+export function shuffleProblemListOrder<T extends ProblemDefinition>(
+  problems: T[],
+): T[] {
+  const shuffled = [...problems];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j]!, shuffled[i]!];
+  }
+  return shuffled;
 }
 
-export function shuffleProblemListNumbers(
-  problems: ProblemDefinition[],
-): ProblemDefinition[] {
+export function shuffleProblemListNumbers<T extends ProblemDefinition>(
+  problems: T[],
+): T[] {
   return problems.map((problem) => shuffleProblemNumbers(problem));
 }
 
-function shuffleProblemNumbers(problem: ProblemDefinition): ProblemDefinition {
+function shuffleProblemNumbers<T extends ProblemDefinition>(problem: T): T {
   const { leftValue, rightValue } = problem;
-  const rand = Math.random();
 
-  if (rand < 0.5) {
+  // Swapping operands only preserves the answer for commutative operators.
+  if (problem.operator === "SUBTRACT" || problem.operator === "DIVIDE") {
+    return problem;
+  }
+
+  if (Math.random() < 0.5) {
     return {
       ...problem,
       leftValue: rightValue,

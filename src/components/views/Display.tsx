@@ -49,7 +49,7 @@ const StopWatch = ({ runningMs, setRunningMs, isPaused }: TimerProps) => {
       <TooltipTrigger asChild>
         <div className="flex items-baseline gap-2">
           <span>Time</span>
-          <p className="tabular-nums text-foreground">
+          <p className="text-foreground tabular-nums">
             {timeElapsed.format("mm:ss")}
           </p>
         </div>
@@ -67,7 +67,7 @@ const Timer = ({ remainingMs }: { remainingMs: number }) => {
   return (
     <div className="flex items-baseline gap-2">
       <span>Left</span>
-      <p className="tabular-nums text-foreground">
+      <p className="text-foreground tabular-nums">
         {timeRemaining.asSeconds().toString().padStart(2, "0")}
       </p>
     </div>
@@ -99,9 +99,7 @@ const RoundTally = ({
       <TooltipTrigger asChild>
         <div className="flex items-baseline gap-2">
           <span>Rnd</span>
-          <div className="flex tabular-nums text-foreground">
-            {tallyString}
-          </div>
+          <div className="text-foreground flex tabular-nums">{tallyString}</div>
         </div>
       </TooltipTrigger>
       <TooltipContent>
@@ -189,9 +187,11 @@ export const DisplayHeader = (props: {
   lives: number | null;
   settings: GameSettings;
   remainingMs: number | null;
+  /** Opens the pause/settings menu (also reachable via Escape). */
+  onOpenMenu: () => void;
 }) => {
   return (
-    <h3 className="flex items-baseline justify-between gap-4 border-b px-5 py-3 text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
+    <h3 className="text-muted-foreground flex items-baseline justify-between gap-4 border-b px-5 py-3 text-[11px] font-medium tracking-[0.08em] uppercase">
       <RoundTally
         completed={props.completed}
         total={props.total}
@@ -207,6 +207,13 @@ export const DisplayHeader = (props: {
       )}
       <LivesDisplay livesRemaining={props.lives} />
       <SettingsDisplay settings={props.settings} />
+      <button
+        onClick={props.onOpenMenu}
+        aria-label="Open the pause menu and settings"
+        className="hover:text-foreground tracking-[0.08em] uppercase transition-colors"
+      >
+        Menu ≡
+      </button>
     </h3>
   );
 };
@@ -215,24 +222,28 @@ export const DisplayContent = (props: {
   problem: ProblemDefinition | null;
   negativeMode: boolean;
   userValue: string | null;
-  /** Brief full-area flash after an attempt: wrong inverts, correct tints. */
+  /** Brief full-area tint after an attempt — stronger for wrong answers,
+   *  but never a full inversion, which read as a harsh white flash. */
   flash?: "correct" | "wrong" | null;
 }) => {
   return (
     <h2
-      className={cn("my-auto flex w-full p-5 text-3xl sm:text-5xl", {
-        "bg-foreground text-background": props.flash === "wrong",
-        "bg-foreground/10": props.flash === "correct",
-      })}
+      className={cn(
+        "my-auto flex w-full p-5 text-3xl transition-colors duration-100 sm:text-5xl",
+        {
+          "bg-foreground/25": props.flash === "wrong",
+          "bg-foreground/10": props.flash === "correct",
+        },
+      )}
     >
       {props.problem && (
-        <div className="text-inherit/75 flex w-full min-w-fit gap-0.5 self-center align-text-bottom sm:gap-4">
+        <div className="flex w-full min-w-fit gap-0.5 self-center align-text-bottom text-inherit/75 sm:gap-4">
           <p>{props.problem?.leftValue}</p>
           <p>{getOperatorChar(props.problem?.operator)}</p>
           <p>{props.problem?.rightValue}</p>
         </div>
       )}
-      <div className="flex max-w-[80%] cursor-default gap-1 self-center bg-inherit text-right caret-transparent focus:cursor-default focus:outline-none focus:ring-0 sm:gap-4">
+      <div className="flex max-w-[80%] cursor-default gap-1 self-center bg-inherit text-right caret-transparent focus:cursor-default focus:ring-0 focus:outline-none sm:gap-4">
         <p>{props.negativeMode && "- "}</p>
         <p>{props.userValue}</p>
       </div>
